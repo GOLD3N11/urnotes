@@ -57,7 +57,7 @@ const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
     calc: { method: "weighted", rounding: "2", riskThreshold: 8, riskDrop: 0.5 },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "violet", density: "normal", cursor: "off", island: "on" },
+    appearance: { theme: "system", accent: "violet", density: "normal", cursor: "off" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată
@@ -653,7 +653,7 @@ function openPurtareModal(key) {
             setPurtare(m, val, field("purtare-reason").trim().slice(0, 120));
         }
     });
-    $("purtare-val")?.select();
+    $("purtare-val")?.focus();
 }
 
 function setPurtare(m, val, reason) {
@@ -783,8 +783,7 @@ function sanitizeSettings(raw) {
             theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
             accent: pick(s.appearance.accent, Object.keys(ACCENTS), "violet"),
             density: pick(s.appearance.density, ["normal", "compact", "spacious"], "normal"),
-            cursor: pick(s.appearance.cursor, CURSOR_MODES, "off"),
-            island: pick(s.appearance.island, ["on", "off"], "on")
+            cursor: pick(s.appearance.cursor, CURSOR_MODES, "off")
         },
         school: {
             profile: typeof s.school?.profile === "string" && SETUP_PROFILES[s.school.profile] ? s.school.profile : "",
@@ -1221,7 +1220,6 @@ function refresh() {
     renderNotificationBadge();
     if (!$("notif-panel")?.hidden) renderAlerts();
     renderActiveTab({ keepSettingsForm: true });
-    islandAfterRefresh();
 }
 
 /* ==================== RANDARE ==================== */
@@ -1265,6 +1263,10 @@ function renderNotificationBadge() {
     badge.textContent = unread;
     badge.hidden = unread === 0;
     $("notif-btn")?.setAttribute("aria-label", unread > 0 ? `Notificări (${unread} necitite)` : "Notificări");
+    // Pe ecranul principal (iPhone, Android), iconița aplicației arată același număr ca clopoțelul.
+    if ("setAppBadge" in navigator && !guest.on) {
+        (unread ? navigator.setAppBadge(unread) : navigator.clearAppBadge?.())?.catch?.(() => {});
+    }
 }
 
 /* ---------- DASHBOARD ---------- */
@@ -1560,6 +1562,7 @@ function renderDashboard() {
     $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today);
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
+    if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
     $("azi-avg").innerHTML = homeAverageHTML();
     const watch = homeWatchHTML();
     $("azi-watch").innerHTML = watch;
@@ -1610,6 +1613,25 @@ function openHelp(key) {
     const h = HELP[key];
     if (!h) return;
     openModal({ title: h.title, body: `<p class="help-text">${escapeHTML(h.text)}</p>`, confirmText: "", cancelText: "Am înțeles", guestOk: true });
+}
+
+/* ---------- iPhone: „Pune pe ecranul principal” ---------- */
+/* În Safari nu există buton de instalare; arătăm o dată, pe scurt, cum se face. */
+const IOS_HINT_KEY = "pro_ios_install_hidden_v4";
+const isStandalone = () => navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+function homeInstallHTML() {
+    let hidden = false;
+    try { hidden = localStorage.getItem(IOS_HINT_KEY) === "1"; } catch (_) { /* fără stocare */ }
+    if (hidden || !isIOS() || isStandalone()) return "";
+    return `
+        ${homeCardHead("azi-install-title", "download", "urNotes ca aplicație")}
+        <p class="azi-more-line">Pune-l pe ecranul principal: se deschide fără bara Safari, merge și fără internet, iar iconița îți arată câte notificări ai.</p>
+        <ol class="install-steps">
+            <li>Apasă <b>Partajează</b> <span class="install-share" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span> în bara Safari.</li>
+            <li>Alege <b>„Adaugă pe ecranul principal”</b>.</li>
+            <li>Deschide urNotes de pe ecranul principal.</li>
+        </ol>
+        <button type="button" class="btn btn-text btn-sm" data-action="install-hide">Am înțeles</button>`;
 }
 
 /* ---------- „Primii pași”: ce face aplicația utilă, bifat singur pe măsură ce elevul le face ---------- */
@@ -3240,7 +3262,6 @@ const SETTINGS_FIELDS = {
     "set-accent": ["appearance", "accent"],
     "set-density": ["appearance", "density"],
     "set-cursor": ["appearance", "cursor"],
-    "set-island": ["appearance", "island"],
     "set-name": ["profile", "name"],
     "set-buddy": ["profile", "buddy"]
 };
@@ -3263,7 +3284,21 @@ function loadSettingsIntoUI() {
     renderBackupStatus();
     renderBuddyPreview();
     renderProgrammeSettings();
+    renderBadgeSetting();
     if (guest.on) renderGuestBar(); // câmpurile rămân blocate pentru vizitatori
+}
+
+/** Numărul de pe iconița aplicației: pe iPhone apare doar după permisiunea pentru notificări. */
+function renderBadgeSetting() {
+    const box = $("badge-setting");
+    if (!box) return;
+    const can = "setAppBadge" in navigator && "Notification" in window && isStandalone();
+    box.hidden = !can;
+    if (!can) return;
+    box.innerHTML = Notification.permission === "granted"
+        ? `<p class="subtitle">${icon("check")} Iconița aplicației arată câte notificări necitite ai.</p>`
+        : `<button type="button" class="btn btn-glass btn-sm" data-action="badge-allow">${icon("bell")} Arată numărul pe iconița aplicației</button>
+           <p class="subtitle mt-2">Telefonul îți cere o dată voie (ca pentru notificări).</p>`;
 }
 
 /** „Programa ta” (Setări): profilul și clasa, de care depind materiile care se pot adăuga. */
@@ -6229,7 +6264,97 @@ function homePlanHTML(today) {
 /* ---------- cronometrul de concentrare ---------- */
 /* „Începe” deschide un cronometru pentru sesiune; la final (sau cu „Am terminat”) sesiunea se bifează.
    Ecranul telefonului rămâne aprins cât merge cronometrul (unde browserul permite). */
-const focusRun = { it: null, total: 0, startedAt: 0, elapsed: 0, paused: false, timer: 0, wake: null, title: "" };
+const focusRun = { it: null, total: 0, startedAt: 0, elapsed: 0, paused: false, timer: 0, wake: null, title: "", audio: null, metaAt: 0 };
+
+/* ---------- sunetul de concentrare = sesiunea în Dynamic Island ---------- */
+/* Un site nu poate desena singur în Dynamic Island. Dar când o pagină redă sunet, iPhone-ul îl arată acolo
+   (și pe ecranul de blocare) ca „Se redă acum”, cu titlul, imaginea și bara de progres date de pagină.
+   Așa că, dacă elevul vrea, cronometrul redă un zgomot liniștit de ploaie și se vede în insulă:
+   materia, minutele rămase, progresul; butonul de pauză din insulă pune pe pauză cronometrul. */
+const FOCUS_SOUND_KEY = "pro_focus_sound_v4";
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function focusSoundOn() {
+    try { return localStorage.getItem(FOCUS_SOUND_KEY) === "1"; } catch (_) { return false; }
+}
+
+/** Câteva secunde de zgomot „maro” (ca ploaia), ca fișier WAV generat pe loc; se repetă fără să se audă cusătura. */
+let rainURL = "";
+function rainSoundURL() {
+    if (rainURL) return rainURL;
+    const rate = 22050, secs = 6, n = rate * secs;
+    const buf = new ArrayBuffer(44 + n * 2);
+    const v = new DataView(buf);
+    const str = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+    v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, n * 2, true);
+    let last = 0;
+    for (let i = 0; i < n; i++) {
+        last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+        const fade = Math.min(1, i / 2000, (n - i) / 2000); // capetele se topesc, ca bucla să nu pocnească
+        v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, last * 3.2 * (0.6 + 0.4 * fade))) * 0x5fff, true);
+    }
+    rainURL = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+    return rainURL;
+}
+
+function startFocusSound() {
+    if (!focusRun.it) return;
+    if (!focusRun.audio) {
+        const a = new Audio(rainSoundURL());
+        a.loop = true;
+        a.volume = 0.5; // pe iPhone volumul îl dau butoanele telefonului
+        focusRun.audio = a;
+    }
+    focusRun.audio.play().then(() => updateFocusMedia(true)).catch(() => {
+        showToast("Sunetul nu a putut porni. Apasă din nou pe buton.");
+    });
+    const ms = navigator.mediaSession;
+    if (ms) {
+        const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch (_) { /* acțiune necunoscută */ } };
+        set("pause", () => { if (!focusRun.paused) toggleFocusPause(); });
+        set("play", () => { if (focusRun.paused) toggleFocusPause(); });
+        set("stop", () => finishFocus(false));
+        set("seekbackward", null); set("seekforward", null); set("previoustrack", null); set("nexttrack", null);
+    }
+}
+
+function stopFocusSound() {
+    focusRun.audio?.pause();
+    focusRun.audio = null;
+    const ms = navigator.mediaSession;
+    if (ms) {
+        try { ms.metadata = null; ms.playbackState = "none"; } catch (_) { /* nimic */ }
+    }
+}
+
+/** Ce scrie în insulă / pe ecranul de blocare: materia și minutele rămase, plus bara de progres. */
+function updateFocusMedia(force = false) {
+    const ms = navigator.mediaSession;
+    const it = focusRun.it;
+    if (!ms || !it || !focusRun.audio || (!force && Date.now() - focusRun.metaAt < 15000)) return;
+    focusRun.metaAt = Date.now();
+    const left = Math.ceil(focusLeft() / 60000);
+    try {
+        if (typeof MediaMetadata === "function") {
+            ms.metadata = new MediaMetadata({
+                title: `${it.mat} · ${focusRun.paused ? "pauză" : `${left} min rămase`}`,
+                artist: `urNotes · ${PLAN_KINDS[it.kind].label}`,
+                album: `Concentrare cu ${buddyName()}`,
+                artwork: [{ src: new URL("icons/icon-512.png", location.href).href, sizes: "512x512", type: "image/png" },
+                    { src: new URL("icons/icon-192.png", location.href).href, sizes: "192x192", type: "image/png" }]
+            });
+        }
+        ms.playbackState = focusRun.paused ? "paused" : "playing";
+        const total = focusRun.total / 1000;
+        ms.setPositionState?.({ duration: total, position: Math.min(total, total - focusLeft() / 1000), playbackRate: 1 });
+    } catch (_) { /* browserul nu știe tot */ }
+}
+
+function focusSoundButtonHTML() {
+    const on = focusSoundOn();
+    return `${icon("mic")} ${on ? "Sunet de ploaie: pornit" : "Sunet de ploaie"}${isIOS() ? `<small>${on ? "sesiunea se vede în Dynamic Island" : "și sesiunea apare în Dynamic Island"}</small>` : `<small>${on ? "și pe ecranul de blocare" : "opțional, ajută la concentrare"}</small>`}`;
+}
 
 function startFocus(id) {
     const it = findPlanItem(id);
@@ -6252,6 +6377,7 @@ function startFocus(id) {
                     <button type="button" class="btn btn-glass" data-action="focus-pause" id="focus-pause">${icon("clock")} Pauză</button>
                     <button type="button" class="btn btn-glass" data-action="focus-more">${icon("plus")} 5 min</button>
                 </div>
+                <button type="button" class="focus-sound ${focusSoundOn() ? "is-on" : ""}" data-action="focus-sound" id="focus-sound" aria-pressed="${focusSoundOn()}">${focusSoundButtonHTML()}</button>
                 <p class="focus-tip">Pune telefonul cu ecranul în jos și nu te uita la notificări până la final. Poți închide fereastra oricând.</p>
             </div>`,
         onConfirm: () => finishFocus(true)
@@ -6261,6 +6387,7 @@ function startFocus(id) {
     focusRun.timer = setInterval(tickFocus, 500);
     tickFocus();
     navigator.wakeLock?.request?.("screen").then(lock => { focusRun.wake = lock; }).catch(() => {});
+    if (focusSoundOn()) startFocusSound(); // pornit din atingerea pe „Începe”, deci browserul permite sunetul
 }
 
 function focusLeft() {
@@ -6278,6 +6405,7 @@ function tickFocus() {
     const c = 2 * Math.PI * 88;
     $("focus-arc").setAttribute("stroke-dasharray", `${(c * (1 - left / focusRun.total)).toFixed(1)} ${c.toFixed(1)}`);
     document.title = `${focusRun.paused ? "⏸" : "⏱"} ${text} · ${focusRun.it.mat}`;
+    updateFocusMedia();
     if (left <= 0) finishFocus(true, { auto: true });
 }
 
@@ -6287,10 +6415,16 @@ function toggleFocusPause() {
     else { focusRun.elapsed += Date.now() - focusRun.startedAt; focusRun.paused = true; }
     $("focus-pause").innerHTML = focusRun.paused ? `${icon("timer")} Continuă` : `${icon("clock")} Pauză`;
     $("focus-state").textContent = focusRun.paused ? "în pauză" : "rămase";
+    if (focusRun.audio) {
+        if (focusRun.paused) focusRun.audio.pause();
+        else focusRun.audio.play().catch(() => {});
+        updateFocusMedia(true);
+    }
     tickFocus();
 }
 
 function stopFocus() {
+    stopFocusSound();
     clearInterval(focusRun.timer);
     focusRun.timer = 0;
     if (focusRun.title) document.title = focusRun.title;
@@ -6440,7 +6574,15 @@ const PLAN_ACTIONS = {
     },
     "focus-start": el => startFocus(el.dataset.id),
     "focus-pause": () => toggleFocusPause(),
-    "focus-more": () => { if (focusRun.it) { focusRun.total += 5 * 60000; tickFocus(); } },
+    "focus-more": () => { if (focusRun.it) { focusRun.total += 5 * 60000; tickFocus(); updateFocusMedia(true); } },
+    "focus-sound": el => {
+        const on = !focusSoundOn();
+        try { localStorage.setItem(FOCUS_SOUND_KEY, on ? "1" : "0"); } catch (_) { /* fără stocare */ }
+        if (on) startFocusSound(); else stopFocusSound();
+        el.classList.toggle("is-on", on);
+        el.setAttribute("aria-pressed", String(on));
+        el.innerHTML = focusSoundButtonHTML();
+    },
     "plan-prefs": () => openPlanPrefs(),
     "plan-rebuild": () => rebuildPlanNow(),
     "plan-create": () => {
@@ -6452,213 +6594,6 @@ const PLAN_ACTIONS = {
         buddyReact("love");
     }
 };
-
-/* ==================== INSULA (doar pe iPhone-urile cu Dynamic Island) ==================== */
-/* O „activitate live” care coboară din insula telefonului: mic, arată fața mascotei și un singur lucru
-   (planul de azi, următorul test sau media); la o notă nouă sau la o sesiune bifată se deschide singură
-   o clipă, iar la atingere arată un mini-rezumat. Pe alte telefoane și pe calculator nu există. */
-
-/** Ecranele (în puncte, portret) ale iPhone-urilor cu Dynamic Island: 14 Pro/Pro Max, 15, 16, 17 și Air. */
-const ISLAND_SCREENS = new Set(["393x852", "430x932", "402x874", "440x956", "420x912"]);
-const island = { on: false, open: "", timer: null, snap: null, haptic: null };
-
-function detectDynamicIsland() {
-    if (/[?&]insula=1\b/.test(location.search)) return true; // previzualizare pe orice ecran
-    const ua = navigator.userAgent || "";
-    if (!/iPhone/.test(ua) || /iPad|Macintosh/.test(ua)) return false;
-    const w = Math.min(screen.width, screen.height);
-    const h = Math.max(screen.width, screen.height);
-    return ISLAND_SCREENS.has(`${w}x${h}`);
-}
-
-function islandEnabled() {
-    return island.supported && state.settings.appearance.island !== "off";
-}
-
-/** O vibrație scurtă pe iPhone (iOS 18+): Safari o dă când se apasă eticheta unui comutator. Doar în urma unei atingeri. */
-function islandHaptic() {
-    if (!island.haptic) {
-        const label = document.createElement("label");
-        label.className = "island-haptic";
-        label.setAttribute("aria-hidden", "true");
-        label.innerHTML = '<input type="checkbox" switch tabindex="-1">';
-        label.addEventListener("click", event => event.stopPropagation());
-        document.body.append(label);
-        island.haptic = label;
-    }
-    try { island.haptic.click(); } catch { /* fără vibrație, nicio problemă */ }
-}
-
-function islandData() {
-    const today = getLocalDateKey();
-    const links = gradeLinks();
-    const next = occurrencesBetween(today, addDays(today, 21))
-        .find(o => NEEDS_GRADE.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links));
-    const plan = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === today) : [];
-    const done = plan.filter(it => it.done).length;
-    return { today, next, plan, done, avg: metrics.totalGrades > 0 ? metrics.globalAvg : null };
-}
-
-function islandRing(done, total, size = 18) {
-    const r = (size - 3) / 2;
-    const c = 2 * Math.PI * r;
-    const part = total ? done / total : 0;
-    return `<svg class="island-ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
-        <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="island-ring-bg"/>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="island-ring-fg" stroke-dasharray="${(c * part).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
-    </svg>`;
-}
-
-const islandDays = n => n === 0 ? "azi" : n === 1 ? "mâine" : `${n} zile`;
-
-/** Partea mică: fața mascotei + un singur lucru, cel mai util acum. */
-function islandCompact(d) {
-    if (d.plan.length && d.done < d.plan.length) {
-        return { mood: "focused", html: `${islandRing(d.done, d.plan.length)}<span>${d.done}/${d.plan.length}</span>`, label: `Planul de azi: ${d.done} din ${d.plan.length}` };
-    }
-    if (d.next && daysBetween(d.today, d.next.date) <= 3) {
-        const n = daysBetween(d.today, d.next.date);
-        return { mood: n <= 1 ? "worried" : "focused", html: `${icon("calendar")}<span>${islandDays(n)}</span>`, label: `${d.next.ev.title || d.next.ev.type}: ${islandDays(n)}` };
-    }
-    if (d.plan.length) return { mood: "love", html: `${icon("check")}<span>gata</span>`, label: "Planul de azi e gata" };
-    if (d.avg !== null) return { mood: d.avg >= 9 ? "happy" : "focused", html: `<span class="tone-${gradeTone(d.avg)}">${formatAvg(d.avg)}</span>`, label: `Media generală ${formatAvg(d.avg)}` };
-    return { mood: "happy", html: "<span>urNotes</span>", label: "urNotes" };
-}
-
-function renderIsland() {
-    const box = $("island");
-    if (!box) return;
-    if (!islandEnabled()) {
-        box.hidden = true;
-        document.body.classList.remove("has-island");
-        return;
-    }
-    document.body.classList.add("has-island");
-    box.hidden = false;
-    if (island.open) return; // conținutul deschis rămâne până se strânge
-    const c = islandCompact(islandData());
-    box.className = "island";
-    box.innerHTML = `
-        <button type="button" class="island-pill" aria-expanded="false" aria-label="${escapeHTML(`${c.label}. Atinge pentru rezumat`)}">
-            <span class="island-face" aria-hidden="true">${buddySVG(c.mood)}</span>
-            <span class="island-compact">${c.html}</span>
-        </button>`;
-}
-
-function collapseIsland() {
-    if (!island.open) return;
-    clearTimeout(island.timer);
-    island.open = "";
-    const box = $("island");
-    box.classList.add("is-closing");
-    box.classList.remove("is-open");
-    setTimeout(() => { box.classList.remove("is-closing"); renderIsland(); }, 260);
-}
-
-function openIsland(kind, html, { auto = 0 } = {}) {
-    const box = $("island");
-    if (!box || !islandEnabled() || document.body.classList.contains("modal-open") && kind === "summary") return;
-    clearTimeout(island.timer);
-    island.open = kind;
-    box.className = `island is-open is-${kind}`;
-    box.innerHTML = `<div class="island-panel" role="${kind === "summary" ? "dialog" : "status"}" aria-label="urNotes">${html}</div>`;
-    if (kind === "summary") box.querySelector("[data-island-go]")?.focus({ preventScroll: true });
-    if (auto) island.timer = setTimeout(collapseIsland, auto);
-}
-
-function islandEventHTML({ mood, title, sub, big, bigTone = "", ring = null }) {
-    return `
-        <div class="island-event">
-            <span class="island-face is-big" aria-hidden="true">${buddySVG(mood)}</span>
-            <span class="island-ev-text"><b>${escapeHTML(title)}</b>${sub ? `<small>${escapeHTML(sub)}</small>` : ""}</span>
-            ${ring ? `<span class="island-big-ring">${islandRing(ring[0], ring[1], 38)}<b>${ring[0]}/${ring[1]}</b></span>` : `<b class="island-big ${bigTone}">${escapeHTML(big)}</b>`}
-        </div>`;
-}
-
-function openIslandSummary() {
-    const d = islandData();
-    const name = firstName();
-    const n = d.next ? daysBetween(d.today, d.next.date) : null;
-    const left = d.plan.filter(it => !it.done).map(it => it.mat);
-    const rows = [
-        d.next && `<button type="button" class="island-row" data-island-go="calendar" data-date="${d.next.date}">
-            ${icon("calendar")}<span><b>${escapeHTML(d.next.ev.title || d.next.ev.type)}</b><small>${escapeHTML(capitalize(eventPhrase(d.next.ev.type, d.next.date, d.today)))}${d.next.ev.subject ? ` · ${escapeHTML(d.next.ev.subject)}` : ""}</small></span>
-            <em class="${n <= 1 ? "is-hot" : ""}">${islandDays(n)}</em></button>`,
-        state.plan.prefs.setup && `<button type="button" class="island-row" data-island-go="tab-plan">
-            ${islandRing(d.done, d.plan.length || 1, 18)}<span><b>Planul de azi</b><small>${d.plan.length ? (left.length ? `Mai ai: ${escapeHTML(left.join(", "))}` : "Gata pe azi!") : "Nimic programat azi"}</small></span>
-            <em>${d.done}/${d.plan.length}</em></button>`,
-        `<button type="button" class="island-row" data-island-go="tab-statistici">
-            ${icon("chart")}<span><b>Media generală</b><small>${metrics.riskCount ? `${plural(metrics.riskCount, "materie", "materii")} la risc` : "nicio materie la risc"}</small></span>
-            <em class="${d.avg !== null ? `tone-${gradeTone(d.avg)}` : ""}">${d.avg !== null ? formatAvg(d.avg) : "–"}</em></button>`
-    ].filter(Boolean).join("");
-    openIsland("summary", `
-        <div class="island-head">
-            <span class="island-face is-big" aria-hidden="true">${buddySVG("happy")}</span>
-            <span class="island-ev-text"><b>${escapeHTML(name ? `Salut, ${name}!` : "Salut!")}</b><small>${escapeHTML(buddyName())} îți ține evidența</small></span>
-            <button type="button" class="island-close" data-island-close aria-label="Strânge">${icon("chevron", "is-up")}</button>
-        </div>
-        <div class="island-rows">${rows}</div>`);
-}
-
-/** Apelat la fiecare redesenare: observă o notă nouă sau o sesiune bifată și deschide insula o clipă. */
-function islandAfterRefresh() {
-    if (!island.supported) return;
-    const counts = Object.fromEntries(Object.entries(state.subjects).map(([m, s]) => [m, s.grades.length]));
-    const today = getLocalDateKey();
-    const plan = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === today) : [];
-    const snap = { counts, total: metrics.totalGrades, avg: metrics.globalAvg, done: plan.filter(it => it.done).length, len: plan.length };
-    const prev = island.snap;
-    island.snap = snap;
-    renderIsland();
-    if (!prev || !islandEnabled()) return;
-    const grew = Object.keys(counts).filter(m => counts[m] === (prev.counts[m] ?? 0) + 1);
-    const same = Object.keys(counts).every(m => grew.includes(m) || counts[m] === prev.counts[m]);
-    if (grew.length === 1 && same && grew[0] in prev.counts) {
-        const mat = grew[0];
-        const g = state.subjects[mat].grades.at(-1);
-        const val = Number(g.val);
-        const mood = val >= 9 ? "love" : val >= 7 ? "happy" : val >= 5 ? "surprised" : "worried";
-        const sub = prev.total ? `Media ${formatAvg(prev.avg)} → ${formatAvg(snap.avg)}` : `Prima notă! Media ${formatAvg(snap.avg)}`;
-        openIsland("event", islandEventHTML({ mood, title: `Notă nouă · ${mat}`, sub, big: String(val), bigTone: `tone-${gradeTone(val)}` }), { auto: 4200 });
-        islandHaptic();
-    } else if (snap.len && snap.len === prev.len && snap.done === prev.done + 1) {
-        const all = snap.done === snap.len;
-        const left = plan.filter(it => !it.done).map(it => it.mat);
-        openIsland("event", islandEventHTML({
-            mood: all ? "love" : "giggle",
-            title: all ? "Planul de azi e gata!" : "Sesiune bifată",
-            sub: all ? "Bravo, ai terminat tot ce era azi" : `Mai ai: ${left.join(", ")}`,
-            ring: [snap.done, snap.len]
-        }), { auto: 3600 });
-        islandHaptic();
-    }
-}
-
-function bindIsland() {
-    island.supported = detectDynamicIsland();
-    const box = $("island");
-    if (!island.supported || !box) return;
-    $("set-island-group")?.removeAttribute("hidden");
-    box.addEventListener("click", event => {
-        if (event.target.closest(".island-pill")) { islandHaptic(); openIslandSummary(); return; }
-        if (event.target.closest("[data-island-close]")) { collapseIsland(); box.querySelector(".island-pill")?.focus(); return; }
-        const go = event.target.closest("[data-island-go]");
-        if (go) {
-            collapseIsland();
-            if (go.dataset.islandGo === "calendar") showDateInCalendar(go.dataset.date);
-            else switchTab(go.dataset.islandGo);
-            return;
-        }
-        if (island.open === "event") collapseIsland(); // o atingere pe notificare o strânge
-    });
-    const outside = event => { if (island.open && !box.contains(event.target)) collapseIsland(); };
-    document.addEventListener("touchstart", outside, { passive: true });
-    document.addEventListener("mousedown", outside);
-    document.addEventListener("keydown", event => { if (event.key === "Escape" && island.open === "summary") { collapseIsland(); box.querySelector(".island-pill")?.focus(); } });
-    let y = scrollY;
-    addEventListener("scroll", () => { if (Math.abs(scrollY - y) > 60) { y = scrollY; if (island.open === "summary") collapseIsland(); } }, { passive: true });
-    islandAfterRefresh();
-}
 
 /* ==================== TUR GHIDAT (pentru cei noi) ==================== */
 /*
@@ -6817,6 +6752,12 @@ const SETUP_ACTIONS = {
     "setup-open": () => openSetup(0),
     "programme-change": () => openSetup(1),
     "help": el => openHelp(el.dataset.key),
+    "install-hide": () => { try { localStorage.setItem(IOS_HINT_KEY, "1"); } catch (_) { /* fără stocare */ } renderDashboard(); },
+    "badge-allow": async () => {
+        try { await Notification.requestPermission(); } catch (_) { /* refuzat */ }
+        renderNotificationBadge();
+        renderBadgeSetting();
+    },
     "start-hide": () => { try { localStorage.setItem(START_HIDE_KEY, "1"); } catch (_) { /* fără stocare */ } renderDashboard(); },
     "setup-skip": () => {
         markSetupDone();
@@ -7609,7 +7550,7 @@ const GUEST_SESSION_KEY = "pro_guest_browse_v4"; // a ales „doar mă uit” î
 const GUEST_OK = new Set([
     "nav", "show-date", "cal-nav", "cal-today", "cal-view", "cal-goto",
     "cat-select", "cat-step", "cat-group", "cat-back", "cat-filter", "cat-clear-filters", "open-subject", "cat-menu-glance",
-    "home-day", "home-risk", "plan-day", "help", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
+    "home-day", "home-risk", "plan-day", "help", "install-hide", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
     "sim-scenario", "sim-toggle-all", "sim-pick-subject",
     "cmdk", "cmdk-close", "quick-add-close", "notif-open", "notif-close", "more-open", "more-close", "more-run",
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
@@ -8847,7 +8788,6 @@ function saveSettings({ quiet = false } = {}) {
     s.appearance.accent = ACCENTS[field("set-accent")] ? field("set-accent") : "violet";
     s.appearance.density = field("set-density") || "normal";
     s.appearance.cursor = CURSOR_MODES.includes(field("set-cursor")) ? field("set-cursor") : "off";
-    s.appearance.island = field("set-island") === "off" ? "off" : "on";
     s.profile.name = cleanName(field("set-name"), 40);
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
 
@@ -9216,7 +9156,6 @@ function applyAppearanceSettings() {
     document.body.classList.remove("layout-compact", "layout-spacious");
     if (a.density === "compact" || a.density === "spacious") document.body.classList.add(`layout-${a.density}`);
     applyCursorSetting();
-    if (island.supported) renderIsland();
 }
 
 /* ==================== NAVIGARE ==================== */
@@ -10614,7 +10553,6 @@ function init() {
     bindCatalogNav();
     bindPhoneHelpers();
     bindSheetDrag();
-    bindIsland();
     initBuddyLook();
     initCloud();
     // Cu conturi, configurarea vine după alegerea de pe ecranul de autentificare.
