@@ -4008,13 +4008,94 @@ h2 .help-dot { width: 24px; height: 24px; font-size: 14px; vertical-align: 6px; 
 .setup-check:disabled:checked { opacity: 0.55; }
 .module-dates { font-weight: 600; font-variant-numeric: tabular-nums; }
 #set-modules .module-row { grid-template-columns: auto 1fr; }
-.focus-sound {
-    display: flex; flex-direction: column; align-items: center; gap: 2px; width: min(100%, 320px); padding: 10px 14px;
-    background: var(--paper); color: var(--ink); border: 1.5px dashed var(--rule); border-radius: 14px; font: inherit; font-weight: 700; cursor: pointer;
-}
-.focus-sound .ico { width: 16px; height: 16px; vertical-align: -3px; }
-.focus-sound small { font-weight: 500; font-size: 12px; color: var(--text-secondary); }
-.focus-sound.is-on { border-style: solid; border-color: var(--accent-color); background: var(--accent-soft); color: var(--accent-color); }
 .install-steps { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 8px 20px; font-size: 14px; }
 .install-share { display: inline-grid; place-items: center; width: 24px; height: 24px; vertical-align: -6px; border-radius: 6px; background: var(--accent-soft); color: #0A84FF; }
 .install-share svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ==================== TELEFON: DESIGN ȘI MIȘCARE ==================== */
+/* Paginile intră din partea în care mergi; cardurile apar pe rând */
+@keyframes tabInFwd { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
+@keyframes tabInBack { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+.tab-content.active.enter-fwd { animation: tabInFwd 0.32s cubic-bezier(.2, .8, .2, 1); }
+.tab-content.active.enter-back { animation: tabInBack 0.32s cubic-bezier(.2, .8, .2, 1); }
+.tab-content.is-entering .glass-card { animation: cardIn 0.42s cubic-bezier(.2, .8, .2, 1) both; }
+.tab-content.is-entering .glass-card:nth-of-type(2), .tab-content.is-entering .azi-col > :nth-child(2) { animation-delay: 0.05s; }
+.tab-content.is-entering .glass-card:nth-of-type(3), .tab-content.is-entering .azi-col > :nth-child(3) { animation-delay: 0.1s; }
+.tab-content.is-entering .glass-card:nth-of-type(4), .tab-content.is-entering .azi-col > :nth-child(4) { animation-delay: 0.15s; }
+.tab-content.is-entering .glass-card:nth-of-type(n+5), .tab-content.is-entering .azi-col > :nth-child(n+5) { animation-delay: 0.2s; }
+/* Liste care apar „pe rând” când se deschid */
+@keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.tab-content.is-entering .plan-item, .tab-content.is-entering .cat-row, .tab-content.is-entering .azi-lesson, .tab-content.is-entering .start-steps li { animation: rowIn 0.35s ease-out both; animation-delay: 0.12s; }
+
+/* Titlul docat în bara de sus */
+.topbar-brand { position: relative; min-width: 0; }
+.topbar-title {
+    position: absolute; left: 44px; right: 0; top: 50%; transform: translateY(40%); opacity: 0; pointer-events: none;
+    font-family: var(--font-hand); font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(.2, .8, .2, 1);
+}
+.brand-name { transition: opacity 0.2s ease, transform 0.25s cubic-bezier(.2, .8, .2, 1); }
+@media (max-width: 900px) {
+    body.title-docked .topbar-title { opacity: 1; transform: translateY(-50%); }
+    body.title-docked .brand-name { opacity: 0; transform: translateY(-60%); }
+}
+@media (min-width: 901px) { .topbar-title { display: none; } }
+
+/* Bara de jos plutitoare, cu pastila care alunecă sub fila activă */
+@media (max-width: 900px) {
+    .mobile-bottom-nav {
+        left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); width: auto;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        padding: 6px 8px; border: 1px solid var(--soft-border); border-radius: 26px;
+        background: color-mix(in srgb, var(--bg-color) 82%, transparent);
+        box-shadow: 0 10px 30px -10px rgba(20, 14, 50, 0.35);
+    }
+    body.dark-mode .mobile-bottom-nav { box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.6); }
+    body { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+    .toast-container { bottom: calc(92px + env(safe-area-inset-bottom)); }
+    body.kb-open .mobile-bottom-nav { transform: translateY(calc(100% + 40px)); }
+    .mobile-nav-btn { position: relative; z-index: 1; border-radius: 18px; transition: color 0.2s; }
+    .mobile-nav-btn.active { background: transparent; }
+    .nav-pill {
+        position: absolute; left: 0; top: 6px; bottom: 6px; z-index: 0; width: 0; border-radius: 18px;
+        background: var(--accent-soft); opacity: 0; pointer-events: none;
+        transition: transform 0.38s cubic-bezier(.3, 1.35, .45, 1), width 0.3s ease, opacity 0.2s;
+    }
+    .mobile-nav-btn.is-pop .ico { animation: navPop 0.42s cubic-bezier(.3, 1.6, .5, 1); }
+    .mobile-add { margin-top: -26px; transition: transform 0.2s cubic-bezier(.3, 1.5, .5, 1), box-shadow 0.2s; }
+    .mobile-add .ico { transition: transform 0.3s cubic-bezier(.3, 1.5, .5, 1); }
+    .mobile-add[aria-expanded="true"] .ico, body:has(#quick-add:not([hidden])) .mobile-add .ico { transform: rotate(45deg); }
+}
+@keyframes navPop { 0% { transform: scale(1); } 40% { transform: scale(1.25) translateY(-2px); } 100% { transform: scale(1); } }
+@media (max-width: 900px) { .nav-pill { display: block; } }
+@media (min-width: 901px) { .nav-pill { display: none; } }
+
+/* Telefon: mai puțin text, carduri mai „de aplicație” */
+@media (max-width: 600px) {
+    .page-intro p { display: none; }
+    .page-intro { margin-bottom: 12px; }
+    .page-intro h2 { font-size: 28px; }
+    .glass-card { border-radius: 18px; }
+    .intro-actions { gap: 6px; }
+    .intro-actions .btn { min-height: 42px; border-radius: 14px; }
+    .intro-actions .text-danger { flex: 0 0 auto; }
+    .toast { border-radius: 16px; animation: toastUp 0.35s cubic-bezier(.2, 1.2, .3, 1); }
+}
+@keyframes toastUp { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* Apăsare simțită peste tot unde se atinge */
+@media (hover: none) {
+    .azi-watch-row:active, .start-step:active, .plan-strip-day:active, .plan-chip:active span, .cal-col-head button:active,
+    .setup-choice:active, .setup-profile:active, .qa-item:active, .help-dot:active, .island-row:active, .azi-lesson:active {
+        transform: scale(0.97);
+    }
+    .azi-watch-row, .start-step, .plan-strip-day, .plan-chip span, .setup-choice, .setup-profile, .azi-lesson { transition: transform 0.14s cubic-bezier(.3, 1.4, .5, 1), background-color 0.15s, border-color 0.15s; }
+}
+/* Bife care „sar” când le bifezi */
+@keyframes checkPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.plan-check input:checked + .plan-box { animation: checkPop 0.3s cubic-bezier(.3, 1.6, .5, 1); }
+.start-steps li.is-done .start-dot { animation: checkPop 0.3s cubic-bezier(.3, 1.6, .5, 1); }
+@media (max-width: 900px) { .mobile-nav-btn { flex: 1 1 0; } }
+/* Nimic nu poate împinge pagina în lateral (nici animația de intrare a paginilor): „clip” nu strică bara lipită sus */
+html, body { overflow-x: clip; }

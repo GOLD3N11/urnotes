@@ -1564,6 +1564,7 @@ function renderDashboard() {
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
     if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
     $("azi-avg").innerHTML = homeAverageHTML();
+    if (metrics.globalAvg > 0) countUp($("azi-avg").querySelector(".azi-avg-val"), "gpa", metrics.globalAvg);
     const watch = homeWatchHTML();
     $("azi-watch").innerHTML = watch;
     $("azi-watch").hidden = !watch;
@@ -2811,6 +2812,10 @@ function bindSheetDrag() {
 /* ---------- telefon (mai ales iPhone) ---------- */
 function bindPhoneHelpers() {
     const root = document.documentElement;
+    addEventListener("resize", () => { moveNavPill(); watchPageTitle(); });
+    requestAnimationFrame(() => { moveNavPill(); watchPageTitle(); });
+    document.fonts?.ready?.then(moveNavPill);
+    document.fonts?.addEventListener?.("loadingdone", moveNavPill);
     // Safari pe iPhone aplică stilurile „:active” (apăsat) doar dacă pagina ascultă atingerile.
     document.addEventListener("touchstart", () => {}, { passive: true });
     // Tastatura: pe iPhone nu micșorează pagina, ci doar „fereastra vizibilă”. O urmărim, ca foile de jos
@@ -6264,97 +6269,9 @@ function homePlanHTML(today) {
 /* ---------- cronometrul de concentrare ---------- */
 /* „Începe” deschide un cronometru pentru sesiune; la final (sau cu „Am terminat”) sesiunea se bifează.
    Ecranul telefonului rămâne aprins cât merge cronometrul (unde browserul permite). */
-const focusRun = { it: null, total: 0, startedAt: 0, elapsed: 0, paused: false, timer: 0, wake: null, title: "", audio: null, metaAt: 0 };
+const focusRun = { it: null, total: 0, startedAt: 0, elapsed: 0, paused: false, timer: 0, wake: null, title: "" };
 
-/* ---------- sunetul de concentrare = sesiunea în Dynamic Island ---------- */
-/* Un site nu poate desena singur în Dynamic Island. Dar când o pagină redă sunet, iPhone-ul îl arată acolo
-   (și pe ecranul de blocare) ca „Se redă acum”, cu titlul, imaginea și bara de progres date de pagină.
-   Așa că, dacă elevul vrea, cronometrul redă un zgomot liniștit de ploaie și se vede în insulă:
-   materia, minutele rămase, progresul; butonul de pauză din insulă pune pe pauză cronometrul. */
-const FOCUS_SOUND_KEY = "pro_focus_sound_v4";
 const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-function focusSoundOn() {
-    try { return localStorage.getItem(FOCUS_SOUND_KEY) === "1"; } catch (_) { return false; }
-}
-
-/** Câteva secunde de zgomot „maro” (ca ploaia), ca fișier WAV generat pe loc; se repetă fără să se audă cusătura. */
-let rainURL = "";
-function rainSoundURL() {
-    if (rainURL) return rainURL;
-    const rate = 22050, secs = 6, n = rate * secs;
-    const buf = new ArrayBuffer(44 + n * 2);
-    const v = new DataView(buf);
-    const str = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
-    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true);
-    v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
-    v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, n * 2, true);
-    let last = 0;
-    for (let i = 0; i < n; i++) {
-        last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
-        const fade = Math.min(1, i / 2000, (n - i) / 2000); // capetele se topesc, ca bucla să nu pocnească
-        v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, last * 3.2 * (0.6 + 0.4 * fade))) * 0x5fff, true);
-    }
-    rainURL = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
-    return rainURL;
-}
-
-function startFocusSound() {
-    if (!focusRun.it) return;
-    if (!focusRun.audio) {
-        const a = new Audio(rainSoundURL());
-        a.loop = true;
-        a.volume = 0.5; // pe iPhone volumul îl dau butoanele telefonului
-        focusRun.audio = a;
-    }
-    focusRun.audio.play().then(() => updateFocusMedia(true)).catch(() => {
-        showToast("Sunetul nu a putut porni. Apasă din nou pe buton.");
-    });
-    const ms = navigator.mediaSession;
-    if (ms) {
-        const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch (_) { /* acțiune necunoscută */ } };
-        set("pause", () => { if (!focusRun.paused) toggleFocusPause(); });
-        set("play", () => { if (focusRun.paused) toggleFocusPause(); });
-        set("stop", () => finishFocus(false));
-        set("seekbackward", null); set("seekforward", null); set("previoustrack", null); set("nexttrack", null);
-    }
-}
-
-function stopFocusSound() {
-    focusRun.audio?.pause();
-    focusRun.audio = null;
-    const ms = navigator.mediaSession;
-    if (ms) {
-        try { ms.metadata = null; ms.playbackState = "none"; } catch (_) { /* nimic */ }
-    }
-}
-
-/** Ce scrie în insulă / pe ecranul de blocare: materia și minutele rămase, plus bara de progres. */
-function updateFocusMedia(force = false) {
-    const ms = navigator.mediaSession;
-    const it = focusRun.it;
-    if (!ms || !it || !focusRun.audio || (!force && Date.now() - focusRun.metaAt < 15000)) return;
-    focusRun.metaAt = Date.now();
-    const left = Math.ceil(focusLeft() / 60000);
-    try {
-        if (typeof MediaMetadata === "function") {
-            ms.metadata = new MediaMetadata({
-                title: `${it.mat} · ${focusRun.paused ? "pauză" : `${left} min rămase`}`,
-                artist: `urNotes · ${PLAN_KINDS[it.kind].label}`,
-                album: `Concentrare cu ${buddyName()}`,
-                artwork: [{ src: new URL("icons/icon-512.png", location.href).href, sizes: "512x512", type: "image/png" },
-                    { src: new URL("icons/icon-192.png", location.href).href, sizes: "192x192", type: "image/png" }]
-            });
-        }
-        ms.playbackState = focusRun.paused ? "paused" : "playing";
-        const total = focusRun.total / 1000;
-        ms.setPositionState?.({ duration: total, position: Math.min(total, total - focusLeft() / 1000), playbackRate: 1 });
-    } catch (_) { /* browserul nu știe tot */ }
-}
-
-function focusSoundButtonHTML() {
-    const on = focusSoundOn();
-    return `${icon("mic")} ${on ? "Sunet de ploaie: pornit" : "Sunet de ploaie"}${isIOS() ? `<small>${on ? "sesiunea se vede în Dynamic Island" : "și sesiunea apare în Dynamic Island"}</small>` : `<small>${on ? "și pe ecranul de blocare" : "opțional, ajută la concentrare"}</small>`}`;
-}
 
 function startFocus(id) {
     const it = findPlanItem(id);
@@ -6377,7 +6294,6 @@ function startFocus(id) {
                     <button type="button" class="btn btn-glass" data-action="focus-pause" id="focus-pause">${icon("clock")} Pauză</button>
                     <button type="button" class="btn btn-glass" data-action="focus-more">${icon("plus")} 5 min</button>
                 </div>
-                <button type="button" class="focus-sound ${focusSoundOn() ? "is-on" : ""}" data-action="focus-sound" id="focus-sound" aria-pressed="${focusSoundOn()}">${focusSoundButtonHTML()}</button>
                 <p class="focus-tip">Pune telefonul cu ecranul în jos și nu te uita la notificări până la final. Poți închide fereastra oricând.</p>
             </div>`,
         onConfirm: () => finishFocus(true)
@@ -6387,7 +6303,6 @@ function startFocus(id) {
     focusRun.timer = setInterval(tickFocus, 500);
     tickFocus();
     navigator.wakeLock?.request?.("screen").then(lock => { focusRun.wake = lock; }).catch(() => {});
-    if (focusSoundOn()) startFocusSound(); // pornit din atingerea pe „Începe”, deci browserul permite sunetul
 }
 
 function focusLeft() {
@@ -6405,7 +6320,6 @@ function tickFocus() {
     const c = 2 * Math.PI * 88;
     $("focus-arc").setAttribute("stroke-dasharray", `${(c * (1 - left / focusRun.total)).toFixed(1)} ${c.toFixed(1)}`);
     document.title = `${focusRun.paused ? "⏸" : "⏱"} ${text} · ${focusRun.it.mat}`;
-    updateFocusMedia();
     if (left <= 0) finishFocus(true, { auto: true });
 }
 
@@ -6415,16 +6329,10 @@ function toggleFocusPause() {
     else { focusRun.elapsed += Date.now() - focusRun.startedAt; focusRun.paused = true; }
     $("focus-pause").innerHTML = focusRun.paused ? `${icon("timer")} Continuă` : `${icon("clock")} Pauză`;
     $("focus-state").textContent = focusRun.paused ? "în pauză" : "rămase";
-    if (focusRun.audio) {
-        if (focusRun.paused) focusRun.audio.pause();
-        else focusRun.audio.play().catch(() => {});
-        updateFocusMedia(true);
-    }
     tickFocus();
 }
 
 function stopFocus() {
-    stopFocusSound();
     clearInterval(focusRun.timer);
     focusRun.timer = 0;
     if (focusRun.title) document.title = focusRun.title;
@@ -6574,15 +6482,7 @@ const PLAN_ACTIONS = {
     },
     "focus-start": el => startFocus(el.dataset.id),
     "focus-pause": () => toggleFocusPause(),
-    "focus-more": () => { if (focusRun.it) { focusRun.total += 5 * 60000; tickFocus(); updateFocusMedia(true); } },
-    "focus-sound": el => {
-        const on = !focusSoundOn();
-        try { localStorage.setItem(FOCUS_SOUND_KEY, on ? "1" : "0"); } catch (_) { /* fără stocare */ }
-        if (on) startFocusSound(); else stopFocusSound();
-        el.classList.toggle("is-on", on);
-        el.setAttribute("aria-pressed", String(on));
-        el.innerHTML = focusSoundButtonHTML();
-    },
+    "focus-more": () => { if (focusRun.it) { focusRun.total += 5 * 60000; tickFocus(); } },
     "plan-prefs": () => openPlanPrefs(),
     "plan-rebuild": () => rebuildPlanNow(),
     "plan-create": () => {
@@ -9177,6 +9077,7 @@ function switchTab(tabId) {
     hideChartTip();
     closeCustomSelect({ restoreFocus: false });
     const changed = ui.activeTab !== tabId;
+    const from = ui.activeTab;
     ui.activeTab = tabId;
     if (changed && tabId === "tab-statistici") ui.statsAnimate = true;
     // O pagină nouă începe de sus, cu titlul ei vizibil sub bară (nu la jumătatea derulării paginii anterioare).
@@ -9195,6 +9096,74 @@ function switchTab(tabId) {
 
     closeQuickAdd({ restoreFocus: false });
     renderActiveTab();
+    if (changed) animateTabEnter(tabId, from);
+    moveNavPill();
+    // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
+    requestAnimationFrame(() => moveNavPill(false));
+    watchPageTitle();
+}
+
+/* ---------- mișcare: pagina intră din partea în care mergi, cardurile apar pe rând ---------- */
+const TAB_ORDER = ["tab-dashboard", "tab-catalog", "tab-calendar", "tab-statistici", "tab-plan", "tab-simulator", "tab-setari"];
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function animateTabEnter(tabId, from) {
+    const el = $(tabId);
+    if (!el || reduceMotion()) return;
+    const dir = TAB_ORDER.indexOf(tabId) >= TAB_ORDER.indexOf(from) ? "fwd" : "back";
+    el.classList.remove("enter-fwd", "enter-back", "is-entering");
+    void el.offsetWidth; // repornește animația
+    el.classList.add(`enter-${dir}`, "is-entering");
+    clearTimeout(el._enterT);
+    el._enterT = setTimeout(() => el.classList.remove("enter-fwd", "enter-back", "is-entering"), 800);
+}
+
+/** Pastila din bara de jos alunecă sub fila activă. */
+function moveNavPill(pop = true) {
+    const pill = $("nav-pill");
+    const nav = pill?.parentElement;
+    if (!pill || !nav || nav.offsetParent === null && getComputedStyle(nav).display === "none") return;
+    const btn = nav.querySelector(".mobile-nav-btn.active");
+    if (!btn) { pill.style.opacity = "0"; return; }
+    // offsetLeft/offsetWidth ignoră efectul de apăsare (scale), deci pastila nu se oprește strâmb
+    pill.style.opacity = "1";
+    pill.style.width = `${btn.offsetWidth}px`;
+    pill.style.transform = `translateX(${btn.offsetLeft}px)`;
+    if (pop) { btn.classList.remove("is-pop"); void btn.offsetWidth; }
+    if (pop && !reduceMotion()) btn.classList.add("is-pop");
+}
+
+/** Titlul mare al paginii „urcă” în bara de sus când derulezi (ca în aplicațiile de iPhone). */
+let titleObserver = null;
+function watchPageTitle() {
+    const slot = $("topbar-title");
+    if (!slot || !("IntersectionObserver" in window)) return;
+    titleObserver?.disconnect();
+    document.body.classList.remove("title-docked");
+    const h = $(ui.activeTab)?.querySelector("h2");
+    if (!h) return;
+    slot.textContent = [...h.childNodes].filter(n => n.nodeType === 3 || !n.matches?.(".help-dot")).map(n => n.textContent).join("").trim();
+    const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
+    titleObserver = new IntersectionObserver(([e]) => {
+        document.body.classList.toggle("title-docked", !e.isIntersecting && e.boundingClientRect.top < bar);
+    }, { rootMargin: `-${Math.round(bar)}px 0px 0px 0px`, threshold: 0 });
+    titleObserver.observe(h);
+}
+
+/** Cifrele mari „numără” până la valoarea nouă. */
+const countedFrom = {};
+function countUp(el, key, to, decimals = 2) {
+    if (!el || !Number.isFinite(to)) return;
+    const from = countedFrom[key];
+    countedFrom[key] = to;
+    if (from === undefined || from === to || reduceMotion()) return;
+    const start = performance.now(), dur = 650;
+    const step = now => {
+        const t = Math.min(1, (now - start) / dur);
+        const k = 1 - Math.pow(1 - t, 3);
+        el.textContent = (from + (to - from) * k).toFixed(decimals);
+        if (t < 1 && document.contains(el)) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
 }
 
 /* ==================== CĂUTARE ȘI COMENZI (Ctrl/⌘ K) ==================== */
