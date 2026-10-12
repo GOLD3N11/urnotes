@@ -4144,3 +4144,53 @@ body.dark-mode .ycal { --c-course: color-mix(in srgb, #FFE9A8 22%, var(--sheet))
 #set-modules { display: flex; flex-wrap: wrap; gap: 6px 8px; }
 #set-modules .module-row { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; background: var(--accent-soft); font-size: 12.5px; }
 #set-modules .module-row b { font-size: 12.5px; }
+
+/* ==================== MAI ODIHNITOR PENTRU OCHI, MAI FLUID ==================== */
+/* Culori: alb cald în loc de alb pur, caroiaj mai discret, contururi mai blânde; în modul întunecat textul nu mai „orbește” */
+:root {
+    --paper: #FAF7F1;
+    --grid-dot: #F1ECF6;
+    --sheet: #FFFEFB;
+    --rule: #ECE6F2;
+    --shadow-card: 0 1px 2px rgba(36, 27, 68, 0.04), 0 6px 18px -12px rgba(36, 27, 68, 0.14);
+}
+body.dark-mode {
+    --paper: #15122A;
+    --grid-dot: rgba(241, 237, 250, 0.035);
+    --sheet: #1D1835;
+    --rule: #2F2850;
+    --ink: #E7E2F3;
+    --ink-2: #ABA2C8;
+}
+/* Caroiajul se estompează sub conținut: îl vezi sus, nu te mai obosește când citești */
+body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(to bottom, transparent 0, transparent 140px, color-mix(in srgb, var(--paper) 70%, transparent) 420px);
+}
+
+/* Text mai ușor de citit pe telefon */
+body { text-rendering: optimizeLegibility; }
+.subtitle { font-size: 12.5px; line-height: 1.5; }
+@media (max-width: 600px) {
+    body { font-size: 15px; line-height: 1.55; }
+    .subtitle, .muted-small, .empty-note, .modal-hint { font-size: 13.5px; }
+    .cat-row-meta, .plan-main small, .azi-watch-main small { font-size: 12.5px; }
+}
+
+/* Schimbarea temei curge, nu „sare” */
+.glass-card, .app-bar, .mobile-bottom-nav, .sidebar, .modal-card, .glass-input, .glass-select, .btn, .plan-item, .cat-row {
+    transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+    transition-duration: 0.22s;
+    transition-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Ce nu se vede încă pe ecran nu se desenează până nu ajungi la el: pagini lungi care se deschid mai repede */
+.ycal-month { content-visibility: auto; contain-intrinsic-size: auto 210px; }
+#tab-setari .glass-card:nth-child(n+4) { content-visibility: auto; contain-intrinsic-size: auto 320px; }
+
+/* Focus vizibil, dar blând */
+:focus-visible { outline-color: color-mix(in srgb, var(--accent-color) 75%, transparent); }
+/* calendarul anului: cifre lizibile pe fiecare culoare */
+.ycal-d.k-holiday { color: #10284A; }
+body.dark-mode .ycal-d.k-holiday { color: #fff; }
+body.dark-mode .ycal { --c-hol: color-mix(in srgb, #4E8FD9 40%, var(--sheet)); --c-mob: color-mix(in srgb, #8BC86B 34%, var(--sheet)); }
