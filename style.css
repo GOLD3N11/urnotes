@@ -4109,3 +4109,7 @@ html, body { overflow-x: clip; }
 .bgame-hole.is-hit .bgame-buddy { transform: translateY(4%) scale(0.88); opacity: 1; transition-duration: 0.08s; }
 .bgame-hole.is-hit { border-color: var(--accent-color); background-color: var(--accent-soft); }
 @media (prefers-reduced-motion: reduce) { .bgame-buddy { transition: none; } }
+/* Pagina înghețată sub o foaie: fără „elastic” și fără derulare */
+html:has(body.scroll-locked) { overscroll-behavior: none; }
+body.scroll-locked { overflow: hidden; overscroll-behavior: none; }
+body.scroll-locked .app-bar { transform: translateY(var(--lock-y, 0px)); }

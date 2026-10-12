@@ -2897,7 +2897,47 @@ function bindSheetDrag() {
 }
 
 /* ---------- telefon (mai ales iPhone) ---------- */
+/* ---------- cu o foaie sau un meniu deschis, pagina de dedesubt stă pe loc ---------- */
+/* Pe iPhone, „overflow: hidden” nu ajunge: pagina tot se derulează și se întinde sub foaie. O fixăm acolo unde era
+   și o punem la loc când se închide totul. */
+const OVERLAY_IDS = ["action-modal", "quick-add", "more-menu", "notif-panel", "cmdk", "setup", "auth"];
+const scrollLock = { on: false, y: 0 };
+function syncScrollLock() {
+    const open = OVERLAY_IDS.some(id => { const el = $(id); return el && !el.hidden; });
+    if (open === scrollLock.on) return;
+    scrollLock.on = open;
+    const b = document.body;
+    if (open) {
+        scrollLock.y = window.scrollY;
+        Object.assign(b.style, { position: "fixed", top: `-${scrollLock.y}px`, left: "0", right: "0", width: "100%" });
+        document.documentElement.style.setProperty("--lock-y", `${scrollLock.y}px`); // bara de sus rămâne la locul ei
+        b.classList.add("scroll-locked");
+    } else {
+        Object.assign(b.style, { position: "", top: "", left: "", right: "", width: "" });
+        b.classList.remove("scroll-locked");
+        window.scrollTo(0, scrollLock.y);
+    }
+}
+
+function bindScrollLock() {
+    const mo = new MutationObserver(syncScrollLock);
+    OVERLAY_IDS.forEach(id => { const el = $(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); });
+    // Atingerile pe fundal sau pe o parte care nu se derulează nu mai mișcă nimic (nici „elasticul” din Safari).
+    document.addEventListener("touchmove", event => {
+        if (!scrollLock.on || event.defaultPrevented) return;
+        let el = event.target;
+        while (el && el !== document.body) {
+            const cs = getComputedStyle(el);
+            if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1) return; // ceva care chiar se derulează
+            if (/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth + 1) return;
+            el = el.parentElement;
+        }
+        if (event.cancelable) event.preventDefault();
+    }, { passive: false });
+}
+
 function bindPhoneHelpers() {
+    bindScrollLock();
     const root = document.documentElement;
     addEventListener("resize", () => { moveNavPill(); watchPageTitle(); });
     requestAnimationFrame(() => { moveNavPill(); watchPageTitle(); });
