@@ -4087,3 +4087,25 @@ h2 .help-dot { width: 24px; height: 24px; font-size: 14px; vertical-align: 6px; 
 @media (max-width: 900px) { .mobile-nav-btn { flex: 1 1 0; } }
 /* Nimic nu poate împinge pagina în lateral (nici animația de intrare a paginilor): „clip” nu strică bara lipită sus */
 html, body { overflow-x: clip; }
+
+/* ==================== MINIJOC: PRINDE-L PE TIȚI ==================== */
+.bgame { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.bgame-intro { font-size: 14px; color: var(--text-secondary); max-width: 360px; }
+.bgame-bar { display: flex; gap: 14px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bgame-bar b { font-family: var(--font-hand); font-size: 18px; color: var(--accent-color); }
+.bgame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(300px, 78vw); }
+.bgame-hole {
+    position: relative; aspect-ratio: 1; padding: 0; overflow: hidden; cursor: pointer;
+    background: radial-gradient(ellipse 34% 9% at 50% 86%, color-mix(in srgb, var(--ink) 30%, transparent) 0 96%, transparent 100%), var(--paper);
+    border: 1.5px solid var(--rule); border-radius: 18px; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.bgame-hole:disabled { cursor: default; }
+.bgame-buddy {
+    position: absolute; inset: 10% 10% 0; display: grid; place-items: center;
+    transform: translateY(105%); opacity: 0; transition: transform 0.16s cubic-bezier(.3, 1.4, .5, 1), opacity 0.1s;
+}
+.bgame-buddy .buddy { width: 100%; height: 100%; filter: none; }
+.bgame-hole.is-up .bgame-buddy { transform: translateY(4%); opacity: 1; }
+.bgame-hole.is-hit .bgame-buddy { transform: translateY(4%) scale(0.88); opacity: 1; transition-duration: 0.08s; }
+.bgame-hole.is-hit { border-color: var(--accent-color); background-color: var(--accent-soft); }
+@media (prefers-reduced-motion: reduce) { .bgame-buddy { transition: none; } }

@@ -1435,7 +1435,7 @@ function initBuddyLook() {
  * râde, se miră, „au!”, se supără (cu abur), amețește, apoi face pace (cu inimioare).
  */
 const BUDDY_POKES = ["giggle", "giggle", "surprised", "ouch", "angry", "angry", "dizzy", "love"];
-const buddyPoke = { n: 0, last: 0, timer: 0, rest: null };
+const buddyPoke = { n: 0, last: 0, timer: 0, rest: null, taps: [] };
 
 function pokeBuddy(btn, event) {
     const box = btn.closest(".azi-buddy");
@@ -1444,6 +1444,12 @@ function pokeBuddy(btn, event) {
     buddyPoke.n = now - buddyPoke.last < 4000 ? (buddyPoke.n % BUDDY_POKES.length) + 1 : 1;
     buddyPoke.last = now;
     btn.innerHTML = buddySVG(BUDDY_POKES[buddyPoke.n - 1]);
+    // L-ai „bătut” de 8 ori în 3 secunde? Te provoacă la un joc.
+    buddyPoke.taps = [...buddyPoke.taps.filter(t => now - t < 3000), now];
+    if (buddyPoke.taps.length >= 8) {
+        buddyPoke.taps = [];
+        setTimeout(openBuddyGame, 350);
+    }
 
     // Apăsat ca un buton: se turtește pe loc, apoi revine (nu fuge în nicio direcție).
     btn.classList.remove("is-hit", "is-calm");
@@ -1460,6 +1466,87 @@ function pokeBuddy(btn, event) {
             btn.innerHTML = buddySVG(buddyPoke.rest.mood);
         }
     }, 5000);
+}
+
+/* ---------- minijocul: „Prinde-l pe Tiți!” ---------- */
+/* Apare dacă îl „bați” des pe post-it. Iese dintr-una din cele 9 căsuțe; îl atingi cât de des poți în 20 de secunde.
+   Nu schimbă nimic în note (merge și pentru vizitatori); doar recordul se ține minte pe dispozitiv. */
+const GAME_BEST_KEY = "pro_buddy_game_best_v4";
+const game = { score: 0, end: 0, timer: 0, pop: 0, cell: -1, running: false };
+const gameBest = () => { try { return Number(localStorage.getItem(GAME_BEST_KEY)) || 0; } catch (_) { return 0; } };
+
+function openBuddyGame() {
+    if (!$("action-modal").hidden) return;
+    openModal({
+        title: `Prinde-l pe ${buddyName()}!`,
+        confirmText: "",
+        cancelText: "Închide",
+        guestOk: true,
+        body: `
+            <div class="bgame" id="bgame">
+                <p class="bgame-intro" id="bgame-msg">Te-ai plictisit, nu? 😄 Atinge-l pe ${escapeHTML(buddyName())} de câte ori poți în 20 de secunde, când iese dintr-o căsuță.</p>
+                <div class="bgame-bar"><span>Puncte: <b id="bgame-score">0</b></span><span>Timp: <b id="bgame-time">20</b>s</span><span>Record: <b id="bgame-best">${gameBest()}</b></span></div>
+                <div class="bgame-grid" id="bgame-grid">
+                    ${Array.from({ length: 9 }, (_, i) => `<button type="button" class="bgame-hole" data-action="bgame-hit" data-i="${i}" aria-label="Căsuța ${i + 1}" disabled><span class="bgame-buddy">${buddySVG("giggle")}</span></button>`).join("")}
+                </div>
+                <button type="button" class="btn btn-primary bgame-start" data-action="bgame-start" id="bgame-start">${icon("sparkles")} Start</button>
+            </div>`
+    });
+}
+
+function startBuddyGame() {
+    if (!$("bgame")) return;
+    clearInterval(game.timer); clearTimeout(game.pop);
+    Object.assign(game, { score: 0, end: Date.now() + 20000, running: true, cell: -1 });
+    $("bgame-score").textContent = "0";
+    $("bgame-start").hidden = true;
+    $("bgame-msg").textContent = "Hai! Atinge-l repede!";
+    document.querySelectorAll(".bgame-hole").forEach(h => { h.disabled = false; });
+    game.timer = setInterval(() => {
+        if (!$("bgame")) return stopBuddyGame(false);
+        const left = Math.max(0, Math.ceil((game.end - Date.now()) / 1000));
+        $("bgame-time").textContent = left;
+        if (left <= 0) stopBuddyGame(true);
+    }, 200);
+    popBuddy();
+}
+
+/** Iese în altă căsuță; cu cât ai mai multe puncte, cu atât stă mai puțin. */
+function popBuddy() {
+    if (!game.running || !$("bgame")) return;
+    const holes = [...document.querySelectorAll(".bgame-hole")];
+    holes.forEach(h => h.classList.remove("is-up", "is-hit"));
+    let next;
+    do { next = Math.floor(Math.random() * 9); } while (next === game.cell);
+    game.cell = next;
+    holes[next].classList.add("is-up");
+    game.pop = setTimeout(popBuddy, Math.max(450, 1000 - game.score * 25));
+}
+
+function hitBuddy(el) {
+    if (!game.running || Number(el.dataset.i) !== game.cell || el.classList.contains("is-hit")) return;
+    game.score++;
+    $("bgame-score").textContent = game.score;
+    el.classList.add("is-hit");
+    el.querySelector(".bgame-buddy").innerHTML = buddySVG(BUDDY_POKES[Math.floor(Math.random() * BUDDY_POKES.length)]);
+    clearTimeout(game.pop);
+    game.pop = setTimeout(popBuddy, 220);
+}
+
+function stopBuddyGame(finished) {
+    clearInterval(game.timer); clearTimeout(game.pop);
+    game.running = false;
+    if (!finished || !$("bgame")) return;
+    const best = gameBest();
+    const record = game.score > best;
+    if (record) { try { localStorage.setItem(GAME_BEST_KEY, String(game.score)); } catch (_) { /* fără stocare */ } }
+    document.querySelectorAll(".bgame-hole").forEach(h => { h.disabled = true; h.classList.remove("is-up"); });
+    $("bgame-best").textContent = Math.max(best, game.score);
+    $("bgame-msg").textContent = record ? `🏆 Record nou: ${game.score}! ${buddyName()} e amețit.` : game.score >= 15 ? `${game.score} puncte, super rapid!` : `${game.score} puncte. Mai încerci?`;
+    const start = $("bgame-start");
+    start.hidden = false;
+    start.innerHTML = `${icon("refresh")} Încă o dată`;
+    start.focus();
 }
 
 /** Ce simte și ce îi spune mascota elevului azi. */
@@ -6652,6 +6739,8 @@ const SETUP_ACTIONS = {
     "setup-open": () => openSetup(0),
     "programme-change": () => openSetup(1),
     "help": el => openHelp(el.dataset.key),
+    "bgame-start": () => startBuddyGame(),
+    "bgame-hit": el => hitBuddy(el),
     "install-hide": () => { try { localStorage.setItem(IOS_HINT_KEY, "1"); } catch (_) { /* fără stocare */ } renderDashboard(); },
     "badge-allow": async () => {
         try { await Notification.requestPermission(); } catch (_) { /* refuzat */ }
@@ -7450,7 +7539,7 @@ const GUEST_SESSION_KEY = "pro_guest_browse_v4"; // a ales „doar mă uit” î
 const GUEST_OK = new Set([
     "nav", "show-date", "cal-nav", "cal-today", "cal-view", "cal-goto",
     "cat-select", "cat-step", "cat-group", "cat-back", "cat-filter", "cat-clear-filters", "open-subject", "cat-menu-glance",
-    "home-day", "home-risk", "plan-day", "help", "install-hide", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
+    "home-day", "home-risk", "plan-day", "help", "install-hide", "bgame-start", "bgame-hit", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
     "sim-scenario", "sim-toggle-all", "sim-pick-subject",
     "cmdk", "cmdk-close", "quick-add-close", "notif-open", "notif-close", "more-open", "more-close", "more-run",
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
@@ -7630,6 +7719,7 @@ function closeActionModal() {
     overlay.hidden = true;
     document.body.classList.remove("modal-open");
     if (focusRun.it) stopFocus(); // „Renunț” / Escape / fundal: cronometrul se oprește, sesiunea rămâne nebifată
+    if (game.running) stopBuddyGame(false);
     $("action-modal-confirm").onclick = null;
     $("action-modal-body").innerHTML = "";
     ui.ttDraft = null;
