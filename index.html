@@ -608,19 +608,26 @@
                     </div>
 
                     <div class="glass-card settings-wide" id="modules-card">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Module școlare</h3>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Structura anului școlar 2026–2027</h3>
                         <p class="subtitle mt-2">Purtarea pornește de la 10 la începutul fiecărui modul. Datele implicite sunt cele din structura anului școlar 2026–2027 (OM nr. 3194/2026). Modulele 3 și 4 depind de vacanța mobilă stabilită de inspectoratul școlar din județul tău.</p>
-                        <div class="form-group mt-3">
-                            <label for="set-module-preset">Structura anului</label>
+                        <div class="form-row mt-3">
+                            <div class="form-group">
+                                <label for="set-county">Județul</label>
+                                <select id="set-county" class="glass-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="set-module-preset">Vacanța de schi</label>
                             <select id="set-module-preset" class="glass-select">
                                 <option value="2026-feb15">2026–2027 · vacanța mobilă 15–21 februarie</option>
                                 <option value="2026-feb22">2026–2027 · vacanța mobilă 22–28 februarie</option>
                                 <option value="2026-mar01">2026–2027 · vacanța mobilă 1–7 martie</option>
                                 <option value="custom">Datele tale de până acum</option>
                             </select>
+                            </div>
                         </div>
                         <div id="set-modules" class="modules-edit"></div>
-                        <p class="subtitle mt-2">Datele vin din structura oficială a anului școlar; alege doar varianta cu vacanța mobilă din județul tău.</p>
+                        <div id="year-calendar" class="ycal mt-3" aria-label="Calendarul anului școlar"></div>
+                        <p class="subtitle mt-2">Datele vin din structura oficială a anului școlar (Ministerul Educației). Județul alege singur săptămâna vacanței de schi; dacă inspectoratul tău a anunțat altceva, o poți schimba.</p>
                     </div>
 
                     <div class="glass-card settings-wide backup-card" id="backup-card">

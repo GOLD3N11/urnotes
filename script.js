@@ -42,16 +42,41 @@ const MODULE_PRESETS = {
 };
 const DEFAULT_MODULE_PRESET = "2026-feb22";
 
-function presetModules(id = DEFAULT_MODULE_PRESET) {
+/* Structura anului școlar 2026–2027 (Ministerul Educației): zilele libere din timpul modulelor
+   și ultima zi de cursuri, mai devreme pentru a XII-a (4 iunie) și a VIII-a (11 iunie). */
+const SCHOOL_HOLIDAYS = {
+    "2026-11-30": "Sf. Andrei", "2026-12-01": "Ziua Națională", "2026-12-25": "Crăciunul",
+    "2027-01-01": "Anul Nou", "2027-01-06": "Boboteaza", "2027-01-07": "Sf. Ioan",
+    "2027-04-30": "Vinerea Mare", "2027-05-03": "Paștele (a doua zi)", "2027-05-04": "zi liberă după Paște", "2027-06-01": "Ziua Copilului"
+};
+const SCHOOL_NOTES = { "2026-10-05": "Ziua Educației", "2027-03-28": "Paștele catolic", "2027-05-02": "Paștele ortodox" };
+const LAST_DAY_BY_CLASS = { 12: "2027-06-04", 8: "2027-06-11" };
+
+function presetModules(id = DEFAULT_MODULE_PRESET, cls = 0) {
     const p = MODULE_PRESETS[id] || MODULE_PRESETS[DEFAULT_MODULE_PRESET];
     return [
         { start: "2026-09-07", end: "2026-10-23" },
         { start: "2026-11-02", end: "2026-12-22" },
         { start: "2027-01-11", end: p.m3End },
         { start: p.m4Start, end: "2027-04-23" },
-        { start: "2027-05-05", end: "2027-06-18" }
+        { start: "2027-05-05", end: LAST_DAY_BY_CLASS[cls] || "2027-06-18" }
     ];
 }
+
+/* Județul alege săptămâna vacanței mobile (decizia inspectoratului școlar, anunțată pentru 2026–2027). */
+const COUNTY_WEEK = {
+    "Alba": "2026-mar01", "Arad": "2026-mar01", "Argeș": "2026-feb22", "Bacău": "2026-feb22", "Bihor": "2026-feb22",
+    "Bistrița-Năsăud": "2026-feb15", "Botoșani": "2026-feb22", "Brăila": "2026-feb22", "Brașov": "2026-feb22",
+    "București": "2026-feb22", "Buzău": "2026-mar01", "Călărași": "2026-feb22", "Caraș-Severin": "2026-mar01",
+    "Cluj": "2026-feb15", "Constanța": "2026-feb22", "Covasna": "2026-feb22", "Dâmbovița": "2026-feb22",
+    "Dolj": "2026-feb15", "Galați": "2026-feb22", "Giurgiu": "2026-feb22", "Gorj": "2026-feb22", "Harghita": "2026-feb22",
+    "Hunedoara": "2026-feb22", "Ialomița": "2026-feb22", "Iași": "2026-feb22", "Ilfov": "2026-feb22", "Maramureș": "2026-feb22",
+    "Mehedinți": "2026-feb22", "Mureș": "2026-feb22", "Neamț": "2026-feb22", "Olt": "2026-feb22", "Prahova": "2026-feb22",
+    "Sălaj": "2026-feb22", "Satu Mare": "2026-feb22", "Sibiu": "2026-feb22", "Suceava": "2026-feb15", "Teleorman": "2026-feb22",
+    "Timiș": "2026-feb22", "Tulcea": "2026-feb22", "Vâlcea": "2026-feb22", "Vaslui": "2026-feb22", "Vrancea": "2026-feb22"
+};
+const COUNTIES = Object.keys(COUNTY_WEEK).sort((a, b) => a.localeCompare(b, "ro"));
+const countyOptions = selected => `<option value="">Alege județul…</option>${COUNTIES.map(c => `<option value="${escapeHTML(c)}" ${c === selected ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}`;
 
 const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
@@ -65,7 +90,7 @@ const DEFAULT_SETTINGS = {
     // Personalizare: cum îl cheamă pe elev și cum și-a botezat mascota (post-it-ul de pe pagina Azi)
     profile: { name: "", buddy: "Tiți" },
     // Programa elevului (aleasă în configurare): de ea depind materiile care se pot adăuga
-    school: { profile: "", cls: 0, variant: "", lm2: "Limba franceză" }
+    school: { profile: "", cls: 0, variant: "", lm2: "Limba franceză", county: "" }
 };
 
 const REPORT_SECTIONS = [
@@ -382,7 +407,8 @@ function pruneTimetable() {
 
 /* ==================== PURTARE (logică) ==================== */
 function matchingModulePreset(list) {
-    return Object.keys(MODULE_PRESETS).find(id => JSON.stringify(presetModules(id)) === JSON.stringify(list)) || "custom";
+    const key = l => JSON.stringify(l.slice(0, 4).concat({ start: l[4]?.start })); // ultima zi depinde de clasă
+    return Object.keys(MODULE_PRESETS).find(id => key(presetModules(id)) === key(list)) || "custom";
 }
 
 /** Întoarce un mesaj de eroare sau null dacă lista de module e validă. */
@@ -680,6 +706,52 @@ function renderModulesSettings(list = state.settings.modules) {
             <input type="hidden" id="set-mod-${i}-end" value="${escapeHTML(m.end)}">
         </div>`).join("");
     syncModulePresetSelect();
+    renderYearCalendar(list);
+}
+
+/* ---------- calendarul anului școlar (ca cel publicat de minister) ---------- */
+function schoolDayKind(date, list) {
+    const wd = parseDateKey(date).getDay();
+    const first = list[0].start, last = list[4].end;
+    if (date < first || date > "2027-06-30") return "out";
+    if (SCHOOL_HOLIDAYS[date]) return "holiday";
+    if (wd === 0 || wd === 6) return "weekend";
+    if (list.some(m => date >= m.start && date <= m.end)) return date === last && last !== "2027-06-18" ? "lastday" : "course";
+    if (date > last) return "after";
+    return date >= "2027-02-15" && date <= "2027-03-07" ? "mobile" : "vacation";
+}
+
+function renderYearCalendar(list = state.settings.modules) {
+    const box = $("year-calendar");
+    if (!box) return;
+    if (validateModules(list)) { box.innerHTML = ""; return; }
+    const today = getLocalDateKey();
+    const months = Array.from({ length: 10 }, (_, i) => new Date(2026, 8 + i, 1));
+    const wd = ["L", "Ma", "Mi", "J", "V", "S", "D"];
+    box.innerHTML = `
+        <div class="ycal-grid">
+            ${months.map(m => {
+                const y = m.getFullYear(), mo = m.getMonth();
+                const days = new Date(y, mo + 1, 0).getDate();
+                const lead = (m.getDay() + 6) % 7;
+                const cells = [];
+                for (let i = 0; i < lead; i++) cells.push(`<span class="ycal-d is-blank"></span>`);
+                for (let d = 1; d <= days; d++) {
+                    const key = `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                    const kind = schoolDayKind(key, list);
+                    const note = SCHOOL_HOLIDAYS[key] || SCHOOL_NOTES[key] || (kind === "lastday" ? "ultima zi de cursuri" : "");
+                    cells.push(`<span class="ycal-d k-${kind} ${key === today ? "is-today" : ""} ${SCHOOL_NOTES[key] ? "has-note" : ""}" ${note ? `title="${escapeHTML(note)}"` : ""}>${d}</span>`);
+                }
+                return `<div class="ycal-month"><b>${MONTHS[mo]} ${y}</b><div class="ycal-days">${wd.map(w => `<span class="ycal-wd">${w}</span>`).join("")}${cells.join("")}</div></div>`;
+            }).join("")}
+        </div>
+        <ul class="ycal-legend">
+            <li><i class="k-course"></i> cursuri</li>
+            <li><i class="k-vacation"></i> vacanță</li>
+            <li><i class="k-mobile"></i> vacanța din județul tău</li>
+            <li><i class="k-holiday"></i> sărbători legale / zile libere</li>
+            ${list[4].end !== "2027-06-18" ? `<li><i class="k-lastday"></i> ultima zi de cursuri pentru clasa ta</li>` : ""}
+        </ul>`;
 }
 
 function readModulesFromSettings() {
@@ -696,7 +768,14 @@ function syncModulePresetSelect() {
 
 function bindPurtareEvents() {
     $("set-module-preset")?.addEventListener("change", event => {
-        if (MODULE_PRESETS[event.target.value]) renderModulesSettings(presetModules(event.target.value));
+        if (MODULE_PRESETS[event.target.value]) renderModulesSettings(presetModules(event.target.value, state.settings.school.cls));
+    });
+    $("set-county")?.addEventListener("change", event => {
+        const week = COUNTY_WEEK[event.target.value];
+        if (week && $("set-module-preset")) {
+            $("set-module-preset").value = week;
+            renderModulesSettings(presetModules(week, state.settings.school.cls));
+        }
     });
     $("set-modules")?.addEventListener("change", syncModulePresetSelect);
 }
@@ -789,7 +868,8 @@ function sanitizeSettings(raw) {
             profile: typeof s.school?.profile === "string" && SETUP_PROFILES[s.school.profile] ? s.school.profile : "",
             cls: Number.isInteger(s.school?.cls) ? s.school.cls : 0,
             variant: typeof s.school?.variant === "string" ? s.school.variant.slice(0, 30) : "",
-            lm2: LM2_CHOICES.includes(s.school?.lm2) ? s.school.lm2 : LM2_CHOICES[0]
+            lm2: LM2_CHOICES.includes(s.school?.lm2) ? s.school.lm2 : LM2_CHOICES[0],
+            county: COUNTY_WEEK[s.school?.county] ? s.school.county : ""
         },
         modules: sanitizeModules(s.modules),
         report: {
@@ -1287,7 +1367,7 @@ function moduleAt(dateKey) {
 
 function isSchoolDay(dateKey) {
     const wd = parseDateKey(dateKey).getDay();
-    return wd >= 1 && wd <= 5 && Boolean(moduleAt(dateKey));
+    return wd >= 1 && wd <= 5 && !SCHOOL_HOLIDAYS[dateKey] && Boolean(moduleAt(dateKey));
 }
 
 function nextSchoolDay(after) {
@@ -3395,10 +3475,12 @@ const SETTINGS_FIELDS = {
     "set-density": ["appearance", "density"],
     "set-cursor": ["appearance", "cursor"],
     "set-name": ["profile", "name"],
+    "set-county": ["school", "county"],
     "set-buddy": ["profile", "buddy"]
 };
 
 function loadSettingsIntoUI() {
+    if ($("set-county") && !$("set-county").options.length) $("set-county").innerHTML = countyOptions("");
     for (const [id, [group, key]] of Object.entries(SETTINGS_FIELDS)) {
         const el = $(id);
         if (!el) continue;
@@ -5507,6 +5589,7 @@ function openSetup(step = 0) {
         cls: 9,
         variant: "",
         lm2: s.school.lm2,
+        county: s.school.county,
         rows: [],
         target: s.goals.targetGPA,
         risk: s.calc.riskThreshold,
@@ -5602,6 +5685,11 @@ function programmeRowFor(name) {
 function syncProgrammeHours() {
     const sc = myProgramme();
     if (!sc || guest.on) return;
+    // ultima zi de cursuri a clasei (a XII-a și a VIII-a termină mai devreme), dacă modulele sunt cele oficiale
+    const mods = state.settings.modules;
+    const preset = matchingModulePreset(mods);
+    const lastDay = presetModules(preset, sc.cls)[4].end;
+    if (preset !== "custom" && mods[4].end !== lastDay) mods[4] = { ...mods[4], end: lastDay };
     for (const [mat, sub] of Object.entries(state.subjects)) {
         const row = programmeRowFor(mat);
         if (!row) continue;
@@ -5789,6 +5877,11 @@ function setupTargetsHTML() {
             </div>
         </div>
         <div class="setup-field">
+            <label class="setup-label" for="setup-county">Din ce județ ești?</label>
+            <select id="setup-county" class="glass-select">${countyOptions(ui.setup.county)}</select>
+            <small class="setup-field-hint">Din el aflu săptămâna vacanței de schi (o stabilește inspectoratul școlar).</small>
+        </div>
+        <div class="setup-field">
             <label class="setup-label" for="setup-preset">Vacanța mobilă (de ea depind modulele 3 și 4)</label>
             <select id="setup-preset" class="glass-select">
                 ${matchingModulePreset(state.settings.modules) === "custom" ? `<option value="keep" ${preset === "keep" ? "selected" : ""}>Păstrez datele mele (din Setări)</option>` : ""}
@@ -5863,12 +5956,13 @@ function finishSetup(withTimetable) {
         added.push(name);
     });
     const s = state.settings;
-    if (SETUP_PROFILES[st.profile]) s.school = { profile: st.profile, cls: SETUP_PROFILES[st.profile].classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0] };
+    if (SETUP_PROFILES[st.profile]) s.school = { profile: st.profile, cls: SETUP_PROFILES[st.profile].classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0], county: st.county || s.school.county || "" };
+    else if (st.county) s.school.county = st.county;
     s.goals.targetGPA = st.target;
     s.goals.minGPA = Math.min(s.goals.minGPA, st.target);
     s.calc.riskThreshold = st.risk;
     s.calc.method = st.method;
-    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset);
+    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset, SETUP_PROFILES[st.profile]?.classes ? st.cls : 0);
     // Clasa aleasă ajunge și pe antetul raportului (dacă elevul nu a scris deja alta).
     if (SETUP_PROFILES[st.profile]?.classes && !s.report.cls) s.report.cls = `a ${ROMAN[st.cls]}-a`;
     addActivity(added.length ? `Configurare: ai adăugat ${plural(added.length, "materie", "materii")}.` : "Configurare: ținte și an școlar actualizate.");
@@ -6867,6 +6961,12 @@ function bindSetupEvents() {
             if (r) { r.on = t.checked; renderSetup(); $("setup-body").querySelector(`.setup-check[data-i="${t.dataset.i}"]`)?.focus(); }
         } else if (t.id === "setup-preset" && ui.setup) {
             ui.setup.preset = validSetupPreset(t.value, ui.setup.preset);
+        } else if (t.id === "setup-county" && ui.setup) {
+            ui.setup.county = COUNTY_WEEK[t.value] ? t.value : "";
+            if (COUNTY_WEEK[t.value]) {
+                ui.setup.preset = COUNTY_WEEK[t.value];
+                if ($("setup-preset")) $("setup-preset").value = ui.setup.preset;
+            }
         }
     });
     box.addEventListener("input", event => {
@@ -8819,6 +8919,7 @@ function saveSettings({ quiet = false } = {}) {
     s.appearance.density = field("set-density") || "normal";
     s.appearance.cursor = CURSOR_MODES.includes(field("set-cursor")) ? field("set-cursor") : "off";
     s.profile.name = cleanName(field("set-name"), 40);
+    s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
 
     applyAppearanceSettings();
@@ -10569,7 +10670,7 @@ function bindEvents() {
     document.addEventListener("change", event => {
         const el = event.target;
         if (!el.closest?.("#tab-setari") || !el.matches("input, select") || el.type === "file") return;
-        if (!(el.id in SETTINGS_FIELDS) && !el.closest("#set-modules") && el.id !== "set-module-preset") return;
+        if (!(el.id in SETTINGS_FIELDS) && !el.closest("#set-modules") && el.id !== "set-module-preset" && el.id !== "set-county") return;
         if (!canEdit()) { loadSettingsIntoUI(); requireAccount(); return; }
         saveSettings({ quiet: true });
     });

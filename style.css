@@ -4113,3 +4113,34 @@ html, body { overflow-x: clip; }
 html:has(body.scroll-locked) { overscroll-behavior: none; }
 body.scroll-locked { overflow: hidden; overscroll-behavior: none; }
 body.scroll-locked .app-bar { transform: translateY(var(--lock-y, 0px)); }
+
+/* ==================== CALENDARUL ANULUI ȘCOLAR ==================== */
+.ycal { --c-course: color-mix(in srgb, #FFE9A8 70%, var(--sheet)); --c-vac: color-mix(in srgb, #8BC86B 55%, var(--sheet)); --c-mob: color-mix(in srgb, #8BC86B 85%, var(--sheet));
+        --c-hol: color-mix(in srgb, #4E8FD9 55%, var(--sheet)); --c-last: color-mix(in srgb, #E39A4E 65%, var(--sheet)); }
+body.dark-mode .ycal { --c-course: color-mix(in srgb, #FFE9A8 22%, var(--sheet)); --c-vac: color-mix(in srgb, #8BC86B 30%, var(--sheet)); --c-mob: color-mix(in srgb, #8BC86B 55%, var(--sheet));
+        --c-hol: color-mix(in srgb, #4E8FD9 45%, var(--sheet)); --c-last: color-mix(in srgb, #E39A4E 45%, var(--sheet)); }
+.ycal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+.ycal-month b { display: block; margin-bottom: 6px; font-family: var(--font-hand); font-size: 15px; }
+.ycal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.ycal-wd { font-size: 10px; font-weight: 700; text-align: center; color: var(--text-secondary); }
+.ycal-d { display: grid; place-items: center; aspect-ratio: 1; border-radius: 6px; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ycal-d.is-blank { visibility: hidden; }
+.ycal-d.k-course { background: var(--c-course); }
+.ycal-d.k-vacation { background: var(--c-vac); }
+.ycal-d.k-mobile { background: var(--c-mob); outline: 1.5px dashed color-mix(in srgb, #3E8B2A 70%, transparent); outline-offset: -2px; }
+.ycal-d.k-holiday { background: var(--c-hol); color: #fff; }
+.ycal-d.k-lastday { background: var(--c-last); }
+.ycal-d.k-weekend, .ycal-d.k-out, .ycal-d.k-after { color: var(--text-secondary); font-weight: 500; }
+.ycal-d.has-note { text-decoration: underline dotted; }
+.ycal-d.is-today { box-shadow: 0 0 0 2px var(--accent-color); }
+.ycal-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; list-style: none; padding: 0; font-size: 12.5px; color: var(--text-secondary); }
+.ycal-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.ycal-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
+.ycal-legend .k-course { background: var(--c-course); } .ycal-legend .k-vacation { background: var(--c-vac); }
+.ycal-legend .k-mobile { background: var(--c-mob); outline: 1.5px dashed #3E8B2A; outline-offset: -2px; }
+.ycal-legend .k-holiday { background: var(--c-hol); } .ycal-legend .k-lastday { background: var(--c-last); }
+.setup-field-hint { display: block; margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); }
+@media (max-width: 600px) { .ycal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .ycal-d { font-size: 10.5px; border-radius: 5px; } }
+#set-modules { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+#set-modules .module-row { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; background: var(--accent-soft); font-size: 12.5px; }
+#set-modules .module-row b { font-size: 12.5px; }
