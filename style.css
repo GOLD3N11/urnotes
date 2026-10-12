@@ -260,7 +260,7 @@ header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; line-hei
 
 /* ==================== TABURI & INTRO ==================== */
 .tab-content { display: none; }
-.tab-content.active { display: block; animation: fadeIn 0.25s ease-out; }
+.tab-content.active { display: block; }
 
 .page-intro {
     display: flex;
@@ -1773,9 +1773,7 @@ button.record:hover { border-color: var(--accent-color); transform: translateY(-
 .is-animating .anim-grow { transform-origin: left; animation: growX 0.75s cubic-bezier(.2, .8, .2, 1) both; }
 .is-animating .impact-fill.is-neg.anim-grow { transform-origin: right; }
 .is-animating .anim-grow-y { transform-origin: bottom; animation: growY 0.7s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
-.is-animating .anim-rise { animation: rise 0.45s ease both; animation-delay: calc(min(var(--i, 0), 12) * 35ms); }
 .is-animating .goal-arc { animation: ring 1s cubic-bezier(.2, .8, .2, 1) both; }
-.is-animating .hm-cell:not(.l0) { animation: rise 0.5s ease both; }
 
 @media (max-width: 1100px) {
     .stats-goals-grid, .stats-grades-grid, .stats-time-grid { grid-template-columns: minmax(0, 1fr); }
@@ -4014,20 +4012,10 @@ h2 .help-dot { width: 24px; height: 24px; font-size: 14px; vertical-align: 6px; 
 
 /* ==================== TELEFON: DESIGN ȘI MIȘCARE ==================== */
 /* Paginile intră din partea în care mergi; cardurile apar pe rând */
-@keyframes tabInFwd { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
-@keyframes tabInBack { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
-@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
-.tab-content.active.enter-fwd { animation: tabInFwd 0.32s cubic-bezier(.2, .8, .2, 1); }
-.tab-content.active.enter-back { animation: tabInBack 0.32s cubic-bezier(.2, .8, .2, 1); }
-.tab-content.is-entering .glass-card { animation: cardIn 0.42s cubic-bezier(.2, .8, .2, 1) both; }
-.tab-content.is-entering .glass-card:nth-of-type(2), .tab-content.is-entering .azi-col > :nth-child(2) { animation-delay: 0.05s; }
-.tab-content.is-entering .glass-card:nth-of-type(3), .tab-content.is-entering .azi-col > :nth-child(3) { animation-delay: 0.1s; }
-.tab-content.is-entering .glass-card:nth-of-type(4), .tab-content.is-entering .azi-col > :nth-child(4) { animation-delay: 0.15s; }
-.tab-content.is-entering .glass-card:nth-of-type(n+5), .tab-content.is-entering .azi-col > :nth-child(n+5) { animation-delay: 0.2s; }
-/* Liste care apar „pe rând” când se deschid */
-@keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.tab-content.is-entering .plan-item, .tab-content.is-entering .cat-row, .tab-content.is-entering .azi-lesson, .tab-content.is-entering .start-steps li { animation: rowIn 0.35s ease-out both; animation-delay: 0.12s; }
-
+@keyframes tabInFwd { from { opacity: 0.4; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+@keyframes tabInBack { from { opacity: 0.4; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+.tab-content.active.enter-fwd { animation: tabInFwd 0.26s cubic-bezier(.2, .8, .2, 1); }
+.tab-content.active.enter-back { animation: tabInBack 0.26s cubic-bezier(.2, .8, .2, 1); }
 /* Titlul docat în bara de sus */
 .topbar-brand { position: relative; min-width: 0; }
 .topbar-title {

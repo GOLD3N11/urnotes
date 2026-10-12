@@ -9079,7 +9079,8 @@ function switchTab(tabId) {
     const changed = ui.activeTab !== tabId;
     const from = ui.activeTab;
     ui.activeTab = tabId;
-    if (changed && tabId === "tab-statistici") ui.statsAnimate = true;
+    // cifrele „numără” doar la prima deschidere; la următoarele intrări pagina apare direct, fără să pară reîncărcată
+    if (changed && tabId === "tab-statistici" && !ui.statsSeen) { ui.statsAnimate = true; ui.statsSeen = true; }
     // O pagină nouă începe de sus, cu titlul ei vizibil sub bară (nu la jumătatea derulării paginii anterioare).
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
