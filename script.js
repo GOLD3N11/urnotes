@@ -80,7 +80,7 @@ const countyOptions = selected => `<option value="">Alege județul…</option>${
 
 const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
-    calc: { method: "weighted", rounding: "2", riskThreshold: 8, riskDrop: 0.5 },
+    calc: { method: "arithmetic", rounding: "2", riskThreshold: 8, riskDrop: 0.5 },
     targets: { tens: 20, evals: 30 },
     appearance: { theme: "system", accent: "violet", density: "normal", cursor: "off" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
@@ -219,7 +219,8 @@ function parseStrictInteger(value, min, max) {
 function roundValue(value, decimals = 2) {
     if (!Number.isFinite(value)) return 0;
     const factor = 10 ** decimals;
-    return Math.round(value * factor) / factor;
+    // toPrecision taie zgomotul de virgulă mobilă: 8.495 * 100 = 849.4999… trebuie să devină 8.50, ca pe hârtie
+    return Math.round(Number((value * factor).toPrecision(12))) / factor;
 }
 
 function getLocalDateKey(date = new Date()) {
@@ -334,8 +335,12 @@ function seriesDates(ev, start, from, to) {
     const skip = new Set(ev.skipDates || []);
     const out = [];
     const firstIndex = Math.max(0, Math.ceil(daysBetween(start, from) / step));
+    // Temele și testele care se repetă nu apar în vacanțe (cele personale da); prima apariție rămâne mereu
+    const schoolOnly = ev.type !== "Personal";
     for (let date = addDays(start, firstIndex * step); date <= end && out.length < 500; date = addDays(date, step)) {
-        if (!skip.has(date)) out.push(date);
+        if (skip.has(date)) continue;
+        if (schoolOnly && date !== start && isHolidayDate(date)) continue;
+        out.push(date);
     }
     return out;
 }
@@ -387,11 +392,21 @@ function canGradeOccurrence(ev, date, links) {
 
 /** Prima zi (după `after`) în care materia apare în orar. */
 function nextLessonDate(mat, after = getLocalDateKey()) {
+    // Întâi după calendarul școlar (sare peste vacanțe și zile libere); în afara anului școlar, doar după orar
+    for (let i = 1; i <= 60; i++) {
+        const date = addDays(after, i);
+        if (lessonsOn(date).includes(mat)) return date;
+    }
     for (let i = 1; i <= 14; i++) {
         const date = addDays(after, i);
         if ((state.timetable[parseDateKey(date).getDay()] || []).includes(mat)) return date;
     }
     return null;
+}
+
+/** Vacanță sau zi liberă legală (weekendul nu contează aici). */
+function isHolidayDate(dateKey) {
+    return Boolean(SCHOOL_HOLIDAYS[dateKey]) || !moduleAt(dateKey);
 }
 
 function autoEventTitle(type, subject) {
@@ -1090,7 +1105,8 @@ function calculateMetrics(subjects = state.subjects) {
         const d = {
             rawAvg,
             exactAvg,
-            roundedAvg: exactAvg > 0 ? Math.round(exactAvg) : 0,
+            // media la materie din catalog: media aritmetică exactă rotunjită la întreg (la ,50 în favoarea elevului)
+            roundedAvg: count > 0 ? roundValue(rawAvg, 0) : 0,
             requiredNotes: Math.max(0, Math.ceil(sub.ore) + 3 - sub.grades.length)
         };
 
@@ -1109,7 +1125,8 @@ function calculateMetrics(subjects = state.subjects) {
         if (!sub.excludeFromGPA && rawAvg > 0) {
             weightedSum += rawAvg * sub.ore;
             weightTotal += sub.ore;
-            arithmeticSum += rawAvg;
+            // „ca în catalog” (ROFUIP): media generală = media aritmetică a mediilor ÎNTREGI pe materii (+ purtarea)
+            arithmeticSum += d.roundedAvg;
             arithmeticCount++;
         }
 
