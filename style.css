@@ -4242,3 +4242,67 @@ body.dark-mode .ycal { --c-hol: color-mix(in srgb, #4E8FD9 40%, var(--sheet)); -
 .azi-item.is-missed { flex-wrap: wrap; row-gap: 4px; }
 .sim-need { display: block; }
 .sim-need .ico { display: inline-block; vertical-align: -3px; margin: 0 4px 0 0; }
+
+/* ==================== ACȚIUNI MAI RAPIDE: formularul de eveniment ==================== */
+/* Materia dintr-o atingere (cele de mâine primele), ziua dintr-o atingere; restul stă strâns sub „Titlu, repetare, notițe”. */
+.ev-subj-strip { display: flex; gap: 6px; margin: 0 -4px 2px; padding: 4px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.ev-subj-strip::-webkit-scrollbar { display: none; }
+.ev-subj-chip {
+    flex: none; max-width: 170px; min-height: 36px; padding: 7px 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    background: var(--paper); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 99px;
+    font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; scroll-snap-align: start;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.ev-subj-chip:hover { border-color: color-mix(in srgb, var(--accent-color) 45%, var(--rule)); }
+.ev-subj-chip.is-on { background: var(--accent-soft); border-color: var(--accent-color); color: var(--accent-color); }
+.ev-subj-chip:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+/* Lista clasică rămâne pentru cititoarele de ecran și tastatură, dar nu mai încarcă vederea */
+.ev-subject-select { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ev-date-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ev-date-chips .ev-hint-btn { min-height: 34px; }
+.ev-date-chips .ev-hint-btn.is-active { background: var(--accent-color); color: var(--paper); border-color: var(--accent-color); }
+.ev-date-chips .ev-hint-btn.is-active svg { color: inherit; }
+.ev-more { margin: 2px 0 12px; border: 1px dashed var(--rule); border-radius: 12px; padding: 10px 12px; }
+.ev-more > summary { cursor: pointer; font-weight: 650; font-size: 13.5px; color: var(--text-secondary); list-style-position: inside; }
+.ev-more[open] > summary { margin-bottom: 12px; }
+@media (pointer: coarse) { .ev-subj-chip { min-height: 40px; } }
+
+/* Orarul: alegi ziua, apoi atingi materiile în ordine */
+.tt-palette { position: sticky; top: -18px; z-index: 2; margin: -8px 0 6px; padding: 10px 0 12px; background: var(--sheet); border-bottom: 1px solid var(--glass-border); }
+.tt-palette-hint { margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); }
+.tt-palette-hint b { color: var(--accent-color); }
+.tt-palette-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tt-tap {
+    min-height: 36px; padding: 6px 12px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    background: var(--paper); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 99px;
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color 0.12s, border-color 0.12s, transform 0.12s;
+}
+.tt-tap:hover:not([disabled]) { border-color: var(--accent-color); color: var(--accent-color); }
+.tt-tap:active:not([disabled]) { transform: scale(0.95); background: var(--accent-soft); }
+.tt-tap[disabled] { opacity: 0.45; cursor: not-allowed; }
+.tt-next { margin-top: 10px; }
+.tt-day { border-radius: 12px; padding-inline: 8px; margin-inline: -8px; transition: background-color 0.15s; }
+.tt-day.is-active { background: var(--accent-soft); }
+.tt-day-pick { display: flex; align-items: baseline; gap: 8px; padding: 2px 0; background: none; border: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.tt-day-pick small { font-size: 12px; color: var(--text-secondary); }
+.tt-day.is-active .tt-day-pick b { color: var(--accent-color); }
+.tt-day-tools { display: flex; gap: 2px; }
+.tt-day-tools .btn { padding: 4px 8px; font-size: 12.5px; min-height: 30px; }
+.tt-day-head { align-items: center; }
+@media (pointer: coarse) { .tt-tap { min-height: 40px; } }
+
+/* Amintiri (Setări) */
+.remind-toggle { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.remind-toggle input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent-color); }
+.remind-toggle b { display: block; font-size: 14.5px; }
+.remind-toggle small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--text-secondary); }
+.remind-perm { display: flex; align-items: flex-start; gap: 6px; margin: 4px 0 6px; font-size: 13px; color: var(--text-secondary); }
+.remind-perm .ico { flex: none; margin-top: 2px; }
+.remind-perm.is-ok { color: var(--accent-green); }
+.remind-perm.is-warn { color: var(--accent-yellow); }
+@media (max-width: 600px) {
+    /* Pe telefon paleta stă pe un singur rând care se derulează, ca să rămână loc pentru zile */
+    .tt-palette-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; padding: 2px 4px; overscroll-behavior-x: contain; }
+    .tt-palette-chips::-webkit-scrollbar { display: none; }
+    .tt-tap { flex: none; }
+}

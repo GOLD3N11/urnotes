@@ -78,9 +78,13 @@ const COUNTY_WEEK = {
 const COUNTIES = Object.keys(COUNTY_WEEK).sort((a, b) => a.localeCompare(b, "ro"));
 const countyOptions = selected => `<option value="">Alege județul…</option>${COUNTIES.map(c => `<option value="${escapeHTML(c)}" ${c === selected ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}`;
 
+const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
+
 const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
-    calc: { method: "arithmetic", rounding: "2", riskThreshold: 8, riskDrop: 0.5 },
+    calc: { method: "arithmetic", rounding: "2", riskThreshold: 8, riskDrop: 0.5, rev: 2 },
+    // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
+    remind: { on: false, time: "19:00" },
     targets: { tens: 20, evals: 30 },
     appearance: { theme: "system", accent: "violet", density: "normal", cursor: "off" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
@@ -147,6 +151,7 @@ const ui = {
     activeTab: "tab-dashboard",
     cal: { view: "week", date: getLocalDateKey() }, // ziua în jurul căreia se afișează săptămâna/luna
     ttDraft: null,
+    ttDay: 1,
     // Catalog: materia deschisă, căutare, sortare, filtru; showDetail = pe telefon, detaliile acoperă lista
     catalog: { selected: "", query: "", sort: "group", filter: "all", showDetail: false, autoPicked: true, collapsed: {} },
     charts: {},
@@ -407,6 +412,20 @@ function nextLessonDate(mat, after = getLocalDateKey()) {
 /** Vacanță sau zi liberă legală (weekendul nu contează aici). */
 function isHolidayDate(dateKey) {
     return Boolean(SCHOOL_HOLIDAYS[dateKey]) || !moduleAt(dateKey);
+}
+
+/** Numele scurt al materiei, pentru butoane mici (ex. „Limba și literatura română” → „Română”). */
+const SUBJECT_SHORT = {
+    "Limba și literatura română": "Română", "Educație fizică și sport": "Sport", "Educație fizică": "Sport",
+    "Tehnologia informației și a comunicațiilor": "TIC", "Informatică și TIC": "Info & TIC",
+    "Educație tehnologică și aplicații practice": "Ed. tehnologică", "Educație plastică": "Plastică",
+    "Educație muzicală": "Muzică", "Educație socială": "Ed. socială", "Consiliere și dezvoltare personală": "Consiliere",
+    "Limba și literatura maternă": "Maternă"
+};
+function shortSubjectName(mat) {
+    if (SUBJECT_SHORT[mat]) return SUBJECT_SHORT[mat];
+    const m = /^Limba (\S+)$/.exec(mat);
+    return m ? m[1][0].toUpperCase() + m[1].slice(1) : mat;
 }
 
 function autoEventTitle(type, subject) {
@@ -845,6 +864,7 @@ function readStoredData(read) {
 function applyLoadedData({ data, sim: loadedSim }) {
     Object.assign(state, data);
     sim = loadedSim;
+    if (remindTimer || state.settings.remind?.on) armReminderClock(); // ex. amintirile pornite pe alt dispozitiv
 }
 
 const cleanName = (value, max) => typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : "";
@@ -864,7 +884,9 @@ function sanitizeSettings(raw) {
             minGPA: clampNumber(s.goals.minGPA, 5, 10, 9)
         },
         calc: {
-            method: pick(s.calc.method, ["weighted", "arithmetic"], "weighted"),
+            // rev 2: media „ca în catalog” devine implicită; cine avea vechiul implicit (ponderată) trece o singură dată pe ea
+            method: raw?.calc?.rev === 2 ? pick(s.calc.method, ["weighted", "arithmetic"], "arithmetic") : "arithmetic",
+            rev: 2,
             rounding: pick(String(s.calc.rounding), ["2", "0"], "2"),
             riskThreshold: clampNumber(s.calc.riskThreshold, 1, 10, 8),
             riskDrop: clampNumber(s.calc.riskDrop, 0.1, 5, 0.5)
@@ -885,6 +907,10 @@ function sanitizeSettings(raw) {
             variant: typeof s.school?.variant === "string" ? s.school.variant.slice(0, 30) : "",
             lm2: LM2_CHOICES.includes(s.school?.lm2) ? s.school.lm2 : LM2_CHOICES[0],
             county: COUNTY_WEEK[s.school?.county] ? s.school.county : ""
+        },
+        remind: {
+            on: s.remind?.on === true,
+            time: REMIND_TIMES.includes(s.remind?.time) ? s.remind.time : "19:00"
         },
         modules: sanitizeModules(s.modules),
         report: {
@@ -1054,7 +1080,11 @@ function saveState() {
             return;
         }
     }
-    if (changed) onLocalDataChange();
+    if (changed) {
+        onLocalDataChange();
+        clearTimeout(saveState.remindTimer);
+        saveState.remindTimer = setTimeout(() => syncReminderCache(), 1500); // amintirile pentru lucrătorul din fundal
+    }
 }
 
 /* ==================== MOTOR DE CALCUL ==================== */
@@ -2408,7 +2438,7 @@ function renderCatalogSummary(entries) {
     const priority = entries.filter(e => e.sub.priority).length;
     const excluded = entries.filter(e => e.sub.excludeFromGPA).length;
     const missing = entries.reduce((n, e) => n + e.d.requiredNotes, 0);
-    const method = (state.settings.calc.method === "weighted" ? "ponderată după ore" : "media aritmetică")
+    const method = (state.settings.calc.method === "weighted" ? "ponderată după ore" : "ca în catalog")
         + (state.purtare.excludeFromGPA ? "" : " · cu purtarea");
     const tile = (title, value, caption, extra = "") => `
         <div class="glass-card cat-sum ${extra}">
@@ -3521,6 +3551,7 @@ function loadSettingsIntoUI() {
     renderBuddyPreview();
     renderProgrammeSettings();
     renderBadgeSetting();
+    renderReminderSetting();
     if (guest.on) renderGuestBar(); // câmpurile rămân blocate pentru vizitatori
 }
 
@@ -7987,12 +8018,19 @@ function openAddGradeModal(presetMat = null, link = null) {
         return;
     }
 
-    // Fără materie dată, propunem materia deschisă în catalog.
-    const suggested = state.subjects[ui.catalog.selected] ? ui.catalog.selected : subjects[0];
+    // Fără materie dată: întâi orele de azi (de acolo vin de obicei notele), apoi restul; propunem materia
+    // deschisă în catalog, altfel prima oră de azi.
+    const todayKey = getLocalDateKey();
+    const todays = [...new Set(lessonsOn(todayKey))].filter(m => state.subjects[m]);
+    const ordered = [...todays, ...subjects.filter(m => !todays.includes(m)).sort((a, b) => a.localeCompare(b, "ro"))];
+    const suggested = ui.activeTab === "tab-catalog" && state.subjects[ui.catalog.selected] ? ui.catalog.selected : todays[0] || (state.subjects[ui.catalog.selected] ? ui.catalog.selected : subjects[0]);
     const subjectField = presetMat ? "" : `
         <div class="form-group">
-            <label for="modal-grade-mat">Materia</label>
-            <select id="modal-grade-mat" class="glass-select">${optionsHTML(subjects, suggested)}</select>
+            <label for="modal-grade-mat">Materia${todays.length ? ` <span class="label-hint">(primele sunt orele de azi)</span>` : ""}</label>
+            <div class="ev-subj-strip" role="radiogroup" aria-label="Alege materia">
+                ${ordered.map(m => `<button type="button" class="ev-subj-chip grade-subj-chip ${m === suggested ? "is-on" : ""}" data-action="grade-pick-subject" data-mat="${escapeHTML(m)}" role="radio" aria-checked="${m === suggested}">${escapeHTML(shortSubjectName(m))}</button>`).join("")}
+            </div>
+            <select id="modal-grade-mat" class="glass-select ev-subject-select">${optionsHTML(ordered, suggested)}</select>
         </div>`;
 
     openModal({
@@ -8026,6 +8064,14 @@ function openAddGradeModal(presetMat = null, link = null) {
         }
     });
     document.querySelector('.grade-pick-btn[aria-pressed="true"]')?.focus();
+}
+
+function syncGradeSubjectChips() {
+    const mat = $("modal-grade-mat")?.value;
+    document.querySelectorAll(".grade-subj-chip").forEach(b => {
+        b.classList.toggle("is-on", b.dataset.mat === mat);
+        b.setAttribute("aria-checked", String(b.dataset.mat === mat));
+    });
 }
 
 function openEditGradeModal(mat, idx) {
@@ -8354,9 +8400,21 @@ function toggleExclude(mat) {
 
 /* ==================== CALENDAR ==================== */
 /* ---------- formularul de eveniment (adăugare și editare) ---------- */
-function eventFormHTML(v, { editing = false, occurrenceDate = "" } = {}) {
+/** Materiile în ordinea în care urmează în orar (cea de mâine prima), restul alfabetic. */
+function subjectsBySoonest(after = getLocalDateKey()) {
+    const next = Object.fromEntries(Object.keys(state.subjects).map(m => [m, nextLessonDate(m, after) || "9999"]));
+    return Object.keys(state.subjects).sort((a, b) => next[a].localeCompare(next[b]) || a.localeCompare(b, "ro"));
+}
+
+function evSubjectChipsHTML(selected) {
+    const chip = (m, label) => `<button type="button" class="ev-subj-chip ${m === selected ? "is-on" : ""}" data-action="ev-pick-subject" data-mat="${escapeHTML(m)}" role="radio" aria-checked="${m === selected}">${escapeHTML(label)}</button>`;
+    return subjectsBySoonest().map(m => chip(m, shortSubjectName(m))).join("") + chip("", "Fără materie");
+}
+
+function eventFormHTML(v, { editing = false, occurrenceDate = "", autoDate = false } = {}) {
     const subjects = Object.keys(state.subjects);
     const isSeries = Boolean(v.repeat);
+    const moreOpen = Boolean(v.repeat || v.description || (v.title && v.title !== autoEventTitle(v.type, v.subject)));
     return `
         <div class="ev-type-picker" role="radiogroup" aria-label="Tip eveniment">
             ${EVENT_TYPES.map(t => `
@@ -8365,31 +8423,32 @@ function eventFormHTML(v, { editing = false, occurrenceDate = "" } = {}) {
                     <span>${icon(EVENT_TYPE_ICON[t])} ${escapeHTML(t)}</span>
                 </label>`).join("")}
         </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="ev-subject">Materie</label>
-                <select id="ev-subject" class="glass-select">
-                    <option value="" ${v.subject ? "" : "selected"}>Fără materie</option>
-                    ${subjects.map(m => `<option value="${escapeHTML(m)}" ${m === v.subject ? "selected" : ""}>${escapeHTML(m)}</option>`).join("")}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="ev-title">Titlu <span class="label-hint">(opțional)</span></label>
-                <input type="text" id="ev-title" class="glass-input" maxlength="100" autocomplete="off"
-                    value="${escapeHTML(v.title && v.title !== autoEventTitle(v.type, v.subject) ? v.title : "")}" placeholder="${escapeHTML(autoEventTitle(v.type, v.subject))}">
-            </div>
+        <div class="form-group">
+            <label for="ev-subject">Materie</label>
+            ${subjects.length ? `<div class="ev-subj-strip" role="radiogroup" aria-label="Alege materia">${evSubjectChipsHTML(v.subject)}</div>` : ""}
+            <select id="ev-subject" class="glass-select ${subjects.length ? "ev-subject-select" : ""}">
+                <option value="" ${v.subject ? "" : "selected"}>Fără materie</option>
+                ${subjects.map(m => `<option value="${escapeHTML(m)}" ${m === v.subject ? "selected" : ""}>${escapeHTML(m)}</option>`).join("")}
+            </select>
         </div>
         <div class="form-row">
             <div class="form-group">
                 <label for="ev-date">${isSeries && editing ? "Începe pe" : "Data"}</label>
-                <input type="date" id="ev-date" class="glass-input" value="${escapeHTML(v.date)}">
+                <input type="date" id="ev-date" class="glass-input" value="${escapeHTML(v.date)}" ${autoDate ? "data-auto" : ""}>
             </div>
             <div class="form-group">
                 <label for="ev-time">Ora <span class="label-hint">(opțional)</span></label>
                 <input type="time" id="ev-time" class="glass-input" value="${escapeHTML(v.time || "")}">
             </div>
         </div>
-        <div id="ev-next-lesson" class="ev-hint"></div>
+        <div id="ev-next-lesson" class="ev-hint ev-date-chips" role="group" aria-label="Alege repede ziua"></div>
+        <details class="ev-more" ${moreOpen ? "open" : ""}>
+        <summary>Titlu, repetare, notițe</summary>
+        <div class="form-group">
+            <label for="ev-title">Titlu <span class="label-hint">(opțional)</span></label>
+            <input type="text" id="ev-title" class="glass-input" maxlength="100" autocomplete="off"
+                value="${escapeHTML(v.title && v.title !== autoEventTitle(v.type, v.subject) ? v.title : "")}" placeholder="${escapeHTML(autoEventTitle(v.type, v.subject))}">
+        </div>
         <div class="form-row">
             <div class="form-group">
                 <label for="ev-repeat">Se repetă</label>
@@ -8408,6 +8467,7 @@ function eventFormHTML(v, { editing = false, occurrenceDate = "" } = {}) {
             <label for="ev-description">Notițe <span class="label-hint">(opțional)</span></label>
             <textarea id="ev-description" class="glass-input" rows="2" maxlength="500" placeholder="ex: capitolele 3–4, de adus calculatorul">${escapeHTML(v.description || "")}</textarea>
         </div>
+        </details>
         ${editing ? `
             <div class="ev-edit-foot">
                 ${isSeries ? `<p class="modal-hint">↻ Eveniment repetat: modificările se aplică întregii serii.</p>` : ""}
@@ -8423,12 +8483,25 @@ function syncEventForm() {
     $("ev-title").placeholder = autoEventTitle(type, subject);
     $("ev-until").disabled = $("ev-repeat").value === "0";
 
-    const hint = $("ev-next-lesson");
+    const dateEl = $("ev-date");
     const next = subject ? nextLessonDate(subject) : null;
-    hint.innerHTML = next
-        ? `<button type="button" class="ev-hint-btn ${$("ev-date").value === next ? "is-active" : ""}" data-action="ev-use-date" data-date="${next}">
-               ${icon("calendar")} Următoarea oră de ${escapeHTML(subject)}: <b>${escapeHTML(weekdayLabel(next))}</b></button>`
-        : "";
+    // Eveniment nou fără zi aleasă: la alegerea materiei, data sare singură la următoarea ei oră
+    if (next && dateEl.hasAttribute("data-auto")) dateEl.value = next;
+    document.querySelectorAll(".ev-subj-chip").forEach(b => {
+        const on = b.dataset.mat === subject;
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-checked", String(on));
+    });
+
+    const today = getLocalDateKey();
+    const options = [];
+    if (next) options.push({ date: next, html: `${icon("calendar")} Ora de ${escapeHTML(shortSubjectName(subject))}: <b>${escapeHTML(weekdayLabel(next))}</b>`, label: `Următoarea oră de ${subject}` });
+    [[0, "Azi"], [1, "Mâine"], [2, "Poimâine"], [7, "Peste o săptămână"]].forEach(([n, label]) => {
+        const date = addDays(today, n);
+        if (date !== next) options.push({ date, html: escapeHTML(label), label });
+    });
+    $("ev-next-lesson").innerHTML = options.map(o => `
+        <button type="button" class="ev-hint-btn ${dateEl.value === o.date ? "is-active" : ""}" data-action="ev-use-date" data-date="${o.date}" aria-pressed="${dateEl.value === o.date}" aria-label="${escapeHTML(`${o.label}, ${longDateLabel(o.date)}`)}">${o.html}</button>`).join("");
 }
 
 function readEventForm() {
@@ -8492,7 +8565,7 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
         layout: "panel",
         title: `Eveniment nou · ${weekdayLabel(when)}`,
         confirmText: "Adaugă",
-        body: eventFormHTML({ type: EVENT_TYPES.includes(type) ? type : "Test", subject: preset, date: when, title: "" }),
+        body: eventFormHTML({ type: EVENT_TYPES.includes(type) ? type : "Test", subject: preset, date: when, title: "" }, { autoDate: !DATE_KEY_RE.test(date) }),
         onConfirm: () => {
             const values = readEventForm();
             if (!values) return;
@@ -8701,12 +8774,13 @@ function openTimetableModal() {
         return;
     }
     ui.ttDraft = clone(state.timetable);
+    ui.ttDay = TIMETABLE_DAYS.find(d => !(state.timetable[d] || []).length) || 1; // prima zi necompletată
     openModal({
         layout: "panel",
         title: "Orarul săptămânal",
         confirmText: "Salvează orarul",
         body: `
-            <p class="modal-hint">Adaugă materiile în ordinea orelor. În calendar, fiecare zi îți arată orele; atinge o materie ca să programezi rapid un test sau o temă.</p>
+            <p class="modal-hint">Alege ziua, apoi atinge materiile în ordinea orelor. „Ca luni” copiază ziua de dinainte. În calendar, atinge o oră ca să programezi rapid un test sau o temă.</p>
             <div id="tt-editor" class="tt-editor">${ttEditorHTML()}</div>`,
         onConfirm: () => {
             state.timetable = {};
@@ -8725,14 +8799,34 @@ function openTimetableModal() {
 
 function ttEditorHTML() {
     const subjects = Object.keys(state.subjects);
-    return TIMETABLE_DAYS.map(day => {
+    const active = TIMETABLE_DAYS.includes(Number(ui.ttDay)) ? Number(ui.ttDay) : 1;
+    const activeFull = (ui.ttDraft[active] || []).length >= TIMETABLE_MAX;
+    const nextDay = TIMETABLE_DAYS.find(d => d > active);
+    // Paleta: o atingere = o oră adăugată la ziua aleasă, în ordine (mai repede decât câte o listă pentru fiecare oră)
+    const palette = `
+        <div class="tt-palette">
+            <p class="tt-palette-hint">Atinge materiile în ordinea orelor. Se adaugă la <b>${WEEKDAY_LONG[active]}</b>.</p>
+            <div class="tt-palette-chips">
+                ${subjects.map(m => `<button type="button" class="tt-tap" data-action="tt-tap" data-mat="${escapeHTML(m)}" title="${escapeHTML(m)}" ${activeFull ? "disabled" : ""}>${escapeHTML(shortSubjectName(m))}</button>`).join("")}
+            </div>
+            ${nextDay ? `<button type="button" class="btn btn-glass btn-sm tt-next" data-action="tt-day" data-day="${nextDay}">Gata, treci la ${WEEKDAY_LONG[nextDay]} →</button>` : ""}
+        </div>`;
+    return palette + TIMETABLE_DAYS.map(day => {
         const list = ui.ttDraft[day] || [];
         const full = list.length >= TIMETABLE_MAX;
+        const prev = TIMETABLE_DAYS[TIMETABLE_DAYS.indexOf(day) - 1];
+        const prevList = prev ? ui.ttDraft[prev] || [] : [];
         return `
-            <div class="tt-day">
+            <div class="tt-day ${day === active ? "is-active" : ""}">
                 <div class="tt-day-head">
-                    <b>${WEEKDAY_LONG[day]}</b>
-                    <small>${list.length ? plural(list.length, "oră", "ore") : "liber"}</small>
+                    <button type="button" class="tt-day-pick" data-action="tt-day" data-day="${day}" aria-pressed="${day === active}">
+                        <b>${WEEKDAY_LONG[day]}</b>
+                        <small>${list.length ? plural(list.length, "oră", "ore") : "liber"}</small>
+                    </button>
+                    <span class="tt-day-tools">
+                        ${prevList.length && JSON.stringify(prevList) !== JSON.stringify(list) ? `<button type="button" class="btn btn-text btn-sm" data-action="tt-copy" data-day="${day}" title="Copiază orele de ${WEEKDAY_LONG[prev]}">Ca ${WEEKDAY_LONG[prev].toLowerCase()}</button>` : ""}
+                        ${list.length ? `<button type="button" class="btn btn-text btn-sm" data-action="tt-clear" data-day="${day}" aria-label="Golește ${WEEKDAY_LONG[day]}">Golește</button>` : ""}
+                    </span>
                 </div>
                 <div class="tt-chips">
                     ${list.map((m, i) => `
@@ -8748,11 +8842,11 @@ function ttEditorHTML() {
     }).join("");
 }
 
-function rerenderTimetableEditor(focusDay) {
+function rerenderTimetableEditor(focusDay, focusSelector = null) {
     const box = $("tt-editor");
     if (!box) return;
     box.innerHTML = ttEditorHTML();
-    box.querySelector(`[data-tt-add="${focusDay}"]`)?.focus();
+    (focusSelector && box.querySelector(focusSelector) || box.querySelector(`[data-tt-add="${focusDay}"]`))?.focus({ preventScroll: Boolean(focusSelector) });
 }
 
 /** Schimbările din câmpurile dialogului (formular eveniment, editor orar). */
@@ -8766,6 +8860,8 @@ function handleModalChange(event) {
         rerenderTimetableEditor(day);
         return;
     }
+    if (el.id === "modal-grade-mat") syncGradeSubjectChips();
+    if (el.id === "ev-date") el.removeAttribute("data-auto"); // a ales singur ziua: n-o mai mutăm
     if (el.id === "ev-subject" || el.id === "ev-repeat" || el.id === "ev-date" || el.name === "ev-type") syncEventForm();
 }
 
@@ -9817,13 +9913,13 @@ function bindShellEvents() {
 }
 
 /* ==================== TOAST ==================== */
-const TOAST_ICONS = { "🏆": "trophy", "🔥": "flame", "📈": "trend-up", "🎯": "target", "📚": "notebook", "💾": "save", "🗓": "calendar-days", "⚙": "settings", "↩": "undo", "🎖": "medal", "✅": "check-circle", "↻": "refresh", "☁": "check-circle" };
+const TOAST_ICONS = { "🏆": "trophy", "🔥": "flame", "📈": "trend-up", "🎯": "target", "📚": "notebook", "💾": "save", "🗓": "calendar-days", "⚙": "settings", "↩": "undo", "🎖": "medal", "✅": "check-circle", "↻": "refresh", "☁": "check-circle", "🔔": "bell" };
 
 /**
  * Mesaj scurt jos pe ecran. Opțional cu un buton (ex. „Anulează”).
  * Cât timp mouse-ul e deasupra sau butonul are focus, mesajul nu dispare.
  */
-function showToast(msg, { action = "", onAction = null, duration = 3000 } = {}) {
+function showToast(msg, { action = "", onAction = null, duration = 3000, actionIcon = "undo" } = {}) {
     const container = $("toast-container");
     if (!container) return null;
 
@@ -9835,7 +9931,7 @@ function showToast(msg, { action = "", onAction = null, duration = 3000 } = {}) 
     const toast = document.createElement("div");
     toast.className = `toast${warn ? " is-warn" : ""}${action ? " has-action" : ""}`;
     toast.innerHTML = `${icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
-        ? `<button type="button" class="toast-action" title="${escapeHTML(`${action} (Ctrl+Z)`)}">${icon("undo")} ${escapeHTML(action)}</button>` : ""}`;
+        ? `<button type="button" class="toast-action" title="${escapeHTML(actionIcon === "undo" ? `${action} (Ctrl+Z)` : action)}">${icon(actionIcon)} ${escapeHTML(action)}</button>` : ""}`;
     container.appendChild(toast);
 
     let timer = 0;
@@ -10594,10 +10690,48 @@ const ACTIONS = {
     "event-delete-one": el => deleteOccurrence(el.dataset.id, el.dataset.date),
     "event-delete-all": el => deleteSeries(el.dataset.id),
     "ev-use-date": el => {
-        if ($("ev-date")) $("ev-date").value = el.dataset.date;
+        if (!$("ev-date")) return;
+        $("ev-date").value = el.dataset.date;
+        $("ev-date").removeAttribute("data-auto");
+        syncEventForm();
+    },
+    "grade-pick-subject": el => {
+        if (!$("modal-grade-mat")) return;
+        $("modal-grade-mat").value = el.dataset.mat;
+        syncGradeSubjectChips();
+    },
+    "ev-pick-subject": el => {
+        if (!$("ev-subject")) return;
+        $("ev-subject").value = el.dataset.mat;
         syncEventForm();
     },
     "timetable": () => openTimetableModal(),
+    "tt-tap": el => {
+        if (!ui.ttDraft || !state.subjects[el.dataset.mat]) return;
+        const day = TIMETABLE_DAYS.includes(Number(ui.ttDay)) ? Number(ui.ttDay) : 1;
+        const list = (ui.ttDraft[day] ||= []);
+        if (list.length >= TIMETABLE_MAX) return;
+        list.push(el.dataset.mat);
+        rerenderTimetableEditor(day, `.tt-tap[data-mat="${CSS.escape(el.dataset.mat)}"]`);
+    },
+    "tt-day": el => {
+        ui.ttDay = Number(el.dataset.day);
+        rerenderTimetableEditor(ui.ttDay, ".tt-tap:not([disabled])");
+        $("tt-editor")?.querySelector(".tt-day.is-active")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    },
+    "tt-copy": el => {
+        const day = Number(el.dataset.day);
+        const prev = TIMETABLE_DAYS[TIMETABLE_DAYS.indexOf(day) - 1];
+        if (!ui.ttDraft || !prev) return;
+        ui.ttDraft[day] = [...(ui.ttDraft[prev] || [])];
+        rerenderTimetableEditor(day);
+    },
+    "tt-clear": el => {
+        if (!ui.ttDraft) return;
+        delete ui.ttDraft[el.dataset.day];
+        ui.ttDay = Number(el.dataset.day);
+        rerenderTimetableEditor(el.dataset.day);
+    },
     "tt-remove": el => {
         const list = ui.ttDraft?.[el.dataset.day];
         if (!list) return;
@@ -10735,6 +10869,11 @@ function bindEvents() {
     document.addEventListener("change", event => {
         const el = event.target;
         if (!el.closest?.("#tab-setari") || !el.matches("input, select") || el.type === "file") return;
+        if (el.id === "set-remind-on" || el.id === "set-remind-time") {
+            if (!canEdit()) { renderReminderSetting(); requireAccount(); return; }
+            saveReminderSetting();
+            return;
+        }
         if (!(el.id in SETTINGS_FIELDS) && !el.closest("#set-modules") && el.id !== "set-module-preset" && el.id !== "set-county") return;
         if (!canEdit()) { loadSettingsIntoUI(); requireAccount(); return; }
         saveSettings({ quiet: true });
@@ -10795,6 +10934,207 @@ function bindEvents() {
     });
 }
 
+
+/* ==================== AMINTIRI (seara: ce ai mâine) ==================== */
+/* O dată pe zi, la ora aleasă: testele și temele de mâine (sau de luni, vinerea) și ce-a rămas din planul de azi.
+   Apare ca notificare a telefonului/calculatorului dacă ai dat voie și aplicația nu e în față; altfel ca mesaj în aplicație.
+   Fără server nu se poate trimite nimic cât aplicația e închisă complet; pe Android (aplicația instalată din Chrome)
+   telefonul o mai trezește din când în când în fundal, așa că amintirea poate veni și atunci. */
+const REMIND_SHOWN_KEY = "urnotes_remind_shown_v1";
+const REMIND_CACHE = "urnotes-remind";
+const REMIND_CACHE_URL = "remind.json";
+
+const remindShownOn = () => { try { return localStorage.getItem(REMIND_SHOWN_KEY) || ""; } catch (_) { return ""; } };
+const markRemindShown = day => { try { localStorage.setItem(REMIND_SHOWN_KEY, day); } catch (_) { /* fără stocare */ } };
+const hhmm = (d = new Date()) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+const notifSupported = () => typeof window !== "undefined" && "Notification" in window;
+
+/** Ce merită spus în amintirea de seară pentru ziua `today` (sau null dacă nu e nimic). */
+function reminderDigest(today = getLocalDateKey()) {
+    const tomorrow = addDays(today, 1);
+    // Vinerea (sau înainte de o vacanță scurtă) ne uităm până la următoarea zi de școală, dacă e în maximum 4 zile
+    const nextSchool = nextSchoolDay(today);
+    const until = nextSchool && nextSchool > tomorrow && daysBetween(today, nextSchool) <= 4 ? nextSchool : tomorrow;
+    const links = gradeLinks();
+    const events = occurrencesBetween(tomorrow, until).filter(o => !isOccurrenceDone(o.ev, o.date, links));
+    const plan = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === today && !it.done) : [];
+    if (!events.length && !plan.length) return null;
+
+    const lines = [];
+    const byDay = new Map();
+    events.forEach(o => byDay.set(o.date, [...(byDay.get(o.date) || []), o.ev.title]));
+    byDay.forEach((titles, date) => {
+        const when = date === tomorrow ? "Mâine" : WEEKDAY_LONG[parseDateKey(date).getDay()];
+        lines.push(`${when}: ${titles.slice(0, 3).join(", ")}${titles.length > 3 ? ` și încă ${titles.length - 3}` : ""}.`);
+    });
+    if (plan.length) {
+        const min = plan.reduce((n, it) => n + it.min, 0);
+        lines.push(`Din planul de azi mai ai ${plural(plan.length, "sesiune", "sesiuni")} (${min} min).`);
+    }
+    const exam = events.some(o => EXAM_TYPES.has(o.ev.type));
+    const title = exam ? "Ai un test în curând" : events.length ? "Pentru mâine" : "Planul de azi";
+    return { title, body: lines.join(" "), exam, count: events.length, plan: plan.length, until };
+}
+
+async function showSystemNotification(d) {
+    if (!notifSupported() || Notification.permission !== "granted") return false;
+    const opts = { body: d.body, tag: "urnotes-remind", icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "./" } };
+    try {
+        const reg = await navigator.serviceWorker?.getRegistration?.();
+        if (reg?.showNotification) { await reg.showNotification(d.title, opts); return true; }
+        new Notification(d.title, opts); // eslint-disable-line no-new
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+/** Arată amintirea: notificare dacă aplicația nu e în față (sau la probă), altfel mesaj în aplicație. */
+async function deliverReminder(d, { test = false } = {}) {
+    const hidden = typeof document !== "undefined" && document.visibilityState === "hidden";
+    if ((hidden || test) && await showSystemNotification(d)) return "system";
+    showToast(`🔔 ${d.title}. ${d.body}`, {
+        duration: 9000, action: "Vezi", actionIcon: "calendar",
+        onAction: () => { ui.cal.date = d.until || addDays(getLocalDateKey(), 1); switchTab("tab-calendar"); }
+    });
+    return "toast";
+}
+
+/** Verificată la pornire, la revenirea în aplicație și în fiecare minut. */
+async function checkReminder(now = new Date()) {
+    const r = state.settings.remind;
+    if (!r?.on || guest.on || !canEdit()) return null;
+    const today = getLocalDateKey(now);
+    if (hhmm(now) < r.time || remindShownOn() === today || await remindShownByWorker(today)) return null;
+    markRemindShown(today); // o singură dată pe zi, chiar dacă azi n-a fost nimic de spus
+    syncReminderCache();
+    const d = reminderDigest(today);
+    return d ? deliverReminder(d) : null;
+}
+
+/** Ce a trimis deja lucrătorul din fundal (Android), ca să nu primești aceeași amintire de două ori. */
+async function remindShownByWorker(today) {
+    try {
+        const res = await (await caches.open(REMIND_CACHE)).match(REMIND_CACHE_URL);
+        const data = res ? await res.json() : null;
+        return data?.shown === today;
+    } catch (_) {
+        return false;
+    }
+}
+
+/** Pentru lucrătorul din fundal: amintirile gata scrise pentru următoarele zile (el nu vede datele aplicației). */
+async function syncReminderCache() {
+    if (typeof caches === "undefined") return;
+    try {
+        const cache = await caches.open(REMIND_CACHE);
+        const r = state.settings.remind;
+        const old = await cache.match(REMIND_CACHE_URL).then(res => res ? res.json() : {}).catch(() => ({}));
+        const today = getLocalDateKey();
+        const days = {};
+        if (r.on && canEdit()) {
+            for (let i = 0; i < 7; i++) {
+                const day = addDays(today, i);
+                const d = reminderDigest(day);
+                if (d) days[day] = { title: d.title, body: d.body };
+            }
+        }
+        const shown = remindShownOn() === today ? today : old.shown || "";
+        await cache.put(REMIND_CACHE_URL, new Response(JSON.stringify({ on: r.on, time: r.time, days, shown }), { headers: { "Content-Type": "application/json" } }));
+    } catch (_) { /* fără stocare: rămâne amintirea din aplicație */ }
+}
+
+/** Android, aplicația instalată: cere telefonului să o trezească periodic (când poate) ca să verifice amintirea. */
+async function registerPeriodicReminder() {
+    try {
+        const reg = await navigator.serviceWorker?.ready;
+        if (!reg?.periodicSync) return;
+        if (state.settings.remind.on) await reg.periodicSync.register("urnotes-remind", { minInterval: 60 * 60 * 1000 });
+        else await reg.periodicSync.unregister("urnotes-remind");
+    } catch (_) { /* nepermis sau nesuportat */ }
+}
+
+let remindTimer = 0;
+/** Ceasul care verifică amintirea în fiecare minut merge doar cât amintirile sunt pornite. */
+function armReminderClock() {
+    clearInterval(remindTimer);
+    remindTimer = 0;
+    if (state.settings.remind.on) remindTimer = setInterval(() => checkReminder(), 60 * 1000);
+}
+
+function initReminders() {
+    armReminderClock();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkReminder(); });
+    if (!state.settings.remind.on) return;
+    setTimeout(() => checkReminder(), 2500); // după pornire, ca să nu se suprapună cu mesajele de început
+    registerPeriodicReminder();
+    syncReminderCache();
+}
+
+/** Cardul „Amintiri” din Setări. */
+function renderReminderSetting() {
+    const box = $("remind-setting");
+    if (!box) return;
+    const r = state.settings.remind;
+    const perm = notifSupported() ? Notification.permission : "unsupported";
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const permLine = !r.on ? "" : perm === "granted"
+        ? `<p class="remind-perm is-ok">${icon("check")} Notificările sunt pornite pe acest dispozitiv.</p>`
+        : perm === "denied"
+            ? `<p class="remind-perm is-warn">${icon("alert")} Ai blocat notificările pentru urNotes. Amintirea apare doar ca mesaj în aplicație; le poți reporni din setările browserului sau ale telefonului.</p>`
+            : perm === "unsupported"
+                ? `<p class="remind-perm">${icon("info")} ${ios && !isStandalone() ? "Pe iPhone, notificările merg doar după ce pui urNotes pe ecranul principal (Distribuie → Adaugă pe ecranul principal)." : "Aici nu se pot trimite notificări; amintirea apare ca mesaj în aplicație."}</p>`
+                : `<button type="button" class="btn btn-primary btn-sm" data-action="remind-allow">${icon("bell")} Primește-o și ca notificare</button>`;
+    box.innerHTML = `
+        <label class="remind-toggle">
+            <input type="checkbox" id="set-remind-on" ${r.on ? "checked" : ""}>
+            <span><b>Amintește-mi seara ce am a doua zi</b><small>teste, teme și ce a rămas din planul zilei</small></span>
+        </label>
+        <div class="form-group mt-3">
+            <label for="set-remind-time">La ce oră</label>
+            <select id="set-remind-time" class="glass-select" ${r.on ? "" : "disabled"}>
+                ${REMIND_TIMES.map(t => `<option value="${t}" ${t === r.time ? "selected" : ""}>${t}</option>`).join("")}
+            </select>
+        </div>
+        ${permLine}
+        ${r.on ? `<button type="button" class="btn btn-glass btn-sm mt-2" data-action="remind-test">${icon("bell")} Arată-mi acum cum arată</button>` : ""}
+        <p class="subtitle mt-2">Amintirea vine când urNotes e deschis sau rulează în fundal. Când aplicația e închisă de tot, telefonul nu o poate porni singur fără un server; pe Android, cu aplicația instalată, uneori o trezește.</p>`;
+    if (guest.on) box.querySelectorAll("input, select, button").forEach(el => { el.disabled = true; el.setAttribute("data-guest-locked", ""); });
+}
+
+function saveReminderSetting() {
+    const r = state.settings.remind;
+    const wasOn = r.on;
+    r.on = Boolean($("set-remind-on")?.checked);
+    r.time = REMIND_TIMES.includes(field("set-remind-time")) ? field("set-remind-time") : r.time;
+    // Pornită acum, după ora aleasă: nu-ți dăm imediat amintirea de azi (ai văzut deja ce ai, ești chiar aici)
+    if (r.on && !wasOn && hhmm() >= r.time) markRemindShown(getLocalDateKey());
+    refresh();
+    renderReminderSetting();
+    armReminderClock();
+    registerPeriodicReminder();
+    flashSettingsStatus("✓ Salvat");
+    if (r.on && !wasOn && notifSupported() && Notification.permission === "default") {
+        showToast(`🔔 Gata. Te anunț la ${r.time} ce ai a doua zi.`);
+    }
+}
+
+const REMIND_ACTIONS = {
+    "remind-allow": async () => {
+        try { await Notification.requestPermission(); } catch (_) { /* refuzat */ }
+        renderReminderSetting();
+        renderBadgeSetting();
+        renderNotificationBadge();
+        registerPeriodicReminder();
+    },
+    "remind-test": () => {
+        const today = getLocalDateKey();
+        const d = reminderDigest(today) || { title: "Pentru mâine", body: "Nimic programat pentru mâine. Așa va arăta amintirea când ai un test sau o temă.", until: addDays(today, 1) };
+        deliverReminder(d, { test: true });
+    }
+};
+Object.assign(ACTIONS, REMIND_ACTIONS);
+
 /* ==================== PORNIRE ==================== */
 function init() {
     loadState();
@@ -10821,6 +11161,7 @@ function init() {
     bindSheetDrag();
     initBuddyLook();
     initCloud();
+    initReminders();
     // Cu conturi, configurarea vine după alegerea de pe ecranul de autentificare.
     if (!cloud.configured && shouldOfferSetup()) openSetup(0);
 }
