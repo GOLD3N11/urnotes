@@ -1974,6 +1974,11 @@ function homeTodoHTML({ missed, homework, tests }, links, today) {
                         <button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${escapeHTML(ev.id)}" data-date="${date}"
                             title="${grade ? "Marchează ca încheiat fără notă" : "Marchează ca făcut"}">${icon("check")} ${grade ? "Fără notă" : "Făcut"}</button>
                     </span>
+                    ${grade && canGradeOccurrence(ev, date, links) ? `
+                    <div class="azi-quick-grade" role="group" aria-label="${escapeHTML(`Ce ai luat la ${ev.title}?`)}">
+                        <span>Ce ai luat?</span>
+                        ${[4, 5, 6, 7, 8, 9, 10].map(v => `<button type="button" class="qg-btn tone-${gradeTone(v)}" data-action="event-quick-grade" data-id="${escapeHTML(ev.id)}" data-date="${date}" data-val="${v}" aria-label="Nota ${v}">${v}</button>`).join("")}
+                    </div>` : ""}
                 </li>`;
             }).join("")}</ul>
             ${missed.length > 5 ? `<p class="azi-more-line">și încă ${missed.length - 5} în Calendar</p>` : ""}`);
@@ -7680,7 +7685,7 @@ const GUEST_OK = new Set([
     "nav", "show-date", "cal-nav", "cal-today", "cal-view", "cal-goto",
     "cat-select", "cat-step", "cat-group", "cat-back", "cat-filter", "cat-clear-filters", "open-subject", "cat-menu-glance",
     "home-day", "home-risk", "plan-day", "help", "install-hide", "bgame-start", "bgame-hit", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
-    "sim-scenario", "sim-toggle-all", "sim-pick-subject",
+    "sim-scenario", "sim-toggle-all", "sim-pick-subject", "sim-chip-subject",
     "cmdk", "cmdk-close", "quick-add-close", "notif-open", "notif-close", "more-open", "more-close", "more-run",
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
     "account-open", "auth-open", "auth-close", "auth-mode", "auth-google", "auth-eye", "auth-local", "guest-signin"
@@ -8647,6 +8652,18 @@ function toggleEventDone(id, date) {
 
     if (nowDone) addActivity(`Ai bifat „${ev.title}” ca făcut.`);
     refresh();
+}
+
+/** Nota de la un test trecut, dintr-o singură atingere (pe Azi); se poate anula din mesaj. */
+function quickGradeForEvent(id, date, val) {
+    const found = findEvent(id);
+    const v = parseStrictInteger(val, 1, 10);
+    if (!found || v === null || !canGradeOccurrence(found.ev, date, gradeLinks())) return;
+    const { ev } = found;
+    withUndo(`Ai adăugat nota ${v} la ${ev.subject} („${ev.title}”).`, () => {
+        state.subjects[ev.subject].grades.push({ val: v, type: GRADE_TYPE_FOR_EVENT[ev.type] || "Test", date, eventId: ev.id, eventDate: date });
+        addActivity(`Ai adăugat nota ${v} (${GRADE_TYPE_FOR_EVENT[ev.type] || "Test"}) la ${ev.subject}.`);
+    });
 }
 
 function openGradeForEvent(id, date) {
@@ -10069,10 +10086,10 @@ function scenarioBarHTML(scenario) {
                     title="${canAdd ? "Scenariu nou, gol" : `Maximum ${SIM_LIMITS.scenarios} scenarii`}">${icon("plus")} Nou</button>
             </div>
             <div class="sim-scenario-actions">
-                <button type="button" class="btn btn-text" data-action="sim-duplicate" ${canAdd ? "" : "disabled"}>Duplică</button>
-                <button type="button" class="btn btn-text" data-action="sim-rename">Redenumește</button>
-                <button type="button" class="btn btn-text" data-action="sim-clear" ${hypoCount(scenario) ? "" : "disabled"}>Golește</button>
-                <button type="button" class="btn btn-text text-danger" data-action="sim-delete" ${sim.scenarios.length > 1 ? "" : "disabled"}>Șterge</button>
+                <button type="button" class="btn btn-text" data-action="sim-duplicate" aria-label="Duplică scenariul" title="Duplică" ${canAdd ? "" : "disabled"}>${icon("copy")}<span>Duplică</span></button>
+                <button type="button" class="btn btn-text" data-action="sim-rename" aria-label="Redenumește scenariul" title="Redenumește">${icon("pen")}<span>Redenumește</span></button>
+                <button type="button" class="btn btn-text" data-action="sim-clear" aria-label="Golește scenariul" title="Golește" ${hypoCount(scenario) ? "" : "disabled"}>${icon("eraser")}<span>Golește</span></button>
+                <button type="button" class="btn btn-text text-danger" data-action="sim-delete" aria-label="Șterge scenariul" title="Șterge" ${sim.scenarios.length > 1 ? "" : "disabled"}>${icon("trash")}<span>Șterge</span></button>
             </div>
         </div>`;
 }
@@ -10117,8 +10134,29 @@ function subjectPanelHTML(scenario, projected) {
         }).join("")
         : `<p class="muted-small">Nu ai teste sau examene programate la ${escapeHTML(mat)}. Le poți adăuga din Calendar.</p>`;
 
+    // Ce notă îți trebuie la următoarea evaluare ca să ajungi (sau să rămâi) la țintă, socotind și notele ipotetice
+    const extra = hypo.map(h => ({ val: h.val, type: h.type }));
+    const okGoal = d => reachesTarget(d, sub.target);
+    const goalPlan = (() => {
+        for (let g = 1; g <= 10; g++) if (okGoal(metricsWithExtraGrades(mat, [...extra, { val: g }]).subjects[mat])) return { next: g };
+        for (let k = 2; k <= 20; k++) if (okGoal(metricsWithExtraGrades(mat, [...extra, ...Array.from({ length: k }, () => ({ val: 10 }))]).subjects[mat])) return { tens: k };
+        return { impossible: true };
+    })();
+    const goalPill = goalPlan ? planPill(goalPlan) : null;
+    const reachedNow = reachesTarget(next, sub.target);
+    const chips = Object.keys(state.subjects).map(m => {
+        const d = projected.subjects[m];
+        const has = state.subjects[m].grades.length || scenario.hypo[m]?.length;
+        return `<button type="button" class="sim-subj-chip ${m === mat ? "is-on" : ""}" data-action="sim-chip-subject" data-mat="${escapeHTML(m)}" aria-pressed="${m === mat}">
+            <span class="sim-subj-name">${escapeHTML(m)}</span>
+            <b class="tone-${has ? gradeTone(d.exactAvg) : "none"}">${has ? d.exactAvg.toFixed(2) : "–"}</b>
+            ${scenario.hypo[m]?.length ? `<i class="sim-subj-dot" title="are note ipotetice" aria-label="are note ipotetice"></i>` : ""}
+        </button>`;
+    }).join("");
+
     return `
         <section class="glass-card sim-panel" id="sim-subject-card" aria-labelledby="sim-subject-title">
+            <div class="sim-subj-strip" role="group" aria-label="Alege materia">${chips}</div>
             <div class="sim-panel-head">
                 <h3 id="sim-subject-title">${icon("flask")} Note ipotetice</h3>
                 <select id="sim-subject" class="glass-select sim-subject-select" aria-label="Materia simulată">
@@ -10138,6 +10176,9 @@ function subjectPanelHTML(scenario, projected) {
                     <span class="badge ${next.statusClass}">${escapeHTML(next.status)}</span> ${statusChangeHTML(now, next)}
                 </div>
             </div>
+            <p class="sim-need ${reachedNow ? "is-ok" : ""}">${icon("target")} ${reachedNow
+                ? `Ești la ținta ${fmtTarget(sub.target)}.${goalPill ? ` Ca s-o păstrezi la următoarea notă: <span class="azi-need is-${goalPill.tone}">${escapeHTML(goalPill.text)}</span>` : ""}`
+                : goalPill ? `Ca să ajungi la ținta ${fmtTarget(sub.target)}: <span class="azi-need is-${goalPill.tone}">${escapeHTML(goalPill.text)}</span>${goalPlan.next ? " la următoarea notă" : ""}.` : `Ținta ${fmtTarget(sub.target)} nu mai e în calculul acestui modul.`}</p>
 
             <div class="sim-row">
                 <span class="sim-row-label">Reale</span>
@@ -10159,11 +10200,12 @@ function subjectPanelHTML(scenario, projected) {
                 </div>
             </div>
 
+            ${slots.length ? `
             <div class="sim-calendar">
                 <h4>${icon("calendar")} Din calendar</h4>
                 <p class="muted-small mb-3">Alege nota la care te aștepți la testele programate. Dispar automat după data testului.</p>
                 ${slotRows}
-            </div>
+            </div>` : ""}
         </section>`;
 }
 
@@ -10473,6 +10515,11 @@ const SIM_ACTIONS = {
         delete activeScenario().hypo[sim.selected];
         commitSim();
     },
+    "sim-chip-subject": el => {
+        sim.selected = el.dataset.mat;
+        commitSim();
+        document.querySelector(`.sim-subj-chip[data-mat="${CSS.escape(el.dataset.mat)}"]`)?.focus({ preventScroll: true });
+    },
     "sim-pick-subject": el => {
         sim.selected = el.dataset.mat;
         commitSim();
@@ -10525,6 +10572,7 @@ const ACTIONS = {
     "event-open": el => openEventModal({ id: el.dataset.id, date: el.dataset.date }),
     "event-done": el => toggleEventDone(el.dataset.id, el.dataset.date),
     "event-grade": el => openGradeForEvent(el.dataset.id, el.dataset.date),
+    "event-quick-grade": el => quickGradeForEvent(el.dataset.id, el.dataset.date, el.dataset.val),
     "event-delete": el => promptDeleteEvent(el.dataset.id, el.dataset.date),
     "event-delete-one": el => deleteOccurrence(el.dataset.id, el.dataset.date),
     "event-delete-all": el => deleteSeries(el.dataset.id),
