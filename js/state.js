@@ -1,0 +1,36 @@
+/* urNotes · Starea aplicației (datele salvate), rezultatele calculate și starea interfeței.
+   Se încarcă după toate fișierele cu funcții, fiindcă valorile inițiale le folosesc (defaultPlan, emptyMetrics…). */
+"use strict";
+
+/* ==================== STATE ==================== */
+// `state` conține doar date salvate. Tot ce se calculează stă în `metrics`.
+const state = {
+    subjects: {},
+    calendar: {},
+    timetable: {},
+    purtare: defaultPurtare(),
+    activity: [],
+    history: [],
+    alertMeta: { dismissed: {}, read: {} },
+    achievements: Object.fromEntries(ACHIEVEMENTS.map(a => [a.key, false])),
+    settings: clone(DEFAULT_SETTINGS),
+    plan: defaultPlan()
+};
+
+let metrics = emptyMetrics();
+let alerts = [];
+
+const ui = {
+    activeTab: "tab-dashboard",
+    cal: { view: "week", date: getLocalDateKey() }, // ziua în jurul căreia se afișează săptămâna/luna
+    ttDraft: null,
+    ttDay: 1,
+    // Catalog: materia deschisă, căutare, sortare, filtru; showDetail = pe telefon, detaliile acoperă lista
+    catalog: { selected: "", query: "", sort: "group", filter: "all", showDetail: false, autoPicked: true, collapsed: {} },
+    charts: {},
+    home: { day: null },     // Azi: null = automat (după-amiaza arată ziua următoare), "today" | "next"
+    statsSort: "attention",
+    statsPeriod: "year",   // perioada pentru Materii / Note / Timp
+    statsAnimate: false,   // animațiile rulează la deschiderea tabului, nu la fiecare recalculare
+    modalReturnFocus: null
+};

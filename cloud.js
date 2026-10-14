@@ -1,6 +1,6 @@
 /*
  * Zece ↔ Firebase: conturi (Google, email + parolă) și o copie a datelor în cloud.
- * Aplicația (script.js) nu vorbește direct cu Firebase, ci doar cu obiectul `window.ZeceCloud` de mai jos:
+ * Aplicația (js/*.js) nu vorbește direct cu Firebase, ci doar cu obiectul `window.ZeceCloud` de mai jos:
  *   onUser(cb) · signInGoogle() · signInEmail(email, parolă) · signUpEmail(email, parolă, nume)
  *   resetPassword(email) · signOut() · load() · save(json, device, updatedAt) · watch(cb) · deleteAccount()
  * Datele unui utilizator stau într-un singur document: users/{uid} = { backup: „backup-ul” JSON, updatedAt, device }.

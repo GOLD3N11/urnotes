@@ -25,7 +25,37 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>
     <script src="firebase-config.js" defer></script>
-    <script src="script.js" defer></script>
+    <!-- Aplicația, în ordinea de încărcare (vezi js/; nu schimba ordinea) -->
+    <script src="js/config.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/model.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/metrics.js" defer></script>
+    <script src="js/render.js" defer></script>
+    <script src="js/azi.js" defer></script>
+    <script src="js/catalog.js" defer></script>
+    <script src="js/phone.js" defer></script>
+    <script src="js/calendar-view.js" defer></script>
+    <script src="js/alerts-settings-view.js" defer></script>
+    <script src="js/selects-charts.js" defer></script>
+    <script src="js/stats.js" defer></script>
+    <script src="js/report.js" defer></script>
+    <script src="js/setup.js" defer></script>
+    <script src="js/plan.js" defer></script>
+    <script src="js/tour.js" defer></script>
+    <script src="js/account.js" defer></script>
+    <script src="js/guest.js" defer></script>
+    <script src="js/grades-subjects.js" defer></script>
+    <script src="js/calendar-actions.js" defer></script>
+    <script src="js/settings-backup.js" defer></script>
+    <script src="js/nav.js" defer></script>
+    <script src="js/simulator.js" defer></script>
+    <script src="js/events.js" defer></script>
+    <script src="js/reminders.js" defer></script>
+    <script src="js/state.js" defer></script>
+    <script src="js/boot.js" defer></script>
+    <script src="js/cursor.js" defer></script>
+    <script src="js/main.js" defer></script>
     <script type="module" src="cloud.js"></script>
 </head>
 <body>
@@ -165,7 +195,7 @@
             </div>
         </div>
     </div>
-    <!-- Fără cont: se poate doar răsfoi (vezi VIZITATOR în script.js) -->
+    <!-- Fără cont: se poate doar răsfoi (vezi js/guest.js) -->
     <div id="guest-bar" class="guest-bar" role="status" hidden></div>
 
     <div class="app-wrapper" id="app-wrapper">
@@ -184,7 +214,7 @@
                     <div class="azi-buddy" id="azi-buddy"></div>
                 </header>
 
-                <!-- Conținutul cardurilor e generat în script.js (renderDashboard) -->
+                <!-- Conținutul cardurilor e generat în js/azi.js (renderDashboard) -->
                 <div class="azi-grid">
                     <div class="azi-col azi-col-main">
                         <section class="glass-card azi-card azi-install" id="azi-install" aria-labelledby="azi-install-title" hidden></section>
@@ -756,7 +786,7 @@
         <button type="button" role="menuitem" data-action="cat-menu-glance"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg><span>Vedere simplificată</span></button>
     </div>
 
-    <!-- Turul ghidat: reflector peste o zonă + bilețelul mascotei (conținutul e pus din script.js) -->
+    <!-- Turul ghidat: reflector peste o zonă + bilețelul mascotei (conținutul e pus din js/tour.js) -->
     <div id="tour" class="tour" hidden>
         <div class="tour-hole" id="tour-hole" aria-hidden="true"></div>
         <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-step" aria-describedby="tour-text">
@@ -775,7 +805,7 @@
         </div>
     </div>
 
-    <!-- Autentificare (doar cu Firebase configurat; conținutul e generat în script.js) -->
+    <!-- Autentificare (doar cu Firebase configurat; conținutul e generat în js/account.js) -->
     <div id="auth" class="setup auth" hidden>
         <div class="setup-card auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
             <button type="button" class="btn btn-text auth-x" data-action="auth-close" aria-label="Închide">✕</button>
@@ -783,7 +813,7 @@
         </div>
     </div>
 
-    <!-- Configurare la prima pornire (conținutul e generat în script.js) -->
+    <!-- Configurare la prima pornire (conținutul e generat în js/setup.js) -->
     <div id="setup" class="setup" hidden>
         <div class="setup-card" role="dialog" aria-modal="true" aria-labelledby="setup-title">
             <div class="setup-head">
