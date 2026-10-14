@@ -53,6 +53,7 @@
     <script src="js/events.js" defer></script>
     <script src="js/reminders.js" defer></script>
     <script src="js/years.js" defer></script>
+    <script src="js/pal.js" defer></script>
     <script src="js/state.js" defer></script>
     <script src="js/boot.js" defer></script>
     <script src="js/cursor.js" defer></script>
@@ -161,12 +162,18 @@
             <span class="side-brand-text"><b class="brand-name"><span class="brand-ur">ur</span>Notes</b><small>notele tale</small></span>
         </div>
         <nav class="side-nav" aria-label="Navigație principală">
+            <p class="side-group" id="sg-day">Ziua mea</p>
+            <div class="side-group-links" role="group" aria-labelledby="sg-day">
             <button type="button" class="tab-btn side-link active" data-action="nav" data-tab="tab-dashboard" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Azi</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-plan"><svg class="ico" aria-hidden="true"><use href="#i-calendar-check"/></svg><span>Plan</span></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
+            </div>
+            <p class="side-group" id="sg-grades">Notele mele</p>
+            <div class="side-group-links" role="group" aria-labelledby="sg-grades">
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+            </div>
         </nav>
         <div class="side-foot">
             <button type="button" id="account-chip" class="account-chip" data-action="account-open"></button>
@@ -192,7 +199,7 @@
                 <button type="button" id="notif-btn" class="btn btn-glass icon-btn notification-btn" data-action="notif-open" aria-haspopup="dialog" aria-label="Notificări">
                     <svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span id="notif-badge" class="badge-count" hidden>0</span>
                 </button>
-                <button type="button" class="btn btn-glass icon-btn topbar-settings" id="more-btn" data-action="more-open" aria-label="Mai mult: Simulator, Setări" aria-haspopup="menu" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-more"/></svg></button>
+                <button type="button" class="btn btn-glass icon-btn topbar-settings" id="more-btn" data-action="more-open" aria-label="Mai mult: Statistici, Simulator, Setări" aria-haspopup="menu" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-more"/></svg></button>
             </div>
         </div>
     </div>
@@ -236,11 +243,17 @@
 
             <!-- ================= MATERII ================= -->
             <section id="tab-catalog" class="tab-content" aria-labelledby="h-catalog">
+                <nav class="page-subnav" aria-label="Notele mele">
+                    <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-catalog" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                </nav>
                 <div class="page-intro">
                     <div>
                         <h2 id="h-catalog">Materii și note</h2>
                         <p>Alege o materie ca să-i vezi notele, evoluția și ce îți trebuie ca să-ți atingi ținta.</p>
                     </div>
+                    <div class="page-pal" hidden></div>
                     <div class="intro-actions">
                         <button type="button" class="btn btn-primary" data-action="add-grade"><svg class="ico" aria-hidden="true"><use href="#i-note"/></svg> Adaugă notă</button>
                         <button type="button" class="btn btn-glass" data-action="add-subject"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Materie nouă</button>
@@ -280,6 +293,7 @@
                         <h2 id="h-calendar">Calendar</h2>
                         <p>Săptămâna ta: orele, testele și temele. Bifează ce ai făcut și adaugă nota direct din test.</p>
                     </div>
+                    <div class="page-pal" hidden></div>
                     <div class="intro-actions">
                         <button type="button" class="btn btn-primary" data-action="add-event"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Eveniment</button>
                         <button type="button" class="btn btn-glass" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orar</button>
@@ -317,6 +331,7 @@
                         <h2 id="h-plan">Planul meu <button type="button" class="help-dot" data-action="help" data-key="plan" aria-label="Ce înseamnă: Planul?" title="Ce înseamnă?">?</button></h2>
                         <p>Ce înveți în fiecare zi, cât și de ce: înainte de teste, pentru teme și pentru materiile care au nevoie. Se reface singur când apare ceva nou.</p>
                     </div>
+                    <div class="page-pal" hidden></div>
                     <div class="plan-head-tools" id="plan-tools" hidden>
                         <button type="button" class="btn btn-glass" data-action="plan-prefs"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg> Preferințe</button>
                         <button type="button" class="btn btn-glass" data-action="plan-rebuild"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg> Refă planul</button>
@@ -327,11 +342,17 @@
             </section>
 
             <section id="tab-simulator" class="tab-content" aria-labelledby="h-simulator">
+                <nav class="page-subnav" aria-label="Notele mele">
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
+                    <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-simulator" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                </nav>
                 <div class="page-intro">
                     <div>
                         <h2 id="h-simulator">Simulator <button type="button" class="help-dot" data-action="help" data-key="sim" aria-label="Ce înseamnă: Simulatorul?" title="Ce înseamnă?">?</button></h2>
                         <p>Adaugă note ipotetice și vezi cum s-ar schimba mediile. Notele tale reale nu sunt modificate.</p>
                     </div>
+                    <div class="page-pal" hidden></div>
                 </div>
                 <!-- Conținut generat de renderSimulator() -->
                 <div id="sim-root"></div>
@@ -339,11 +360,17 @@
 
             <!-- ================= STATISTICI ================= -->
             <section id="tab-statistici" class="tab-content" aria-labelledby="h-statistici">
+                <nav class="page-subnav" aria-label="Notele mele">
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
+                    <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-statistici" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                </nav>
                 <div class="page-intro">
                     <div>
                         <h2 id="h-statistici">Statistici</h2>
                         <p>Unde te afli, ce merge bine, ce merită îmbunătățit și cum evoluezi.</p>
                     </div>
+                    <div class="page-pal" hidden></div>
                     <div class="intro-actions">
                         <button type="button" class="btn btn-glass" data-action="stats-print"><svg class="ico" aria-hidden="true"><use href="#i-printer"/></svg> Raport pentru printare</button>
                     </div>
@@ -511,10 +538,13 @@
 
             <!-- ================= SETĂRI ================= -->
             <section id="tab-setari" class="tab-content" aria-labelledby="h-setari">
-                <div class="settings-header mb-4">
-                    <h2 id="h-setari"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg> Setări</h2>
-                    <span class="settings-status" id="settings-status" role="status" aria-live="polite">Se salvează singure</span>
-                    <div class="flex-center gap-10">
+                <div class="page-intro settings-intro">
+                    <div>
+                        <h2 id="h-setari">Setări</h2>
+                        <p>Totul despre tine, școala ta și cum arată aplicația. <span class="settings-status" id="settings-status" role="status" aria-live="polite">Se salvează singure</span></p>
+                    </div>
+                    <div class="page-pal" hidden></div>
+                    <div class="intro-actions">
                         <button type="button" class="btn btn-glass" data-action="tour-start"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg> Tur ghidat</button>
                         <button type="button" class="btn btn-glass" data-action="setup-open"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg> Configurare rapidă</button>
                         <button type="button" class="btn btn-text text-danger" data-action="reset-settings">Restabilește implicite</button>
@@ -712,10 +742,10 @@
     <nav class="mobile-bottom-nav" aria-label="Navigație">
         <span class="nav-pill" id="nav-pill" aria-hidden="true"></span>
         <button type="button" class="mobile-nav-btn active" data-action="nav" data-tab="tab-dashboard" aria-current="page"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg></span><span>Azi</span></button>
-        <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-catalog"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg></span><span>Catalog</span></button>
+        <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-catalog" data-group="grades"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg></span><span>Note</span></button>
         <button type="button" class="mobile-add" data-action="quick-add" aria-haspopup="menu" aria-label="Adaugă"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
         <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-calendar"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span><span>Calendar</span></button>
-        <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-statistici"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></span><span>Statistici</span></button>
+        <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-plan"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-calendar-check"/></svg></span><span>Plan</span></button>
     </nav>
 
     <!-- Raportul pentru printare (vizibil doar la print) -->
@@ -772,7 +802,7 @@
         <div class="quick-add-backdrop" data-action="more-close"></div>
         <div class="quick-add-card" role="menu" aria-label="Mai mult">
             <p class="quick-add-title">Mai mult</p>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="plan"><svg class="ico" aria-hidden="true"><use href="#i-calendar-check"/></svg><span><b>Planul meu</b><small>ce înveți în fiecare zi</small></span></button>
+            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span><b>Statistici</b><small>cum evoluezi și ce merită îmbunătățit</small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="sim"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span><b>Simulator</b><small>„ce-ar fi dacă” pentru notele care urmează</small></span></button>
             <button type="button" role="menuitem" class="qa-item cloud-only" data-action="more-run" data-kind="account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span><b>Cont</b><small class="sync-line" data-sync-status="local"><i class="sync-dot" aria-hidden="true"></i><span class="sync-text">Doar pe acest dispozitiv</span></small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="settings"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span><b>Setări</b><small>ținte, calcul, aspect, module, backup</small></span></button>

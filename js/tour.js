@@ -20,18 +20,21 @@ function tourSteps() {
     return [
         { text: `Salut${hey}! Eu sunt ${buddyName()}, colegul tău de bancă. În mai puțin de un minut îți arăt cum merge urNotes.` },
         { target: ".azi-head-text", text: "Asta e pagina Azi. În fiecare zi găsești aici ce ore ai, ce teste urmează și ce note mai aștepți." },
-        { target: phone ? "#azi-plan" : navSel("tab-plan"), text: "La „Plan” îți fac un program de învățat pe 7 zile: înainte de teste, pentru teme și pentru materiile care au nevoie. Tu bifezi ce ai făcut." },
+        { target: navSel("tab-plan"), text: "La „Plan” îți fac un program de învățat pe 7 zile: înainte de teste, pentru teme și pentru materiile care au nevoie. Tu bifezi ce ai făcut." },
         { target: phone ? ".mobile-add" : "#quick-add-btn", text: `Cu „Adaugă” pui o notă, un test, o temă sau o materie nouă.${phone ? "" : " Merge și tasta N."}` },
-        { target: navSel("tab-catalog"), text: "În Catalog ai toate materiile, cu notele și mediile lor. Deschide o materie ca să vezi ce notă îți trebuie ca să-ți atingi ținta." },
         { target: navSel("tab-calendar"), text: "Calendarul ține testele, tezele și temele. Când primești nota, o treci direct din calendar." },
-        { target: navSel("tab-statistici"), text: "La Statistici vezi cum evoluează media: pe materii, pe module și pe zile ale săptămânii." },
-        phone
-            ? { target: "#more-btn", text: "În „Mai mult” găsești Simulatorul („ce-ar fi dacă aș lua un 9?”), contul tău și Setările." }
-            : { target: navSel("tab-simulator"), text: "Simulatorul: „ce-ar fi dacă aș lua un 9 la mate?”. Încerci note fără să-ți atingi media reală." },
+        ...(phone ? [
+            { target: '.mobile-nav-btn[data-group="grades"]', text: "La „Note” ai Catalogul cu toate materiile, Statisticile și Simulatorul („ce-ar fi dacă aș lua un 9?”). Treci între ele din butoanele de sus ale paginii." },
+            { target: "#more-btn", text: "În „Mai mult” găsești contul tău și Setările." }
+        ] : [
+            { target: navSel("tab-catalog"), text: "În Catalog ai toate materiile, cu notele și mediile lor. Deschide o materie ca să vezi ce notă îți trebuie ca să-ți atingi ținta." },
+            { target: navSel("tab-statistici"), text: "La Statistici vezi cum evoluează media: pe materii, pe module și pe zile ale săptămânii." },
+            { target: navSel("tab-simulator"), text: "Simulatorul: „ce-ar fi dacă aș lua un 9 la mate?”. Încerci note fără să-ți atingi media reală." }
+        ]),
         { target: ".cmdk-trigger", text: `Aici cauți orice: materii, note, teste sau comenzi rapide.${phone ? "" : " Scurtătură: Ctrl K sau /."}` },
         { target: "#notif-btn", text: "Clopoțelul te anunță când o materie intră în risc sau când un test își așteaptă nota." },
         { target: phone ? "#tour-none" : "#account-chip", text: cloud.user ? "Ești în cont: notele se salvează singure și apar pe orice telefon sau calculator." : "Intră în cont ca notele să te urmeze pe orice telefon sau calculator." },
-        { target: "#azi-buddy", text: "Și eu stau aici, pe pagina Azi: îți spun ce contează și mă bucur de fiecare 10. Mă poți gâdila cu un clic… dar nu prea tare! Numele noastre le schimbi din Setări." },
+        { target: "#azi-buddy", text: "Și eu stau aici, pe pagina Azi: îți spun ce contează și mă bucur de fiecare 10. Mă găsești și pe celelalte pagini, lângă titlu, cu câte un sfat: atinge-mă și îți spun altul. Numele noastre le schimbi din Setări." },
         { text: `Gata${hey}! Poți relua turul oricând din Setări. Spor la note mari!`, last: true }
     ];
 }

@@ -29,11 +29,18 @@ function switchTab(tabId) {
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
     document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
-    $("more-btn")?.classList.toggle("is-active", tabId === "tab-simulator" || tabId === "tab-setari" || tabId === "tab-plan");
+    $("more-btn")?.classList.toggle("is-active", tabId === "tab-setari");
+    // „Note” (bara de jos) ține minte ultima pagină din grupul ei: Catalog, Statistici sau Simulator
+    const group = TABS[tabId]?.group;
+    if (group === "grades") ui.gradesTab = tabId;
+    document.querySelectorAll("[data-action='nav'][data-group]").forEach(btn => {
+        if (btn.dataset.group === "grades") btn.dataset.tab = ui.gradesTab || "tab-catalog";
+    });
     document.querySelectorAll("[data-action='nav']").forEach(btn => {
-        const active = btn.dataset.tab === tabId;
-        btn.classList.toggle("active", active && (btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn")));
-        if (btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn")) {
+        const active = btn.dataset.group ? btn.dataset.group === group : btn.dataset.tab === tabId;
+        const isNav = btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn") || btn.classList.contains("subnav-btn");
+        btn.classList.toggle("active", active && isNav);
+        if (isNav) {
             if (active) btn.setAttribute("aria-current", "page");
             else btn.removeAttribute("aria-current");
         }
@@ -49,7 +56,7 @@ function switchTab(tabId) {
 }
 
 /* ---------- mișcare: pagina intră din partea în care mergi, cardurile apar pe rând ---------- */
-const TAB_ORDER = ["tab-dashboard", "tab-catalog", "tab-calendar", "tab-statistici", "tab-plan", "tab-simulator", "tab-setari"];
+const TAB_ORDER = ["tab-dashboard", "tab-plan", "tab-calendar", "tab-catalog", "tab-statistici", "tab-simulator", "tab-setari"];
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animateTabEnter(tabId, from) {
     const el = $(tabId);
@@ -334,7 +341,8 @@ const MORE_ACTIONS = {
     backup: () => exportBackup(),
     account: () => openAccountPanel(),
     tour: () => startTour(),
-    plan: () => switchTab("tab-plan")
+    plan: () => switchTab("tab-plan"),
+    stats: () => switchTab("tab-statistici")
 };
 
 function openMoreMenu() {

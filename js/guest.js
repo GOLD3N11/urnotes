@@ -19,7 +19,7 @@ const GUEST_OK = new Set([
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
     "account-open", "auth-open", "auth-close", "auth-mode", "auth-google", "auth-eye", "auth-local", "guest-signin"
 ]);
-const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan"]);
+const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan", "stats"]);
 
 /** Poate modifica? Fără conturi configurate (ex. teste locale) aplicația merge ca înainte. */
 const canEdit = () => !cloud.configured || Boolean(cloud.user);

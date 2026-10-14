@@ -7,3 +7,24 @@ Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare 
 - Funcționează direct în browser (HTML, CSS și JavaScript, fără instalare).
 - Datele se salvează în browser (localStorage) și merg și offline; din Setări poți exporta și importa un backup.
 - Opțional, conturi (Google sau email + parolă) cu sincronizare între dispozitive, prin Firebase: completează `firebase-config.js` și publică regulile din `firestore.rules`. Fără configurare, aplicația rămâne doar locală.
+
+## Cum e organizat codul
+
+Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
+
+- `index.html`: paginile (taburile) și ordinea scripturilor.
+- `style.css`: tot aspectul (temele luminoasă și întunecată).
+- `js/*.js`: aplicația, împărțită pe domenii. Sunt scripturi clasice care împart același spațiu global și se încarcă în ordinea din `index.html`:
+  - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
+  - `utils.js`, `model.js`, `storage.js`, `metrics.js`: datele și calculele.
+  - Câte un fișier pentru fiecare pagină sau funcție: `azi.js`, `catalog.js`, `calendar-*.js`, `plan.js`, `stats.js`, `simulator.js`, `reminders.js`, `years.js`, `pal.js` etc.
+  - `state.js` (starea) și `boot.js`/`main.js` (pornirea) se încarcă ultimele.
+- `cloud.js`: conturile și sincronizarea (Firebase); `sw.js`: lucrul fără internet și amintirile din fundal.
+
+### Cum adaugi ceva
+
+- **O pagină nouă:** adaugi o `<section id="tab-…" class="tab-content">` în `index.html` și un fișier în `js/` care apelează `registerTab("tab-…", { render, title, icon, group, pal })`. Scriptul îl treci în `index.html` (înainte de `state.js`) și în lista `APP_JS` din `sw.js`.
+- **Un an școlar nou:** adaugi anul în `SCHOOL_YEAR_DATA` (`js/config.js`), după ordinul ministrului. Până atunci, anul se estimează singur.
+- **O schimbare de format al datelor:** crești `DATA_SCHEMA` și adaugi o migrare în `MIGRATIONS` (`js/storage.js`). Datele vechi (din browser, backup sau cont) se aduc singure la zi.
+- **Anii încheiați:** se mută în arhivă (`state.archive`, Setări → Anul școlar), așa că datele de zi cu zi rămân mici, oricâți ani ar trece.
+

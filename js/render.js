@@ -13,6 +13,7 @@ function registerTab(id, def) {
 }
 
 function renderActiveTab({ keepSettingsForm = false } = {}) {
+    renderPagePal(ui.activeTab); // colegul din antet (pe fiecare pagină)
     // Formularul de setări nu e redesenat la fiecare calcul, ca să nu pierdem ce scrie utilizatorul.
     if (keepSettingsForm && ui.activeTab === "tab-setari") return;
 
