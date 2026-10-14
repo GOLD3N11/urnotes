@@ -20,7 +20,9 @@ const KEYS = {
     timetable: "pro_timetable_db_v4", // orarul săptămânal: { 1: ["Matematică", ...], ... }
     purtare: "pro_purtare_db_v4",     // purtarea pe module: { grades: { "2026-2": { val, reason } }, ... }
     brand: "pro_brand_v4",            // a trecut o dată prin schimbarea mărcii (Zece → urNotes)
-    plan: "pro_plan_db_v4"            // planul de studiu: preferințe de timp + sesiuni (vezi PLANUL MEU)
+    plan: "pro_plan_db_v4",           // planul de studiu: preferințe de timp + sesiuni (vezi PLANUL MEU)
+    archive: "pro_archive_db_v4",     // anii școlari încheiați: notele și mediile fiecărui an (vezi js/years.js)
+    meta: "pro_meta_v4"               // versiunea formatului datelor (vezi MIGRAȚII în js/storage.js)
 };
 
 
@@ -36,33 +38,122 @@ const PURTARE_KEY = "__purtare__";
 const PURTARE_WEIGHT = 1;
 const PURTARE_KEY_RE = /^\d{4}-[1-5]$/;
 
-/** Structura anului școlar 2026–2027 (OM nr. 3194/2026). Modulele 3–4 depind de vacanța mobilă a județului. */
-const MODULE_PRESETS = {
-    "2026-feb15": { label: "2026–2027 · vacanța mobilă 15–21 februarie", m3End: "2027-02-12", m4Start: "2027-02-22" },
-    "2026-feb22": { label: "2026–2027 · vacanța mobilă 22–28 februarie", m3End: "2027-02-19", m4Start: "2027-03-01" },
-    "2026-mar01": { label: "2026–2027 · vacanța mobilă 1–7 martie", m3End: "2027-02-26", m4Start: "2027-03-08" }
+/* ==================== ANII ȘCOLARI ==================== */
+/* Structura oficială a fiecărui an școlar (ordinul ministrului), după anul în care începe.
+   Un an nou publicat = o intrare nouă aici; până atunci, anii următori se estimează din ultimul an cunoscut
+   (aceleași săptămâni, mutate la primul luni din septembrie; sărbătorile legale recalculate, inclusiv Paștele). */
+const SCHOOL_YEAR_DATA = {
+    2026: {
+        order: "OM nr. 3194/2026",
+        m1: ["2026-09-07", "2026-10-23"], m2: ["2026-11-02", "2026-12-22"], m3Start: "2027-01-11",
+        m4End: "2027-04-23", m5Start: "2027-05-05", end: "2027-06-18",
+        lastDay: { 12: "2027-06-04", 8: "2027-06-11" },
+        // vacanța mobilă (de schi): săptămâna o alege inspectoratul județean
+        mobile: { feb15: "2027-02-15", feb22: "2027-02-22", mar01: "2027-03-01" },
+        holidays: {
+            "2026-11-30": "Sf. Andrei", "2026-12-01": "Ziua Națională", "2026-12-25": "Crăciunul",
+            "2027-01-01": "Anul Nou", "2027-01-06": "Boboteaza", "2027-01-07": "Sf. Ioan",
+            "2027-04-30": "Vinerea Mare", "2027-05-03": "Paștele (a doua zi)", "2027-05-04": "zi liberă după Paște", "2027-06-01": "Ziua Copilului"
+        },
+        notes: { "2026-10-05": "Ziua Educației", "2027-03-28": "Paștele catolic", "2027-05-02": "Paștele ortodox" }
+    }
 };
-const DEFAULT_MODULE_PRESET = "2026-feb22";
+const MOBILE_WEEKS = { feb15: "15–21 februarie", feb22: "22–28 februarie", mar01: "1–7 martie" };
 
-/* Structura anului școlar 2026–2027 (Ministerul Educației): zilele libere din timpul modulelor
-   și ultima zi de cursuri, mai devreme pentru a XII-a (4 iunie) și a VIII-a (11 iunie). */
-const SCHOOL_HOLIDAYS = {
-    "2026-11-30": "Sf. Andrei", "2026-12-01": "Ziua Națională", "2026-12-25": "Crăciunul",
-    "2027-01-01": "Anul Nou", "2027-01-06": "Boboteaza", "2027-01-07": "Sf. Ioan",
-    "2027-04-30": "Vinerea Mare", "2027-05-03": "Paștele (a doua zi)", "2027-05-04": "zi liberă după Paște", "2027-06-01": "Ziua Copilului"
-};
-const SCHOOL_NOTES = { "2026-10-05": "Ziua Educației", "2027-03-28": "Paștele catolic", "2027-05-02": "Paștele ortodox" };
-const LAST_DAY_BY_CLASS = { 12: "2027-06-04", 8: "2027-06-11" };
+// Datele aici se calculează la încărcare, înainte de utils.js: folosim propriile mici funcții de dată.
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const ymdParse = k => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
+const ymdShift = (k, n) => { const d = ymdParse(k); d.setDate(d.getDate() + n); return ymd(d); };
+const firstMondaySep = y => { const d = new Date(y, 8, 1); while (d.getDay() !== 1) d.setDate(d.getDate() + 1); return ymd(d); };
+/** Paștele ortodox (calendarul iulian, convertit în gregorian). */
+function orthodoxEaster(y) {
+    const a = y % 4, b = y % 7, c = y % 19, d = (19 * c + 15) % 30, e = (2 * a + 4 * b - d + 34) % 7;
+    const month = Math.floor((d + e + 114) / 31), day = ((d + e + 114) % 31) + 1;
+    const julian = new Date(y, month - 1, day);
+    julian.setDate(julian.getDate() + 13); // diferența iulian–gregorian (1900–2099)
+    return ymd(julian);
+}
 
-function presetModules(id = DEFAULT_MODULE_PRESET, cls = 0) {
-    const p = MODULE_PRESETS[id] || MODULE_PRESETS[DEFAULT_MODULE_PRESET];
+const schoolYearCache = {};
+/** Anul școlar care începe în `start` (ex. 2027 = 2027–2028): datele oficiale sau o estimare (estimated: true). */
+function schoolYear(start) {
+    start = Number(start);
+    if (schoolYearCache[start]) return schoolYearCache[start];
+    const known = Object.keys(SCHOOL_YEAR_DATA).map(Number).sort((a, b) => a - b);
+    let y;
+    if (SCHOOL_YEAR_DATA[start]) {
+        y = { ...SCHOOL_YEAR_DATA[start], estimated: false };
+    } else {
+        const base = known.filter(k => k < start).pop() ?? known[0];
+        const b = SCHOOL_YEAR_DATA[base];
+        const delta = Math.round((ymdParse(firstMondaySep(start)) - ymdParse(b.m1[0])) / 86400000);
+        const sh = k => ymdShift(k, delta);
+        const easter = orthodoxEaster(start + 1);
+        y = {
+            order: "", estimated: true,
+            m1: b.m1.map(sh), m2: b.m2.map(sh), m3Start: sh(b.m3Start), m4End: sh(b.m4End), m5Start: sh(b.m5Start), end: sh(b.end),
+            lastDay: Object.fromEntries(Object.entries(b.lastDay).map(([c, k]) => [c, sh(k)])),
+            mobile: Object.fromEntries(Object.entries(b.mobile).map(([w, k]) => [w, sh(k)])),
+            holidays: {
+                [`${start}-11-30`]: "Sf. Andrei", [`${start}-12-01`]: "Ziua Națională", [`${start}-12-25`]: "Crăciunul",
+                [`${start + 1}-01-01`]: "Anul Nou", [`${start + 1}-01-06`]: "Boboteaza", [`${start + 1}-01-07`]: "Sf. Ioan",
+                [ymdShift(easter, -2)]: "Vinerea Mare", [ymdShift(easter, 1)]: "Paștele (a doua zi)", [`${start + 1}-06-01`]: "Ziua Copilului"
+            },
+            notes: { [`${start}-10-05`]: "Ziua Educației", [easter]: "Paștele ortodox" }
+        };
+    }
+    y.start = start;
+    y.label = `${start}–${start + 1}`;
+    return (schoolYearCache[start] = y);
+}
+
+/** Anul școlar al unei zile: din august începe anul următor. */
+const schoolYearOfDate = dateKey => { const [yy, mm] = dateKey.split("-").map(Number); return mm >= 8 ? yy : yy - 1; };
+const FIRST_SCHOOL_YEAR = Math.min(...Object.keys(SCHOOL_YEAR_DATA).map(Number));
+/** Anul școlar de azi (cel puțin primul an cunoscut). */
+const currentSchoolYear = () => Math.max(FIRST_SCHOOL_YEAR, schoolYearOfDate(ymd(new Date())));
+
+/* Variantele de module ale unui an: câte una pentru fiecare săptămână de vacanță mobilă. Id-ul: „2026-feb22”. */
+function modulePresetsFor(start) {
+    const y = schoolYear(start);
+    return Object.fromEntries(Object.keys(y.mobile).map(w => [`${start}-${w}`, {
+        label: `${y.label} · vacanța mobilă ${MOBILE_WEEKS[w]}${y.estimated ? " (estimat)" : ""}`, year: start, week: w
+    }]));
+}
+/** Varianta după id („2026-feb22”), din orice an; null dacă id-ul nu e valid. */
+function modulePreset(id) {
+    const m = /^(\d{4})-(feb15|feb22|mar01)$/.exec(String(id || ""));
+    return m ? modulePresetsFor(Number(m[1]))[id] : null;
+}
+/* Compatibilitate: căutările vechi de forma MODULE_PRESETS[id] merg pentru orice an */
+const MODULE_PRESETS = new Proxy({}, {
+    get: (_, id) => typeof id === "string" ? modulePreset(id) || undefined : undefined,
+    has: (_, id) => Boolean(modulePreset(id)),
+    ownKeys: () => Object.keys(modulePresetsFor(currentSchoolYear())),
+    getOwnPropertyDescriptor: (_, id) => modulePreset(id) ? { enumerable: true, configurable: true, value: modulePreset(id) } : undefined
+});
+const defaultPresetId = (start = currentSchoolYear()) => `${start}-feb22`;
+const DEFAULT_MODULE_PRESET = defaultPresetId(FIRST_SCHOOL_YEAR);
+
+function presetModules(id = defaultPresetId(), cls = 0) {
+    const p = modulePreset(id) || modulePreset(defaultPresetId());
+    const y = schoolYear(p.year);
+    const mobile = y.mobile[p.week];
     return [
-        { start: "2026-09-07", end: "2026-10-23" },
-        { start: "2026-11-02", end: "2026-12-22" },
-        { start: "2027-01-11", end: p.m3End },
-        { start: p.m4Start, end: "2027-04-23" },
-        { start: "2027-05-05", end: LAST_DAY_BY_CLASS[cls] || "2027-06-18" }
+        { start: y.m1[0], end: y.m1[1] },
+        { start: y.m2[0], end: y.m2[1] },
+        { start: y.m3Start, end: ymdShift(mobile, -3) },
+        { start: ymdShift(mobile, 7), end: y.m4End },
+        { start: y.m5Start, end: y.lastDay[cls] || y.end }
     ];
+}
+
+/* Sărbătorile și notele tuturor anilor (cei cunoscuți + câțiva estimați înainte), într-un singur tabel după dată */
+const SCHOOL_HOLIDAYS = {};
+const SCHOOL_NOTES = {};
+for (let yr = FIRST_SCHOOL_YEAR; yr <= Math.max(currentSchoolYear(), FIRST_SCHOOL_YEAR) + 3; yr++) {
+    Object.assign(SCHOOL_HOLIDAYS, schoolYear(yr).holidays);
+    Object.assign(SCHOOL_NOTES, schoolYear(yr).notes);
 }
 
 /* Județul alege săptămâna vacanței mobile (decizia inspectoratului școlar, anunțată pentru 2026–2027). */
@@ -77,6 +168,8 @@ const COUNTY_WEEK = {
     "Sălaj": "2026-feb22", "Satu Mare": "2026-feb22", "Sibiu": "2026-feb22", "Suceava": "2026-feb15", "Teleorman": "2026-feb22",
     "Timiș": "2026-feb22", "Tulcea": "2026-feb22", "Vâlcea": "2026-feb22", "Vaslui": "2026-feb22", "Vrancea": "2026-feb22"
 };
+/** Varianta de module a județului într-un an (săptămâna de schi se presupune aceeași de la an la an până la noul ordin). */
+const countyPreset = (county, start = currentSchoolYear()) => COUNTY_WEEK[county] ? `${start}-${COUNTY_WEEK[county].split("-")[1]}` : "";
 const COUNTIES = Object.keys(COUNTY_WEEK).sort((a, b) => a.localeCompare(b, "ro"));
 const countyOptions = selected => `<option value="">Alege județul…</option>${COUNTIES.map(c => `<option value="${escapeHTML(c)}" ${c === selected ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}`;
 

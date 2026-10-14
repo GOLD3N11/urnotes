@@ -4306,3 +4306,32 @@ body.dark-mode .ycal { --c-hol: color-mix(in srgb, #4E8FD9 40%, var(--sheet)); -
     .tt-palette-chips::-webkit-scrollbar { display: none; }
     .tt-tap { flex: none; }
 }
+
+/* ==================== ANUL ȘCOLAR (arhiva) ==================== */
+.year-now { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0 0 4px; font-size: 18px; }
+.year-now b { font-family: var(--font-hand); font-size: 22px; }
+.year-now small { color: var(--text-secondary); font-size: 13px; }
+.year-est { padding: 1px 8px; border-radius: 99px; background: var(--warning-soft); color: var(--warn) !important; }
+.year-arch-title { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
+.year-arch { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.year-arch button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--input-bg); border: 1px solid var(--rule); border-radius: 12px; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.year-arch button:hover { border-color: var(--accent-color); }
+.year-arch span { display: grid; }
+.year-arch small { color: var(--text-secondary); font-size: 12.5px; }
+.year-gpa { font-family: var(--font-hand); font-size: 22px; color: var(--accent-color); }
+.year-warn { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--warning-soft); color: var(--warn); font-size: 13.5px; }
+.year-steps { margin: 10px 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; line-height: 1.45; }
+.year-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 14px; }
+.year-kpis div { display: grid; gap: 2px; padding: 10px 12px; background: var(--input-bg); border-radius: 12px; }
+.year-kpis span { font-size: 12px; color: var(--text-secondary); }
+.year-kpis b { font-family: var(--font-hand); font-size: 24px; }
+.year-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.year-table th { text-align: left; font-size: 12px; color: var(--text-secondary); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+.year-table td { padding: 8px 4px; border-bottom: 1px solid var(--rule); }
+.year-table td:not(:first-child), .year-table th:not(:first-child) { text-align: right; width: 64px; }
+.year-table small { color: var(--text-secondary); }
+.year-table .tone-hi { color: var(--accent-green); } .year-table .tone-mid { color: var(--accent-color); }
+.year-table .tone-low { color: var(--warn); } .year-table .tone-fail { color: var(--risk); }
+.azi-lastyear { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 13px; color: var(--text-secondary); }
+.azi-lastyear .is-up { color: var(--accent-green); } .azi-lastyear .is-down { color: var(--risk); }
+.azi-year { border-color: color-mix(in srgb, var(--accent-color) 40%, var(--rule)); background: linear-gradient(135deg, var(--accent-soft), transparent 70%), var(--sheet); }

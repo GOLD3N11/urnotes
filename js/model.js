@@ -173,7 +173,8 @@ function pruneTimetable() {
 /* ==================== PURTARE (logică) ==================== */
 function matchingModulePreset(list) {
     const key = l => JSON.stringify(l.slice(0, 4).concat({ start: l[4]?.start })); // ultima zi depinde de clasă
-    return Object.keys(MODULE_PRESETS).find(id => key(presetModules(id)) === key(list)) || "custom";
+    const year = DATE_KEY_RE.test(list?.[0]?.start || "") ? schoolYearOfDate(list[0].start) : currentSchoolYear();
+    return Object.keys(modulePresetsFor(year)).find(id => key(presetModules(id)) === key(list)) || "custom";
 }
 
 /** Întoarce un mesaj de eroare sau null dacă lista de module e validă. */
@@ -475,39 +476,49 @@ function renderModulesSettings(list = state.settings.modules) {
 }
 
 /* ---------- calendarul anului școlar (ca cel publicat de minister) ---------- */
+/** Anul școlar al unei liste de module (după prima zi). */
+const yearOfModules = (list = state.settings.modules) => schoolYear(DATE_KEY_RE.test(list?.[0]?.start || "") ? schoolYearOfDate(list[0].start) : currentSchoolYear());
+
 function schoolDayKind(date, list) {
+    const y = yearOfModules(list);
     const wd = parseDateKey(date).getDay();
     const first = list[0].start, last = list[4].end;
-    if (date < first || date > "2027-06-30") return "out";
+    if (date < first || date > `${y.start + 1}-06-30`) return "out";
     if (SCHOOL_HOLIDAYS[date]) return "holiday";
     if (wd === 0 || wd === 6) return "weekend";
-    if (list.some(m => date >= m.start && date <= m.end)) return date === last && last !== "2027-06-18" ? "lastday" : "course";
+    if (list.some(m => date >= m.start && date <= m.end)) return date === last && last !== y.end ? "lastday" : "course";
     if (date > last) return "after";
-    return date >= "2027-02-15" && date <= "2027-03-07" ? "mobile" : "vacation";
+    const weeks = Object.values(y.mobile).sort();
+    return date >= weeks[0] && date <= addDays(weeks.at(-1), 6) ? "mobile" : "vacation";
 }
 
 function renderYearCalendar(list = state.settings.modules) {
     const box = $("year-calendar");
     if (!box) return;
     if (validateModules(list)) { box.innerHTML = ""; return; }
+    const y = yearOfModules(list);
+    setText("year-label", y.label);
+    setText("year-source", y.estimated
+        ? `Structura anului ${y.label} nu e încă publicată: datele sunt estimate după anul trecut. Verifică-le când apare ordinul ministrului.`
+        : `Datele implicite sunt cele din structura anului școlar ${y.label} (${y.order}).`);
     const today = getLocalDateKey();
-    const months = Array.from({ length: 10 }, (_, i) => new Date(2026, 8 + i, 1));
+    const months = Array.from({ length: 10 }, (_, i) => new Date(y.start, 8 + i, 1));
     const wd = ["L", "Ma", "Mi", "J", "V", "S", "D"];
     box.innerHTML = `
         <div class="ycal-grid">
             ${months.map(m => {
-                const y = m.getFullYear(), mo = m.getMonth();
-                const days = new Date(y, mo + 1, 0).getDate();
+                const yy = m.getFullYear(), mo = m.getMonth();
+                const days = new Date(yy, mo + 1, 0).getDate();
                 const lead = (m.getDay() + 6) % 7;
                 const cells = [];
                 for (let i = 0; i < lead; i++) cells.push(`<span class="ycal-d is-blank"></span>`);
                 for (let d = 1; d <= days; d++) {
-                    const key = `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                    const key = `${yy}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
                     const kind = schoolDayKind(key, list);
                     const note = SCHOOL_HOLIDAYS[key] || SCHOOL_NOTES[key] || (kind === "lastday" ? "ultima zi de cursuri" : "");
                     cells.push(`<span class="ycal-d k-${kind} ${key === today ? "is-today" : ""} ${SCHOOL_NOTES[key] ? "has-note" : ""}" ${note ? `title="${escapeHTML(note)}"` : ""}>${d}</span>`);
                 }
-                return `<div class="ycal-month"><b>${MONTHS[mo]} ${y}</b><div class="ycal-days">${wd.map(w => `<span class="ycal-wd">${w}</span>`).join("")}${cells.join("")}</div></div>`;
+                return `<div class="ycal-month"><b>${MONTHS[mo]} ${yy}</b><div class="ycal-days">${wd.map(w => `<span class="ycal-wd">${w}</span>`).join("")}${cells.join("")}</div></div>`;
             }).join("")}
         </div>
         <ul class="ycal-legend">
@@ -515,7 +526,7 @@ function renderYearCalendar(list = state.settings.modules) {
             <li><i class="k-vacation"></i> vacanță</li>
             <li><i class="k-mobile"></i> vacanța din județul tău</li>
             <li><i class="k-holiday"></i> sărbători legale / zile libere</li>
-            ${list[4].end !== "2027-06-18" ? `<li><i class="k-lastday"></i> ultima zi de cursuri pentru clasa ta</li>` : ""}
+            ${list[4].end !== y.end ? `<li><i class="k-lastday"></i> ultima zi de cursuri pentru clasa ta</li>` : ""}
         </ul>`;
 }
 
@@ -526,7 +537,16 @@ function readModulesFromSettings() {
 function syncModulePresetSelect() {
     const select = $("set-module-preset");
     if (!select) return;
-    const id = matchingModulePreset(readModulesFromSettings());
+    const list = readModulesFromSettings();
+    // variantele anului modulelor tale (anul se schimbă la închiderea anului școlar)
+    const presets = modulePresetsFor(yearOfModules(validateModules(list) ? state.settings.modules : list).start);
+    const sig = Object.keys(presets).join();
+    if (select.dataset.sig !== sig) {
+        select.innerHTML = Object.entries(presets).map(([id, p]) => `<option value="${id}">${escapeHTML(p.label)}</option>`).join("")
+            + `<option value="custom">Datele tale de până acum</option>`;
+        select.dataset.sig = sig;
+    }
+    const id = matchingModulePreset(list);
     select.value = id;
     select.querySelector('option[value="custom"]').hidden = id !== "custom";
 }
@@ -536,7 +556,7 @@ function bindPurtareEvents() {
         if (MODULE_PRESETS[event.target.value]) renderModulesSettings(presetModules(event.target.value, state.settings.school.cls));
     });
     $("set-county")?.addEventListener("change", event => {
-        const week = COUNTY_WEEK[event.target.value];
+        const week = countyPreset(event.target.value, yearOfModules().start);
         if (week && $("set-module-preset")) {
             $("set-module-preset").value = week;
             renderModulesSettings(presetModules(week, state.settings.school.cls));

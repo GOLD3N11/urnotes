@@ -59,7 +59,7 @@ function dataFingerprint(json) {
     const parsed = safeParseJSON(json, null);
     return parsed && parsed.data ? JSON.stringify(parsed.data) : "";
 }
-const hasLocalData = () => Object.keys(state.subjects).length > 0 || Object.keys(state.calendar).length > 0;
+const hasLocalData = () => Object.keys(state.subjects).length > 0 || Object.keys(state.calendar).length > 0 || state.archive.length > 0;
 
 function initCloud() {
     if (!cloud.configured) return; // aplicația rămâne exact ca înainte

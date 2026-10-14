@@ -52,6 +52,7 @@
     <script src="js/simulator.js" defer></script>
     <script src="js/events.js" defer></script>
     <script src="js/reminders.js" defer></script>
+    <script src="js/years.js" defer></script>
     <script src="js/state.js" defer></script>
     <script src="js/boot.js" defer></script>
     <script src="js/cursor.js" defer></script>
@@ -218,6 +219,7 @@
                 <div class="azi-grid">
                     <div class="azi-col azi-col-main">
                         <section class="glass-card azi-card azi-install" id="azi-install" aria-labelledby="azi-install-title" hidden></section>
+                        <section class="glass-card azi-card azi-year" id="azi-year" aria-labelledby="azi-year-title" hidden></section>
                         <section class="glass-card azi-card azi-start" id="azi-start" aria-labelledby="azi-start-title" hidden></section>
                         <section class="glass-card azi-card azi-day" id="azi-day" aria-labelledby="azi-day-title"></section>
                         <section class="glass-card azi-card azi-plan" id="azi-plan" aria-labelledby="azi-plan-title"></section>
@@ -642,9 +644,14 @@
                         
                     </div>
 
+                    <div class="glass-card" id="year-card">
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Anul școlar</h3>
+                        <div id="year-setting" class="year-setting mt-3"></div>
+                    </div>
+
                     <div class="glass-card settings-wide" id="modules-card">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Structura anului școlar 2026–2027</h3>
-                        <p class="subtitle mt-2">Purtarea pornește de la 10 la începutul fiecărui modul. Datele implicite sunt cele din structura anului școlar 2026–2027 (OM nr. 3194/2026). Modulele 3 și 4 depind de vacanța mobilă stabilită de inspectoratul școlar din județul tău.</p>
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Structura anului școlar <span id="year-label">2026–2027</span></h3>
+                        <p class="subtitle mt-2">Purtarea pornește de la 10 la începutul fiecărui modul. <span id="year-source">Datele implicite sunt cele din structura anului școlar 2026–2027 (OM nr. 3194/2026).</span> Modulele 3 și 4 depind de vacanța mobilă stabilită de inspectoratul școlar din județul tău.</p>
                         <div class="form-row mt-3">
                             <div class="form-group">
                                 <label for="set-county">Județul</label>
@@ -653,9 +660,7 @@
                             <div class="form-group">
                                 <label for="set-module-preset">Vacanța de schi</label>
                             <select id="set-module-preset" class="glass-select">
-                                <option value="2026-feb15">2026–2027 · vacanța mobilă 15–21 februarie</option>
-                                <option value="2026-feb22">2026–2027 · vacanța mobilă 22–28 februarie</option>
-                                <option value="2026-mar01">2026–2027 · vacanța mobilă 1–7 martie</option>
+                                <!-- variantele anului școlar al modulelor tale (vezi modulePresetsFor) -->
                                 <option value="custom">Datele tale de până acum</option>
                             </select>
                             </div>

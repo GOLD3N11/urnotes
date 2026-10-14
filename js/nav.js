@@ -546,7 +546,7 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
  * nu s-a mai salvat nimic altceva (altfel ar șterge și modificările făcute după).
  */
 const UNDO_MS = 7000;
-const UNDO_KEYS = ["subjects", "calendar", "timetable", "purtare", "activity", "history", "alertMeta", "achievements", "plan"];
+const UNDO_KEYS = ["subjects", "calendar", "timetable", "purtare", "activity", "history", "alertMeta", "achievements", "plan", "archive"];
 let saveCounter = 0;
 let pendingUndo = null;
 

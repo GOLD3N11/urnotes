@@ -674,7 +674,7 @@ function setupTargetsHTML() {
             <label class="setup-label" for="setup-preset">Vacanța mobilă (de ea depind modulele 3 și 4)</label>
             <select id="setup-preset" class="glass-select">
                 ${matchingModulePreset(state.settings.modules) === "custom" ? `<option value="keep" ${preset === "keep" ? "selected" : ""}>Păstrez datele mele (din Setări)</option>` : ""}
-                ${Object.entries(MODULE_PRESETS).map(([id, p]) => `<option value="${id}" ${id === preset ? "selected" : ""}>${escapeHTML(p.label)}</option>`).join("")}
+                ${Object.entries(modulePresetsFor(currentSchoolYear())).map(([id, p]) => `<option value="${id}" ${id === preset ? "selected" : ""}>${escapeHTML(p.label)}</option>`).join("")}
             </select>
         </div>`;
 }

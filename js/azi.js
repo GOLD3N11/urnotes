@@ -381,6 +381,7 @@ function renderDashboard() {
     $("azi-day").innerHTML = homeDayHTML(days, links);
     $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today);
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
+    if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
     if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
     $("azi-avg").innerHTML = homeAverageHTML();
@@ -719,7 +720,8 @@ function homeAverageHTML() {
             <li><button type="button" data-action="home-risk" ${metrics.riskCount ? "" : "disabled"}><b class="${metrics.riskCount ? "is-risk" : ""}">${metrics.riskCount}</b><span>${metrics.riskCount === 1 ? "materie la risc" : "materii la risc"}</span></button></li>
             <li><button type="button" data-action="nav" data-tab="tab-statistici"><b>${metrics.tensCount}</b><span>${metrics.tensCount === 1 ? "notă de 10" : "note de 10"}</span></button></li>
             <li><button type="button" data-action="open-subject" data-mat="${escapeHTML(PURTARE_KEY)}"><b>${p.value}</b><span>purtare</span></button></li>
-        </ul>`;
+        </ul>
+        ${lastYearLine()}`;
 }
 
 function getGoalProgress() {

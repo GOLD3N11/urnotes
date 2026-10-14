@@ -78,6 +78,7 @@ function loadSettingsIntoUI() {
     renderProgrammeSettings();
     renderBadgeSetting();
     renderReminderSetting();
+    renderYearSetting();
     if (guest.on) renderGuestBar(); // câmpurile rămân blocate pentru vizitatori
 }
 

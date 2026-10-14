@@ -222,7 +222,9 @@ function buildBackup() {
             history: state.history,
             alertMeta: state.alertMeta,
             simulator: sim,
-            plan: state.plan
+            plan: state.plan,
+            archive: state.archive,
+            meta: { schema: DATA_SCHEMA }
         }
     };
 }

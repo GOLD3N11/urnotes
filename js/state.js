@@ -14,7 +14,8 @@ const state = {
     alertMeta: { dismissed: {}, read: {} },
     achievements: Object.fromEntries(ACHIEVEMENTS.map(a => [a.key, false])),
     settings: clone(DEFAULT_SETTINGS),
-    plan: defaultPlan()
+    plan: defaultPlan(),
+    archive: []      // anii școlari încheiați (js/years.js)
 };
 
 let metrics = emptyMetrics();

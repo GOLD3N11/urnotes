@@ -250,7 +250,7 @@ function bindSetupEvents() {
         } else if (t.id === "setup-county" && ui.setup) {
             ui.setup.county = COUNTY_WEEK[t.value] ? t.value : "";
             if (COUNTY_WEEK[t.value]) {
-                ui.setup.preset = COUNTY_WEEK[t.value];
+                ui.setup.preset = countyPreset(t.value);
                 if ($("setup-preset")) $("setup-preset").value = ui.setup.preset;
             }
         }

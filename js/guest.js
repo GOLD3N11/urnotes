@@ -44,7 +44,7 @@ function requireAccount() {
 function guestFingerprint() {
     const { report, ...settings } = state.settings;
     return JSON.stringify([
-        state.subjects, state.calendar, state.timetable, state.purtare.grades, state.purtare.excludeFromGPA, settings,
+        state.subjects, state.calendar, state.timetable, state.archive, state.purtare.grades, state.purtare.excludeFromGPA, settings,
         state.plan.prefs, state.plan.items.filter(it => it.manual || it.done).map(it => [it.id, it.done, it.date]),
         sim.scenarios
     ]);
