@@ -22,6 +22,8 @@ const KEYS = {
     brand: "pro_brand_v4",            // a trecut o dată prin schimbarea mărcii (Zece → urNotes)
     plan: "pro_plan_db_v4",           // planul de studiu: preferințe de timp + sesiuni (vezi PLANUL MEU)
     archive: "pro_archive_db_v4",     // anii școlari încheiați: notele și mediile fiecărui an (vezi js/years.js)
+    exams: "pro_exams_db_v4",
+    pal: "pro_pal_db_v4",             // colegul: experiență, nivel, culoarea și accesoriul ales (js/growth.js)         // examenele: probele alese și rezultatele de la variante/simulări (js/exams.js)
     meta: "pro_meta_v4"               // versiunea formatului datelor (vezi MIGRAȚII în js/storage.js)
 };
 
@@ -208,7 +210,13 @@ const ACHIEVEMENTS = [
     { key: "five_tens", icon: "flame", label: "5 note de 10", toast: "🔥 Ai acumulat 5 note de 10!", test: m => m.tensCount >= 5 },
     { key: "high_avg", icon: "trend-up", label: "Media peste 9", toast: "📈 Media generală a depășit 9.00!", test: m => m.globalAvg >= 9 },
     { key: "perfect_10", icon: "target", label: "Media 10", toast: "🎯 Performanță maximă: media 10.00!", test: m => m.globalAvg >= 10 },
-    { key: "ten_evals", icon: "notebook", label: "10 evaluări", toast: "📚 10 evaluări înregistrate!", test: m => m.totalGrades >= 10 }
+    { key: "ten_evals", icon: "notebook", label: "10 evaluări", toast: "📚 10 evaluări înregistrate!", test: m => m.totalGrades >= 10 },
+    { key: "twenty_tens", icon: "medal", label: "20 de note de 10", toast: "🎖 20 de note de 10. Impresionant!", test: m => m.tensCount >= 20 },
+    { key: "no_risk", icon: "shield", label: "Nicio materie la risc", toast: "🎯 Nicio materie la risc, cu cel puțin 15 note!", test: m => m.totalGrades >= 15 && m.riskCount === 0 },
+    { key: "plan_10", icon: "calendar-check", label: "10 sesiuni din plan", toast: "✅ Ai făcut 10 sesiuni din plan!", test: () => state.pal.plan >= 10 },
+    { key: "plan_50", icon: "flame", label: "50 de sesiuni din plan", toast: "🔥 50 de sesiuni din plan. Disciplină de campion!", test: () => state.pal.plan >= 50 },
+    { key: "exam_first", icon: "graduation", label: "Prima variantă de examen", toast: "🎓 Primul rezultat la o variantă de examen!", test: () => state.exams.practice.length >= 1 },
+    { key: "year_done", icon: "award", label: "Un an școlar încheiat", toast: "🏆 Primul an școlar arhivat!", test: () => state.archive.length >= 1 }
 ];
 
 // Culoarea cernelii: o nuanță pentru caiet (luminos) și una mai deschisă, ca de cretă, pentru tablă (întunecat).

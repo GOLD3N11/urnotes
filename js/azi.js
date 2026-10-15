@@ -114,18 +114,21 @@ const BUDDY_FACES = {
         mouth: bLine("M48 71 Q60 86 72 71", 3.6, "b-mouth"), hot: true }
 };
 
-function buddySVG(mood = "happy", cls = "") {
+function buddySVG(mood = "happy", cls = "", look = palLook()) {
     const f = BUDDY_FACES[mood] || BUDDY_FACES.happy;
+    const paper = PAL_COLORS[look.color] || PAL_COLORS.yellow;
+    const acc = PAL_ACCESSORIES.find(a => a.id === look.acc);
     const cheek = f.hot ? "#FF5C7A" : "#FF7AA8";
     return `<svg class="buddy ${cls}" viewBox="0 0 120 120" aria-hidden="true" data-mood="${mood}">
         <g class="buddy-body"><g class="buddy-anim">
             <g transform="rotate(-6 60 62)">
-                <path d="M14 18H106V86L88 104H14Z" fill="#FFC93C"/>
-                <path d="M88 104V86H106Z" fill="#E0A21C"/>
-                <rect x="44" y="10" width="32" height="13" fill="#FF9EC0"/>
+                <path d="M14 18H106V86L88 104H14Z" fill="${paper.fill}"/>
+                <path d="M88 104V86H106Z" fill="${paper.fold}"/>
+                ${acc?.hat ? "" : `<rect x="44" y="10" width="32" height="13" fill="${look.color === "pink" ? "#FFE58A" : "#FF9EC0"}"/>`}
                 ${f.eyes}${f.brows || ""}
                 <g class="b-cheeks"><ellipse cx="31" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.75"/><ellipse cx="89" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.75"/></g>
                 ${f.mouth}
+                ${acc ? palAccessorySVG(acc.id) : ""}
                 ${BUDDY_FX[mood] || ""}
             </g>
         </g></g>
@@ -329,7 +332,8 @@ function renderBuddy(days, todo) {
 function paintBuddy(box, { mood, text }) {
     box.innerHTML = `
         <button type="button" class="buddy-poke" data-action="buddy-poke" aria-label="${escapeHTML(`Gâdilă-l pe ${buddyName()}`)}">${buddySVG(mood)}</button>
-        <p class="buddy-bubble" aria-live="polite"><b class="buddy-name">${escapeHTML(buddyName())}</b><span>${escapeHTML(text)}</span></p>`;
+        <p class="buddy-bubble" aria-live="polite"><b class="buddy-name">${escapeHTML(buddyName())}</b><span>${escapeHTML(text)}</span></p>
+        ${palLevelChipHTML()}`;
 }
 
 /** Evenimente trecute nefinalizate (ultimele 45 de zile); dintr-o serie, doar ultima apariție (+ câte mai vechi). */
@@ -381,6 +385,7 @@ function renderDashboard() {
     $("azi-day").innerHTML = homeDayHTML(days, links);
     $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today);
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
+    if ($("azi-exam")) { const eh = homeExamHTML(); $("azi-exam").innerHTML = eh; $("azi-exam").hidden = !eh; }
     if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
     if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }

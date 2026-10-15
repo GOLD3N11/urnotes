@@ -54,6 +54,8 @@
     <script src="js/reminders.js" defer></script>
     <script src="js/years.js" defer></script>
     <script src="js/pal.js" defer></script>
+    <script src="js/exams.js" defer></script>
+    <script src="js/growth.js" defer></script>
     <script src="js/state.js" defer></script>
     <script src="js/boot.js" defer></script>
     <script src="js/cursor.js" defer></script>
@@ -173,6 +175,7 @@
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button>
             </div>
         </nav>
         <div class="side-foot">
@@ -234,6 +237,7 @@
                         <section class="glass-card azi-card azi-recent" id="azi-recent" aria-labelledby="azi-recent-title"></section>
                     </div>
                     <div class="azi-col azi-col-side">
+                        <div class="azi-exam-slot" id="azi-exam" hidden></div>
                         <section class="glass-card azi-card azi-avg" id="azi-avg" aria-label="Media generală"></section>
                         <section class="glass-card azi-card azi-watch" id="azi-watch" aria-labelledby="azi-watch-title"></section>
                         <section class="glass-card azi-card azi-more" id="azi-more" aria-labelledby="azi-more-title"></section>
@@ -247,6 +251,7 @@
                     <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-catalog" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button>
                 </nav>
                 <div class="page-intro">
                     <div>
@@ -346,6 +351,7 @@
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
                     <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-simulator" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button>
                 </nav>
                 <div class="page-intro">
                     <div>
@@ -358,12 +364,35 @@
                 <div id="sim-root"></div>
             </section>
 
+            <!-- ================= EXAMENE ================= -->
+            <section id="tab-examene" class="tab-content" aria-labelledby="h-examene">
+                <nav class="page-subnav" aria-label="Notele mele">
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                    <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button>
+                </nav>
+                <div class="page-intro">
+                    <div>
+                        <h2 id="h-examene">Examene</h2>
+                        <p>Câte zile mai sunt, probele tale, rezultatele de la variante și ce medie ai lua. Calculele urmează regulile oficiale.</p>
+                    </div>
+                    <div class="page-pal" hidden></div>
+                    <div class="intro-actions">
+                        <button type="button" class="btn btn-primary" data-action="exam-practice"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Adaugă un rezultat</button>
+                        <button type="button" class="btn btn-glass" data-action="exam-to-calendar" hidden><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Pune probele în calendar</button>
+                    </div>
+                </div>
+                <div id="exam-root" class="exam-root"></div>
+            </section>
+
             <!-- ================= STATISTICI ================= -->
             <section id="tab-statistici" class="tab-content" aria-labelledby="h-statistici">
                 <nav class="page-subnav" aria-label="Notele mele">
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Catalog</span></button>
                     <button type="button" class="subnav-btn active" data-action="nav" data-tab="tab-statistici" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Statistici</span></button>
                     <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Simulator</span></button>
+                    <button type="button" class="subnav-btn" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button>
                 </nav>
                 <div class="page-intro">
                     <div>
@@ -565,6 +594,7 @@
                                 <input type="text" id="set-buddy" class="glass-input" maxlength="20" autocomplete="off" placeholder="Tiți">
                             </div>
                         </div>
+                        <div id="pal-level-setting" class="mt-3"></div>
                     </div>
                     <div class="glass-card programme-card">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Programa ta <button type="button" class="help-dot" data-action="help" data-key="programme" aria-label="Ce înseamnă: Programa?" title="Ce înseamnă?">?</button></h3>
@@ -803,6 +833,7 @@
         <div class="quick-add-card" role="menu" aria-label="Mai mult">
             <p class="quick-add-title">Mai mult</p>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span><b>Statistici</b><small>cum evoluezi și ce merită îmbunătățit</small></span></button>
+            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="exams"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span><b>Examene</b><small>Evaluarea Națională sau Bacalaureatul</small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="sim"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span><b>Simulator</b><small>„ce-ar fi dacă” pentru notele care urmează</small></span></button>
             <button type="button" role="menuitem" class="qa-item cloud-only" data-action="more-run" data-kind="account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span><b>Cont</b><small class="sync-line" data-sync-status="local"><i class="sync-dot" aria-hidden="true"></i><span class="sync-text">Doar pe acest dispozitiv</span></small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="settings"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span><b>Setări</b><small>ținte, calcul, aspect, module, backup</small></span></button>

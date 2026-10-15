@@ -224,6 +224,8 @@ function buildBackup() {
             simulator: sim,
             plan: state.plan,
             archive: state.archive,
+            exams: state.exams,
+            pal: state.pal,
             meta: { schema: DATA_SCHEMA }
         }
     };

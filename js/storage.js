@@ -36,10 +36,12 @@ function loadState() {
    Formatul datelor are un număr de versiune (DATA_SCHEMA), salvat lângă date și în backup/cont.
    Când formatul se schimbă: crești DATA_SCHEMA și adaugi aici o migrare care primește datele brute
    (exact cum au fost citite) și le aduce la noul format. Migrările rulează în ordine, o singură dată. */
-const DATA_SCHEMA = 2;
+const DATA_SCHEMA = 3;
 const MIGRATIONS = [
     // 2: apare arhiva anilor școlari (anul în curs rămâne cum era)
-    { to: 2, run: raw => { if (!Array.isArray(raw.archive)) raw.archive = []; } }
+    { to: 2, run: raw => { if (!Array.isArray(raw.archive)) raw.archive = []; } },
+    // 3: apar examenele (EN / Bac) și colegul care crește (nivel, garderobă)
+    { to: 3, run: raw => { raw.exams ||= null; raw.pal ||= null; } }
 ];
 
 function migrateRaw(raw, from) {
@@ -52,7 +54,7 @@ function readStoredData(read) {
     const from = Number.isInteger(meta?.schema) ? meta.schema : 1;
     if (from > DATA_SCHEMA) console.warn(`Datele au formatul ${from}, mai nou decât al aplicației (${DATA_SCHEMA}). Le citesc cât pot.`);
     const raw = migrateRaw(Object.fromEntries(["settings", "subjects", "calendar", "timetable", "purtare", "activity", "history",
-        "alertMeta", "achievements", "plan", "archive", "simulator"].map(name => [name, read(name)])), from);
+        "alertMeta", "achievements", "plan", "archive", "exams", "pal", "simulator"].map(name => [name, read(name)])), from);
     read = name => raw[name] ?? null;
     const data = {
         settings: read("settings"),
@@ -65,7 +67,9 @@ function readStoredData(read) {
         alertMeta: read("alertMeta"),
         achievements: read("achievements"),
         plan: read("plan"),
-        archive: read("archive")
+        archive: read("archive"),
+        exams: read("exams"),
+        pal: read("pal")
     };
     normalizeState(data);
     return { data, sim: parseSimulator(read("simulator")) };
@@ -187,6 +191,8 @@ function normalizeState(s) {
     s.purtare = sanitizePurtare(s.purtare);
     s.plan = sanitizePlan(s.plan);
     s.archive = sanitizeArchive(s.archive);
+    s.exams = sanitizeExams(s.exams);
+    s.pal = sanitizePal(s.pal);
 
     const meta = isPlainObject(s.alertMeta) ? s.alertMeta : {};
     s.alertMeta = {
@@ -273,6 +279,8 @@ function saveState() {
         [KEYS.simulator]: sim,
         [KEYS.plan]: state.plan,
         [KEYS.archive]: state.archive,
+        [KEYS.exams]: state.exams,
+        [KEYS.pal]: state.pal,
         [KEYS.meta]: { schema: DATA_SCHEMA }
     };
 

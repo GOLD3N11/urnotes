@@ -25,6 +25,8 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 - **O pagină nouă:** adaugi o `<section id="tab-…" class="tab-content">` în `index.html` și un fișier în `js/` care apelează `registerTab("tab-…", { render, title, icon, group, pal })`. Scriptul îl treci în `index.html` (înainte de `state.js`) și în lista `APP_JS` din `sw.js`.
 - **Un an școlar nou:** adaugi anul în `SCHOOL_YEAR_DATA` (`js/config.js`), după ordinul ministrului. Până atunci, anul se estimează singur.
+- **Calendarul examenelor:** datele Evaluării Naționale și ale Bacalaureatului stau în `EXAM_CALENDAR` (`js/exams.js`), pe ani școlari. Pentru un an nou, adaugi o intrare după ordinul ministrului.
+- **Colegul care crește:** culorile, accesoriile și cât XP aduce fiecare lucru sunt în `js/growth.js` (`PAL_COLORS`, `PAL_ACCESSORIES`, `XP`).
 - **O schimbare de format al datelor:** crești `DATA_SCHEMA` și adaugi o migrare în `MIGRATIONS` (`js/storage.js`). Datele vechi (din browser, backup sau cont) se aduc singure la zi.
 - **Anii încheiați:** se mută în arhivă (`state.archive`, Setări → Anul școlar), așa că datele de zi cu zi rămân mici, oricâți ani ar trece.
 

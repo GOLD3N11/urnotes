@@ -589,6 +589,7 @@ function finishFocus(done, { auto = false } = {}) {
     stopFocus();
     closeActionModal();
     if (!it || !done || !findPlanItem(it.id)) return;
+    if (!it.done) state.pal.plan++; // XP pentru coleg
     it.done = true;
     refresh();
     const today = getLocalDateKey();
@@ -604,7 +605,9 @@ const findPlanItem = id => state.plan.items.find(it => it.id === id);
 function togglePlanItem(el) {
     const it = findPlanItem(el.dataset.id);
     if (!it) return;
+    const was = it.done;
     it.done = Boolean(el.checked);
+    if (it.done !== was) state.pal.plan = Math.max(0, state.pal.plan + (it.done ? 1 : -1)); // XP pentru coleg
     const today = getLocalDateKey();
     const todays = state.plan.items.filter(x => x.date === today);
     refresh();

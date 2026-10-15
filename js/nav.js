@@ -56,7 +56,7 @@ function switchTab(tabId) {
 }
 
 /* ---------- mișcare: pagina intră din partea în care mergi, cardurile apar pe rând ---------- */
-const TAB_ORDER = ["tab-dashboard", "tab-plan", "tab-calendar", "tab-catalog", "tab-statistici", "tab-simulator", "tab-setari"];
+const TAB_ORDER = ["tab-dashboard", "tab-plan", "tab-calendar", "tab-catalog", "tab-statistici", "tab-simulator", "tab-examene", "tab-setari"];
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animateTabEnter(tabId, from) {
     const el = $(tabId);
@@ -342,7 +342,8 @@ const MORE_ACTIONS = {
     account: () => openAccountPanel(),
     tour: () => startTour(),
     plan: () => switchTab("tab-plan"),
-    stats: () => switchTab("tab-statistici")
+    stats: () => switchTab("tab-statistici"),
+    exams: () => switchTab("tab-examene")
 };
 
 function openMoreMenu() {
@@ -504,7 +505,7 @@ function bindShellEvents() {
 }
 
 /* ==================== TOAST ==================== */
-const TOAST_ICONS = { "🏆": "trophy", "🔥": "flame", "📈": "trend-up", "🎯": "target", "📚": "notebook", "💾": "save", "🗓": "calendar-days", "⚙": "settings", "↩": "undo", "🎖": "medal", "✅": "check-circle", "↻": "refresh", "☁": "check-circle", "🔔": "bell" };
+const TOAST_ICONS = { "🏆": "trophy", "🔥": "flame", "📈": "trend-up", "🎯": "target", "📚": "notebook", "💾": "save", "🗓": "calendar-days", "⚙": "settings", "↩": "undo", "🎖": "medal", "✅": "check-circle", "↻": "refresh", "☁": "check-circle", "🔔": "bell", "🎉": "sparkles", "🎓": "graduation" };
 
 /**
  * Mesaj scurt jos pe ecran. Opțional cu un buton (ex. „Anulează”).
@@ -554,7 +555,7 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
  * nu s-a mai salvat nimic altceva (altfel ar șterge și modificările făcute după).
  */
 const UNDO_MS = 7000;
-const UNDO_KEYS = ["subjects", "calendar", "timetable", "purtare", "activity", "history", "alertMeta", "achievements", "plan", "archive"];
+const UNDO_KEYS = ["subjects", "calendar", "timetable", "purtare", "activity", "history", "alertMeta", "achievements", "plan", "archive", "exams", "pal"];
 let saveCounter = 0;
 let pendingUndo = null;
 

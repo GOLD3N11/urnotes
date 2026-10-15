@@ -253,6 +253,7 @@ function refresh() {
     checkModuleRollover();
     updateHistoryPoint();
     if (!guest.on) checkAchievements(); // vizitatorii (și caietul de exemplu) nu primesc realizări
+    checkPalLevel();
     updatePlan();
     alerts = generateAlerts();
     pruneTimetable();

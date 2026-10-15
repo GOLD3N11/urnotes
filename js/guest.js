@@ -19,7 +19,7 @@ const GUEST_OK = new Set([
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
     "account-open", "auth-open", "auth-close", "auth-mode", "auth-google", "auth-eye", "auth-local", "guest-signin"
 ]);
-const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan", "stats"]);
+const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan", "stats", "exams"]);
 
 /** Poate modifica? Fără conturi configurate (ex. teste locale) aplicația merge ca înainte. */
 const canEdit = () => !cloud.configured || Boolean(cloud.user);
@@ -44,7 +44,7 @@ function requireAccount() {
 function guestFingerprint() {
     const { report, ...settings } = state.settings;
     return JSON.stringify([
-        state.subjects, state.calendar, state.timetable, state.archive, state.purtare.grades, state.purtare.excludeFromGPA, settings,
+        state.subjects, state.calendar, state.timetable, state.archive, state.exams, state.pal.look, state.purtare.grades, state.purtare.excludeFromGPA, settings,
         state.plan.prefs, state.plan.items.filter(it => it.manual || it.done).map(it => [it.id, it.done, it.date]),
         sim.scenarios
     ]);
