@@ -50,8 +50,6 @@ const SETTINGS_FIELDS = {
     "set-risk-drop": ["calc", "riskDrop"],
     "set-theme": ["appearance", "theme"],
     "set-accent": ["appearance", "accent"],
-    "set-density": ["appearance", "density"],
-    "set-cursor": ["appearance", "cursor"],
     "set-name": ["profile", "name"],
     "set-county": ["school", "county"],
     "set-buddy": ["profile", "buddy"]
@@ -118,4 +116,4 @@ function renderBuddyPreview() {
     box.innerHTML = `${buddySVG("happy")}<p class="buddy-bubble is-sm"><b class="buddy-name">${escapeHTML(name)}</b><span>${who ? `Salut, ${escapeHTML(who)}!` : "Salut!"}</span></p>`;
 }
 
-registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Setări", icon: "settings", group: "app" });
+registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Setări", icon: "settings", group: "app", parent: "tab-dashboard" });

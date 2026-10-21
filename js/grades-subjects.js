@@ -47,7 +47,6 @@ function closeActionModal() {
     overlay.hidden = true;
     document.body.classList.remove("modal-open");
     if (focusRun.it) stopFocus(); // „Renunț” / Escape / fundal: cronometrul se oprește, sesiunea rămâne nebifată
-    if (game.running) stopBuddyGame(false);
     $("action-modal-confirm").onclick = null;
     $("action-modal-body").innerHTML = "";
     ui.ttDraft = null;

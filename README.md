@@ -13,13 +13,19 @@ Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare 
 Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 - `index.html`: paginile (taburile) și ordinea scripturilor.
-- `style.css`: tot aspectul (temele luminoasă și întunecată).
+- `style.css`: aspectul componentelor; `ui.css`: stratul de design de deasupra (culori, litere, meniul, plăcile colorate, temele luminoasă și întunecată).
 - `js/*.js`: aplicația, împărțită pe domenii. Sunt scripturi clasice care împart același spațiu global și se încarcă în ordinea din `index.html`:
   - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
   - `utils.js`, `model.js`, `storage.js`, `metrics.js`: datele și calculele.
   - Câte un fișier pentru fiecare pagină sau funcție: `azi.js`, `catalog.js`, `calendar-*.js`, `plan.js`, `stats.js`, `simulator.js`, `reminders.js`, `years.js`, `pal.js` etc.
   - `state.js` (starea) și `boot.js`/`main.js` (pornirea) se încarcă ultimele.
 - `cloud.js`: conturile și sincronizarea (Firebase); `sw.js`: lucrul fără internet și amintirile din fundal.
+
+### Paginile
+
+Trei pagini principale: **Azi**, **Note** și **Calendar** (plus „+” pentru adăugare și „Eu” pentru cont și setări).
+Restul sunt sub-pagini, cu buton „înapoi”: **Plan** (din Azi), **Progresul tău**, **Ce-ar fi dacă** și **Examene** (din Note), **Setări**.
+O sub-pagină se înregistrează cu `parent`: `registerTab("tab-…", { …, parent: "tab-catalog" })`.
 
 ### Cum adaugi ceva
 

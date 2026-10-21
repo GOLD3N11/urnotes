@@ -395,7 +395,6 @@ function openSetup(step = 0) {
     }
     closeQuickAdd({ restoreFocus: false });
     closeMoreMenu({ restoreFocus: false });
-    closeCmdk({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     closeActionModal();
     $("setup").hidden = false;

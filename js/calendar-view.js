@@ -143,7 +143,7 @@ function dayColumnHTML(date, items, links, today) {
             ${lessons.length ? `
                 <div class="cal-lessons" aria-label="Orar">
                     ${lessons.map((m, i) => `
-                        <button type="button" class="cal-lesson" data-action="add-event" data-date="${date}" data-mat="${escapeHTML(m)}"
+                        <button type="button" class="cal-lesson" data-action="add-event" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
                             title="${escapeHTML(`Ora ${i + 1}: ${m} — adaugă un test sau o temă`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(m)}</span></button>`).join("")}
                 </div>` : ""}
             <div class="cal-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>
@@ -256,4 +256,4 @@ function showDateInCalendar(dateKey) {
     calGoto(dateKey);
 }
 
-registerTab("tab-calendar", { render: renderCalendar, title: "Calendar", icon: "calendar", group: "day" });
+registerTab("tab-calendar", { render: renderCalendar, title: "Calendar", icon: "calendar", group: "calendar" });

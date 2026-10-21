@@ -112,8 +112,7 @@ function sanitizeSettings(raw) {
         appearance: {
             theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
             accent: pick(s.appearance.accent, Object.keys(ACCENTS), "violet"),
-            density: pick(s.appearance.density, ["normal", "compact", "spacious"], "normal"),
-            cursor: pick(s.appearance.cursor, CURSOR_MODES, "off")
+            // (densitatea și cursoarele personalizate au fost scoase în v9)
         },
         school: {
             profile: typeof s.school?.profile === "string" && SETUP_PROFILES[s.school.profile] ? s.school.profile : "",

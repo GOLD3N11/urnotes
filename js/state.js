@@ -30,7 +30,7 @@ const ui = {
     examSim: {},     // Examene: notele încercate în „Ce medie ai lua” (nu se salvează)
     ttDay: 1,
     // Catalog: materia deschisă, căutare, sortare, filtru; showDetail = pe telefon, detaliile acoperă lista
-    catalog: { selected: "", query: "", sort: "group", filter: "all", showDetail: false, autoPicked: true, collapsed: {} },
+    catalog: { selected: "", query: "", sort: "risk", filter: "all", showDetail: false, autoPicked: true, collapsed: {} },
     charts: {},
     home: { day: null },     // Azi: null = automat (după-amiaza arată ziua următoare), "today" | "next"
     statsSort: "attention",

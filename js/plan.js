@@ -262,7 +262,7 @@ function planItemHTML(it, { compact = false } = {}) {
     const label = `${it.mat}: ${k.label}, ${it.min} minute`;
     const today = getLocalDateKey();
     return `
-        <li class="plan-item ${it.done ? "is-done" : ""} kind-${it.kind}">
+        <li class="plan-item ${it.done ? "is-done" : ""} kind-${it.kind}" style="${subjectStyle(it.mat)}">
             <label class="plan-check">
                 <input type="checkbox" data-action="plan-toggle" data-id="${id}" ${it.done ? "checked" : ""} aria-label="${escapeHTML(`${it.done ? "Făcut" : "De făcut"}: ${label}`)}">
                 <span class="plan-box" aria-hidden="true">${icon("check")}</span>
@@ -741,4 +741,4 @@ const PLAN_ACTIONS = {
     }
 };
 
-registerTab("tab-plan", { render: renderPlan, title: "Plan", icon: "calendar-check", group: "day" });
+registerTab("tab-plan", { render: renderPlan, title: "Plan", icon: "calendar-check", group: "home", parent: "tab-dashboard" });

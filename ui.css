@@ -1,0 +1,320 @@
+/* ==========================================================================
+   urNotes v9 · „îndrăzneț și colorat”
+   Stratul de design de deasupra lui style.css: culori, litere, carcasa (meniu, bare), plăcile colorate.
+   Ideea: fiecare materie are culoarea ei, cifrele importante sunt mari și sus, totul se citește dintr-o privire.
+   ========================================================================== */
+
+:root {
+    --font-ui: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-hand: "Bricolage Grotesque", "Figtree", ui-sans-serif, system-ui, sans-serif;   /* titluri și cifre */
+    --font-pal: "Shantell Sans", "Figtree", ui-rounded, system-ui, sans-serif;            /* doar ce spune colegul */
+
+    --paper: #F3F1FA;
+    --sheet: #FFFFFF;
+    --rule: #E6E2F2;
+    --ink: #16122A;
+    --ink-2: #5E587A;
+    --grid-dot: transparent;
+
+    /* culorile materiilor */
+    --c-tomato: #FF5D47;
+    --c-tangerine: #FF9A1F;
+    --c-sun: #FFC72C;
+    --c-lime: #84CC16;
+    --c-mint: #22C58B;
+    --c-teal: #14B8A6;
+    --c-sky: #38BDF8;
+    --c-blue: #4F6BF5;
+    --c-grape: #9B5DE5;
+    --c-pink: #F25CAB;
+    --c-accent: var(--accent-color);
+
+    --radius-lg: 22px;
+    --radius-md: 12px;
+    --pad-card: 20px;
+    --gap-grid: 14px;
+    --page-max: 1200px;
+    --side-w: 236px;
+}
+body {
+    --input-bg: #F2F0F9;
+    --card-hover: #F7F5FD;
+    --shadow-card: 0 1px 2px rgba(22, 18, 42, 0.05), 0 10px 28px -16px rgba(22, 18, 42, 0.18);
+    --shadow-pop: 0 2px 6px rgba(22, 18, 42, 0.08), 0 18px 40px -18px rgba(22, 18, 42, 0.3);
+    background: var(--paper);
+    background-image: none;
+    font-family: var(--font-ui);
+    font-size: 15px;
+    letter-spacing: 0;
+}
+body.dark-mode {
+    --paper: #100E19;
+    --sheet: #1B1829;
+    --rule: #2C2840;
+    --ink: #F3F0FB;
+    --ink-2: #A9A3C2;
+    --input-bg: #231F33;
+    --card-hover: #221E31;
+    --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.3);
+    --shadow-pop: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+}
+
+h1, h2, h3, h4 { font-family: var(--font-hand); letter-spacing: -0.01em; }
+h3 { font-weight: 750; }
+.buddy-bubble span, .pal-bubble span { font-family: var(--font-pal); }
+.kpi-title { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 650; }
+
+/* ---------- suprafețe ---------- */
+.glass-card {
+    background: var(--sheet);
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+body.dark-mode .glass-card { border-color: var(--rule); }
+.glass-input, .glass-select { border-radius: var(--radius-md); background-color: var(--input-bg); border-color: transparent; }
+.glass-input:focus, .glass-select:focus { border-color: var(--accent-color); background-color: var(--sheet); }
+.btn { border-radius: 14px; font-weight: 700; min-height: 42px; padding-inline: 16px; }
+.btn-sm { min-height: 34px; border-radius: 11px; padding-inline: 12px; }
+.btn-primary { background: var(--accent-color); color: var(--on-accent); }
+.btn-glass { background: var(--sheet); border-color: var(--rule); }
+body.dark-mode .btn-glass { background: var(--input-bg); }
+.modal-card { border-radius: 28px; }
+.toast { border-radius: 18px; }
+.azi-meter { height: 10px; border-radius: 99px; background: var(--input-bg); overflow: hidden; }
+.azi-meter i { display: block; height: 100%; border-radius: 99px; background: var(--accent-color); }
+
+/* ==========================================================================
+   CARCASA
+   ========================================================================== */
+/* Meniul din stânga (ecrane mari): trei pagini și „Adaugă” */
+.sidebar { background: var(--sheet); border-right: 1px solid var(--rule); padding: 18px 14px 18px calc(14px + env(safe-area-inset-left)); }
+.side-brand { padding: 4px 8px 22px; }
+.side-nav { display: flex; flex-direction: column; gap: 6px; }
+.tab-btn.side-link {
+    min-height: 50px; padding: 10px 14px; gap: 14px; border-radius: 16px; border: 0;
+    font-size: 15.5px; font-weight: 700; color: var(--ink-2);
+}
+.tab-btn.side-link .ico { width: 22px; height: 22px; }
+.tab-btn.side-link:hover { background: var(--input-bg); color: var(--ink); }
+.tab-btn.side-link.active { background: color-mix(in srgb, var(--accent-color) 12%, transparent); color: var(--accent-color); box-shadow: none; }
+.tab-btn.side-link.active::before { display: none; }
+body.dark-mode .tab-btn.side-link.active { background: color-mix(in srgb, var(--accent-color) 20%, transparent); }
+.side-add {
+    display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; margin-top: 14px;
+    background: var(--accent-color); color: var(--on-accent); border: 0; border-radius: 16px;
+    font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; box-shadow: var(--shadow-pop);
+}
+.side-add .ico { width: 20px; height: 20px; }
+.side-add:hover { filter: brightness(1.06); }
+.side-add:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 45%, transparent); outline-offset: 2px; }
+.side-foot { border-top: 1px solid var(--rule); }
+
+/* Bara de sus: doar clopoțelul (și marca, pe telefon); „Adaugă” stă în meniu */
+.app-bar { background: transparent; border: 0; }
+@media (min-width: 901px) {
+    .quick-add-btn { display: none; }
+    .topbar { height: 64px; }
+}
+
+/* Între telefon și ecran mare: meniul devine o bandă îngustă, cu iconițe */
+@media (min-width: 901px) and (max-width: 1199px) {
+    :root { --side-w: 92px; }
+    .sidebar { padding: 18px 10px 18px calc(10px + env(safe-area-inset-left)); align-items: stretch; }
+    .side-brand { justify-content: center; padding-inline: 0; }
+    .side-brand-text { display: none; }
+    .tab-btn.side-link { flex-direction: column; gap: 4px; min-height: 64px; padding: 8px 4px; font-size: 12px; text-align: center; justify-content: center; }
+    .side-add { flex-direction: column; gap: 2px; min-height: 64px; font-size: 12px; }
+    .side-foot .tab-btn.side-link span, .account-chip .account-chip-text { display: none; }
+}
+
+/* Telefon: bara de jos plutește, cu „+” în mijloc */
+@media (max-width: 900px) {
+    .mobile-bottom-nav {
+        left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); width: auto;
+        padding: 6px; border-radius: 26px; border: 1px solid var(--rule);
+        background: color-mix(in srgb, var(--sheet) 92%, transparent);
+        box-shadow: var(--shadow-pop);
+        align-items: center;
+    }
+    .mobile-nav-btn { flex: 1 1 0; min-height: 52px; border-radius: 20px; font-size: 11.5px; font-weight: 700; gap: 3px; }
+    .mobile-nav-btn .ico { width: 22px; height: 22px; }
+    .mobile-nav-btn.active { background: transparent; color: var(--accent-color); }
+    .nav-pill { border-radius: 20px; background: color-mix(in srgb, var(--accent-color) 13%, transparent); }
+    .mobile-add {
+        flex: none; width: 56px; height: 56px; margin: -18px 4px 0; border-radius: 20px;
+        background: var(--accent-color); color: var(--on-accent); box-shadow: var(--shadow-pop);
+    }
+    .mobile-add .ico { width: 26px; height: 26px; }
+    body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    .topbar { height: 60px; }
+}
+
+/* ==========================================================================
+   ANTETUL PAGINII
+   ========================================================================== */
+.page-intro { margin: 2px 0 20px; }
+.page-intro h2, .azi-head h2 {
+    font-family: var(--font-hand); font-weight: 800; font-size: clamp(32px, 4.6vw, 46px);
+    line-height: 1.02; letter-spacing: -0.03em;
+}
+.page-intro p { color: var(--ink-2); font-size: 15px; }
+.page-back {
+    display: inline-flex; align-items: center; gap: 4px; margin: 0 0 10px -6px; padding: 6px 12px 6px 6px;
+    background: var(--sheet); border: 1px solid var(--rule); border-radius: 99px;
+    font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink-2); cursor: pointer;
+}
+.page-back .ico { width: 18px; height: 18px; transform: rotate(180deg); }
+.page-back:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.page-back:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 40%, transparent); outline-offset: 2px; }
+
+/* colegul din antet: mai mic, ca un sticker */
+.pal-face, .pal-face .buddy { width: 52px; height: 52px; }
+.pal-bubble { border-width: 0; background: var(--sheet); box-shadow: var(--shadow-card); border-radius: 18px 18px 18px 6px; font-size: 13.5px; }
+.pal-count { display: none; }
+body.dark-mode .pal-bubble { border: 1px solid var(--rule); }
+
+/* ==========================================================================
+   AZI
+   ========================================================================== */
+.azi-head { margin-bottom: 16px; }
+.azi-date { font-weight: 700; color: var(--ink-2); }
+.buddy-bubble { border-width: 0; box-shadow: var(--shadow-card); border-radius: 20px 20px 6px 20px; }
+body.dark-mode .buddy-bubble { border: 1px solid var(--rule); }
+
+.home-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap-grid); margin-bottom: var(--gap-grid); }
+.home-tile {
+    position: relative; display: grid; align-content: start; gap: 4px; min-width: 0; min-height: 132px; padding: 16px 18px;
+    background: color-mix(in srgb, var(--tile) 16%, var(--sheet)); color: var(--ink);
+    border: 0; border-radius: var(--radius-lg); font: inherit; text-align: left; cursor: pointer; overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.home-tile::after { content: ""; position: absolute; right: -18px; top: -18px; width: 70px; height: 70px; border-radius: 22px; background: var(--tile); opacity: 0.22; transform: rotate(18deg); }
+.home-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.home-tile:focus-visible { outline: 3px solid var(--tile); outline-offset: 2px; }
+.home-tile-label { font-size: 13.5px; font-weight: 700; color: color-mix(in srgb, var(--tile) 45%, var(--ink)); }
+.home-tile-value { font-family: var(--font-hand); font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+.home-tile small { font-size: 13px; color: var(--ink-2); }
+.home-tile small .is-up { color: var(--ok); font-weight: 700; }
+.home-tile small .is-down { color: var(--risk); font-weight: 700; }
+.home-tile.is-hero { background: var(--tile); color: var(--on-accent); }
+.home-tile.is-hero::after { background: #fff; opacity: 0.16; }
+.home-tile.is-hero .home-tile-label, .home-tile.is-hero small, .home-tile.is-hero small span { color: color-mix(in srgb, var(--on-accent) 85%, transparent); }
+.home-tile.is-hero .home-tile-value { font-size: 52px; }
+body.dark-mode .home-tile:not(.is-hero) { background: color-mix(in srgb, var(--tile) 18%, var(--sheet)); }
+body.dark-mode .home-tile-label { color: color-mix(in srgb, var(--tile) 70%, var(--ink)); }
+
+.azi-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); }
+.azi-card h3 { font-size: 18px; }
+
+/* ==========================================================================
+   NOTE
+   ========================================================================== */
+.cat-summary { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: var(--gap-grid); margin-bottom: var(--gap-grid); }
+.cat-sum { --tile: var(--c-blue); background: color-mix(in srgb, var(--tile) 14%, var(--sheet)); box-shadow: none; padding: 16px 18px; }
+.cat-sum.is-accent { --tile: var(--accent-color); background: var(--tile); color: var(--on-accent); }
+.cat-sum.is-accent .kpi-title, .cat-sum.is-accent small { color: color-mix(in srgb, var(--on-accent) 85%, transparent); }
+.cat-sum.is-danger { --tile: var(--c-tomato); }
+.cat-sum.is-ok { --tile: var(--c-mint); }
+.cat-sum-value { font-family: var(--font-hand); font-size: 38px; font-weight: 800; line-height: 1.05; }
+.cat-sum.is-accent .cat-sum-value { color: inherit; font-size: 46px; }
+
+.note-links { display: flex; gap: 10px; margin-bottom: 18px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.note-links::-webkit-scrollbar { display: none; }
+.note-link {
+    flex: 1 0 200px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px;
+    font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+}
+.note-link .ico { flex: none; width: 40px; height: 40px; padding: 9px; border-radius: 13px; background: color-mix(in srgb, var(--tile) 18%, transparent); color: var(--tile); }
+.note-link span { display: grid; }
+.note-link b { font-size: 15px; }
+.note-link small { color: var(--ink-2); font-size: 12.5px; }
+.note-link:hover { border-color: var(--tile); }
+.note-link:focus-visible { outline: 3px solid color-mix(in srgb, var(--tile) 45%, transparent); outline-offset: 2px; }
+
+/* Lista: plăci pe fundal, fără „cutie” în jur; filtrele și sortarea au plecat (cele la risc vin primele) */
+.cat-list-pane { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.cat-filters, #cat-sort { display: none !important; }
+.cat-tools { margin-bottom: 10px; }
+#cat-search { background: var(--sheet); border: 1px solid var(--rule); min-height: 46px; border-radius: 16px; padding-left: 16px; }
+.cat-list { display: grid; gap: 8px; }
+.cat-row.subj-tile {
+    display: flex; align-items: center; gap: 12px; min-height: 76px; padding: 12px 14px; margin: 0;
+    background: var(--sheet); border: 1.5px solid transparent; border-radius: 20px; box-shadow: var(--shadow-card);
+}
+.cat-row.subj-tile:hover { border-color: color-mix(in srgb, var(--subj) 50%, transparent); background: var(--sheet); }
+.cat-row.subj-tile.selected { border-color: var(--subj); background: color-mix(in srgb, var(--subj) 8%, var(--sheet)); }
+.cat-row.subj-tile .cat-dot { display: none; }
+.subj-chip {
+    flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px;
+    background: var(--subj-chip, var(--subj)); color: var(--subj-ink, #fff); font-family: var(--font-hand); font-size: 17px; font-weight: 800;
+    transform: rotate(-4deg);
+}
+.subj-tile .cat-row-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.subj-tile .cat-row-name { font-size: 15.5px; font-weight: 750; }
+.subj-bar { display: block; height: 5px; margin-top: 4px; border-radius: 99px; background: var(--input-bg); overflow: hidden; }
+.subj-bar i { display: block; height: 100%; border-radius: inherit; background: var(--subj); }
+.subj-tile .cat-row-avg b { font-family: var(--font-hand); font-size: 24px; font-weight: 800; }
+.subj-tile.is-risk .cat-row-avg b { color: var(--risk); }
+.subj-tile .cat-row-avg small { display: inline-flex; align-items: center; gap: 3px; }
+.subj-tile.is-risk .cat-row-avg small { color: var(--risk); font-weight: 700; }
+.subj-tile .cat-row-avg small .ico { width: 13px; height: 13px; }
+body.dark-mode .cat-row.subj-tile { border-color: var(--rule); }
+body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
+
+/* ==========================================================================
+   CALENDAR ȘI PLAN: culoarea materiei
+   ========================================================================== */
+.cal-lesson { border-left: 4px solid var(--subj, var(--rule)); }
+.plan-item { border-left: 5px solid var(--subj, var(--rule)) !important; }
+.cal-shell, .cal-overview > * { border-radius: var(--radius-lg); }
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1100px) {
+    .azi-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+    .home-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .home-tile.is-hero { grid-column: 1 / -1; min-height: 120px; }
+    .home-tile { min-height: 116px; padding: 14px 16px; }
+    .home-tile-value { font-size: 34px; }
+    .cat-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .cat-sum.is-accent { grid-column: 1 / -1; }
+    .note-link { flex-basis: 180px; }
+}
+@media (max-width: 600px) {
+    :root { --page-pad: 14px; --gap-grid: 12px; }
+    .page-intro h2, .azi-head h2 { font-size: 34px; }
+    .home-tile.is-hero .home-tile-value { font-size: 46px; }
+    .cat-row.subj-tile { min-height: 70px; padding: 10px 12px; }
+    .subj-chip { width: 42px; height: 42px; font-size: 15px; }
+}
+@media (max-width: 360px) {
+    .home-tile-value { font-size: 28px; }
+    .mobile-nav-btn { font-size: 10.5px; }
+    .mobile-add { width: 50px; height: 50px; }
+}
+@media (min-width: 1500px) {
+    .home-tile.is-hero .home-tile-value { font-size: 60px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-tile, .home-tile:hover { transition: none; transform: none; }
+}
+.cat-add-tile { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; background: transparent; border: 2px dashed var(--rule); border-radius: 20px; font: inherit; font-weight: 700; color: var(--ink-2); cursor: pointer; }
+.cat-add-tile:hover { border-color: var(--accent-color); color: var(--accent-color); }
+/* telefon și tabletă: media pe tot rândul, celelalte trei plăci una lângă alta */
+@media (max-width: 900px) {
+    .home-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .home-tile.is-hero { grid-column: 1 / -1; }
+    .home-tile:not(.is-hero) { min-height: 108px; padding: 12px 12px 14px; }
+    .home-tile:not(.is-hero)::after { width: 46px; height: 46px; right: -14px; top: -14px; }
+}
+@media (max-width: 600px) {
+    .home-tile:not(.is-hero) .home-tile-value { font-size: 28px; }
+    .home-tile:not(.is-hero) .home-tile-label { font-size: 12px; line-height: 1.25; }
+    .home-tile:not(.is-hero) small { font-size: 11.5px; line-height: 1.3; }
+}
+.settings-status { color: var(--ink-2); opacity: 1; }

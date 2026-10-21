@@ -91,7 +91,7 @@ function bindSheetDrag() {
 /* ---------- cu o foaie sau un meniu deschis, pagina de dedesubt stă pe loc ---------- */
 /* Pe iPhone, „overflow: hidden” nu ajunge: pagina tot se derulează și se întinde sub foaie. O fixăm acolo unde era
    și o punem la loc când se închide totul. */
-const OVERLAY_IDS = ["action-modal", "quick-add", "more-menu", "notif-panel", "cmdk", "setup", "auth"];
+const OVERLAY_IDS = ["action-modal", "quick-add", "more-menu", "notif-panel", "setup", "auth"];
 const scrollLock = { on: false, y: 0 };
 function syncScrollLock() {
     const open = OVERLAY_IDS.some(id => { const el = $(id); return el && !el.hidden; });

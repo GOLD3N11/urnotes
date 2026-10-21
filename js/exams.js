@@ -321,25 +321,19 @@ function renderExams() {
     if (btn) btn.hidden = !cal || examCalendarAdded(kind, cal);
 }
 
-/** Pe Azi: câte zile mai sunt, doar în anul examenului. */
-function homeExamHTML() {
+/** Pe Azi: câte zile mai sunt, doar în anul examenului (null în rest). */
+function homeExamInfo() {
     const kind = examKind();
     const cal = examCalendar(kind);
     const sc = myProgramme();
-    if (!cal || !sc || sc.cls !== (kind === "en" ? 8 : 12)) return "";
+    if (!cal || !sc || sc.cls !== (kind === "en" ? 8 : 12)) return null;
     const today = getLocalDateKey();
     const subs = new Set(examSubjects(kind).map(s => s.key));
     const first = cal.dates.find(([d, , key]) => key && subs.has(key) && d >= today);
-    if (!first) return "";
-    const n = daysBetween(today, first[0]);
+    if (!first) return null;
     const vals = Object.fromEntries(examSubjects(kind).map(s => [s.key, examEstimate(s).val]));
     const r = examAverage(kind, vals);
-    return `
-        <button type="button" class="azi-exam" data-action="nav" data-tab="tab-examene">
-            <b class="azi-exam-days">${n}</b>
-            <span><b>${n === 1 ? "zi" : "zile"} până la ${kind === "en" ? "Evaluarea Națională" : "Bac"}</b><small>${r ? `media estimată: ${r.avg.toFixed(2)}` : "adaugă rezultatele de la variante"}</small></span>
-            ${icon("chevron")}
-        </button>`;
+    return { n: daysBetween(today, first[0]), label: kind === "en" ? "Zile până la EN" : "Zile până la Bac", avg: r?.avg || 0 };
 }
 
 /* ---------- acțiuni ---------- */
@@ -460,7 +454,7 @@ Object.assign(ACTIONS, {
 });
 ["exam-step", "exam-sim-reset"].forEach(a => GUEST_OK.add(a));
 
-registerTab("tab-examene", { render: renderExams, title: "Examene", icon: "graduation", group: "grades" });
+registerTab("tab-examene", { render: renderExams, title: "Examene", icon: "graduation", group: "grades", parent: "tab-catalog" });
 
 PAL_LINES["tab-examene"] = () => {
     const kind = examKind();

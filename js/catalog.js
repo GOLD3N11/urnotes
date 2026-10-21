@@ -223,8 +223,6 @@ function renderCatalog() {
 }
 
 function renderCatalogSummary(entries) {
-    const priority = entries.filter(e => e.sub.priority).length;
-    const excluded = entries.filter(e => e.sub.excludeFromGPA).length;
     const missing = entries.reduce((n, e) => n + e.d.requiredNotes, 0);
     const method = (state.settings.calc.method === "weighted" ? "ponderată după ore" : "ca în catalog")
         + (state.purtare.excludeFromGPA ? "" : " · cu purtarea");
@@ -236,11 +234,12 @@ function renderCatalogSummary(entries) {
         </div>`;
 
     $("cat-summary").innerHTML = [
-        tile("Media generală", metrics.globalAvg > 0 ? metrics.globalAvg.toFixed(2) : "-", escapeHTML(method), "is-accent"),
-        tile("Materii", entries.length, escapeHTML([priority && `${priority} prioritare`, excluded && `${excluded} excluse`].filter(Boolean).join(" · ") || "toate în medie")),
-        tile("Note", metrics.totalGrades, missing > 0 ? `încă ${plural(missing, "notă necesară", "note necesare")}` : "✓ minimul atins peste tot"),
-        tile("În risc", metrics.riskCount, `sub ${state.settings.calc.riskThreshold.toFixed(2)}`, metrics.riskCount > 0 ? "is-danger" : "")
+        tile("Media generală", metrics.globalAvg > 0 ? metrics.globalAvg.toFixed(2) : "–", escapeHTML(method), "is-accent"),
+        tile("Note", metrics.totalGrades, missing > 0 ? `încă ${plural(missing, "notă necesară", "note necesare")}` : "minimul e atins peste tot"),
+        tile("La risc", metrics.riskCount, metrics.riskCount ? `sub ${state.settings.calc.riskThreshold.toFixed(2)}` : "nicio materie", metrics.riskCount > 0 ? "is-danger" : "is-ok")
     ].join("");
+    const sub = $("note-exam-sub");
+    if (sub) sub.textContent = examKind() === "en" ? "Evaluarea Națională" : "Bacalaureatul";
 }
 
 function renderCatalogFilters(entries) {
@@ -274,29 +273,37 @@ function renderCatalogList() {
         return;
     }
 
+    // Fiecare materie e o placă colorată: inițialele, numele, câte note are, media și cât de aproape e de țintă.
     const rowHTML = ({ mat, sub, d }) => {
         const selected = mat === ui.catalog.selected;
         const hasGrades = sub.grades.length > 0;
+        const risk = d.statusClass === "badge-danger";
         const meta = [
             plural(sub.grades.length, "notă", "note"),
-            `${fmtNumber(sub.ore)} ${sub.ore === 1 ? "oră" : "ore"}`,
+            d.requiredNotes > 0 ? `încă ${d.requiredNotes}` : "",
             `ținta ${fmtTarget(sub.target)}`
-        ].join(" · ");
+        ].filter(Boolean).join(" · ");
+        const pct = hasGrades ? Math.min(100, d.exactAvg / Math.max(1, sub.target) * 100) : 0;
         return `
-            <button type="button" class="cat-row ${selected ? "selected" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
-                ${selected ? 'aria-current="true"' : ""}>
-                <span class="cat-dot ${statusTone(d)}" aria-hidden="true"></span>
+            <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
+                style="${subjectStyle(mat)}" ${selected ? 'aria-current="true"' : ""}>
+                <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span>
                 <span class="cat-row-main">
                     <span class="cat-row-name">${sub.priority ? '<span class="cat-star" aria-label="prioritară">★</span>' : ""}${escapeHTML(mat)}</span>
-                    <span class="cat-row-meta">${escapeHTML(meta)}${sub.excludeFromGPA ? ' · <span class="cat-tag">exclusă</span>' : ""}${inProgramme(mat) ? "" : ' · <span class="cat-tag is-warn">în afara programei</span>'}</span>
+                    <span class="cat-row-meta">${escapeHTML(meta)}${sub.excludeFromGPA ? ' · <span class="cat-tag">nu intră în medie</span>' : ""}${inProgramme(mat) ? "" : ' · <span class="cat-tag is-warn">în afara programei</span>'}</span>
+                    <span class="subj-bar" aria-hidden="true"><i style="width:${pct.toFixed(0)}%"></i></span>
                 </span>
                 <span class="cat-row-avg">
                     <b>${hasGrades ? d.exactAvg.toFixed(2) : "–"}</b>
-                    <small>${hasGrades ? `→ ${d.roundedAvg}` : escapeHTML(d.status)}</small>
+                    <small>${risk ? `${icon("alert")} risc` : hasGrades ? `→ ${d.roundedAvg}` : "fără note"}</small>
                 </span>
+                <span class="cat-dot ${statusTone(d)}" aria-hidden="true"></span>
             </button>`;
     };
     const searching = Boolean(ui.catalog.query.trim());
+    // Materie nouă: doar dacă mai e ceva de adăugat (din programă) sau n-ai ales programa
+    const addTile = !searching && (!myProgramme() || missingProgrammeRows().length)
+        ? `<button type="button" class="cat-add-tile" data-action="add-subject">${icon("plus")} Materie nouă</button>` : "";
     list.innerHTML = pinned + catalogGroups().map(g => {
         if (!g.label) return g.entries.map(rowHTML).join("");
         const open = searching || !ui.catalog.collapsed[g.key] || g.entries.some(e => e.mat === ui.catalog.selected && !ui.catalog.autoPicked);
@@ -308,7 +315,7 @@ function renderCatalogList() {
                 </button>
                 ${open ? g.entries.map(rowHTML).join("") : ""}
             </div>`;
-    }).join("");
+    }).join("") + addTile;
 }
 
 function renderCatalogDetail() {

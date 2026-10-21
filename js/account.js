@@ -361,7 +361,6 @@ function openAuth(mode = "signin") {
     closeActionModal();
     closeQuickAdd({ restoreFocus: false });
     closeMoreMenu({ restoreFocus: false });
-    closeCmdk({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     Object.assign(authUI, { mode, busy: false, error: "", info: "", returnFocus: authUI.returnFocus || document.activeElement });
     $("auth").hidden = false;

@@ -19,7 +19,6 @@ function init() {
     }
 
     refresh();
-    applyCursorSetting();
     bindSetupEvents();
     bindAuthEvents();
     bindCatMenu();

@@ -175,6 +175,32 @@ const countyPreset = (county, start = currentSchoolYear()) => COUNTY_WEEK[county
 const COUNTIES = Object.keys(COUNTY_WEEK).sort((a, b) => a.localeCompare(b, "ro"));
 const countyOptions = selected => `<option value="">Alege județul…</option>${COUNTIES.map(c => `<option value="${escapeHTML(c)}" ${c === selected ? "selected" : ""}>${escapeHTML(c)}</option>`).join("")}`;
 
+/* Culoarea fiecărei materii (plăcile din Note, evenimentele din calendar, planul). Cele mai obișnuite au culoarea lor;
+   restul primesc una stabilă, după nume. */
+const SUBJECT_COLORS = ["tomato", "tangerine", "sun", "lime", "mint", "teal", "sky", "blue", "grape", "pink"];
+const SUBJECT_COLOR_FIXED = {
+    "Limba și literatura română": "tomato", "Matematică": "blue", "Limba engleză": "sky", "Fizică": "grape", "Chimie": "teal",
+    "Biologie": "lime", "Istorie": "tangerine", "Geografie": "mint", "Informatică": "pink", "TIC": "pink",
+    "Educație fizică și sport": "sun", "Educație fizică": "sun", "Religie": "sun", "Limba franceză": "sky", "Limba germană": "sky",
+    "Logică, argumentare și comunicare": "grape", "Psihologie": "pink", "Economie": "mint", "Filosofie": "grape", "Dirigenție": "teal"
+};
+function subjectColor(mat = "") {
+    if (SUBJECT_COLOR_FIXED[mat]) return SUBJECT_COLOR_FIXED[mat];
+    let h = 0;
+    for (const ch of String(mat)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+    return SUBJECT_COLORS[h % SUBJECT_COLORS.length];
+}
+/** Pe culorile deschise scriem cu cerneală închisă, pe cele închise cu alb (contrast bun pe ambele). */
+const LIGHT_SUBJECT_COLORS = new Set(["sun", "lime", "mint", "sky", "teal", "tangerine", "tomato", "pink"]);
+const subjectStyle = mat => {
+    const c = subjectColor(mat);
+    // pe albastru și mov scriem cu alb, pe o nuanță puțin mai închisă (contrast de cel puțin 4.5:1)
+    return LIGHT_SUBJECT_COLORS.has(c) ? `--subj: var(--c-${c}); --subj-ink: #16122A`
+        : `--subj: var(--c-${c}); --subj-ink: #FFFFFF; --subj-chip: color-mix(in srgb, var(--c-${c}) 80%, #16122A)`;
+};
+/** Inițialele de pe placa materiei (ex. „Română” → „Ro”, „Limba engleză” → „En”). */
+const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L}\p{N} ]/gu, "").trim(); const w = s.split(/\s+/); return (w.length > 1 && w[1] ? w[0][0] + w[1][0] : s.slice(0, 2)).replace(/^./, c => c.toUpperCase()); };
+
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 
 const DEFAULT_SETTINGS = {
@@ -183,7 +209,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00" },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "violet", density: "normal", cursor: "off" },
+    appearance: { theme: "system", accent: "violet" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată

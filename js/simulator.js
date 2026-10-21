@@ -666,4 +666,4 @@ function bindSimulatorEvents() {
     });
 }
 
-registerTab("tab-simulator", { render: renderSimulator, title: "Simulator", icon: "target", group: "grades" });
+registerTab("tab-simulator", { render: renderSimulator, title: "Ce-ar fi dacă", icon: "target", group: "grades", parent: "tab-catalog" });

@@ -171,7 +171,7 @@ function initBuddyLook() {
  * râde, se miră, „au!”, se supără (cu abur), amețește, apoi face pace (cu inimioare).
  */
 const BUDDY_POKES = ["giggle", "giggle", "surprised", "ouch", "angry", "angry", "dizzy", "love"];
-const buddyPoke = { n: 0, last: 0, timer: 0, rest: null, taps: [] };
+const buddyPoke = { n: 0, last: 0, timer: 0, rest: null };
 
 function pokeBuddy(btn, event) {
     const box = btn.closest(".azi-buddy");
@@ -180,12 +180,6 @@ function pokeBuddy(btn, event) {
     buddyPoke.n = now - buddyPoke.last < 4000 ? (buddyPoke.n % BUDDY_POKES.length) + 1 : 1;
     buddyPoke.last = now;
     btn.innerHTML = buddySVG(BUDDY_POKES[buddyPoke.n - 1]);
-    // L-ai „bătut” de 8 ori în 3 secunde? Te provoacă la un joc.
-    buddyPoke.taps = [...buddyPoke.taps.filter(t => now - t < 3000), now];
-    if (buddyPoke.taps.length >= 8) {
-        buddyPoke.taps = [];
-        setTimeout(openBuddyGame, 350);
-    }
 
     // Apăsat ca un buton: se turtește pe loc, apoi revine (nu fuge în nicio direcție).
     btn.classList.remove("is-hit", "is-calm");
@@ -202,87 +196,6 @@ function pokeBuddy(btn, event) {
             btn.innerHTML = buddySVG(buddyPoke.rest.mood);
         }
     }, 5000);
-}
-
-/* ---------- minijocul: „Prinde-l pe Tiți!” ---------- */
-/* Apare dacă îl „bați” des pe post-it. Iese dintr-una din cele 9 căsuțe; îl atingi cât de des poți în 20 de secunde.
-   Nu schimbă nimic în note (merge și pentru vizitatori); doar recordul se ține minte pe dispozitiv. */
-const GAME_BEST_KEY = "pro_buddy_game_best_v4";
-const game = { score: 0, end: 0, timer: 0, pop: 0, cell: -1, running: false };
-const gameBest = () => { try { return Number(localStorage.getItem(GAME_BEST_KEY)) || 0; } catch (_) { return 0; } };
-
-function openBuddyGame() {
-    if (!$("action-modal").hidden) return;
-    openModal({
-        title: `Prinde-l pe ${buddyName()}!`,
-        confirmText: "",
-        cancelText: "Închide",
-        guestOk: true,
-        body: `
-            <div class="bgame" id="bgame">
-                <p class="bgame-intro" id="bgame-msg">Te-ai plictisit, nu? 😄 Atinge-l pe ${escapeHTML(buddyName())} de câte ori poți în 20 de secunde, când iese dintr-o căsuță.</p>
-                <div class="bgame-bar"><span>Puncte: <b id="bgame-score">0</b></span><span>Timp: <b id="bgame-time">20</b>s</span><span>Record: <b id="bgame-best">${gameBest()}</b></span></div>
-                <div class="bgame-grid" id="bgame-grid">
-                    ${Array.from({ length: 9 }, (_, i) => `<button type="button" class="bgame-hole" data-action="bgame-hit" data-i="${i}" aria-label="Căsuța ${i + 1}" disabled><span class="bgame-buddy">${buddySVG("giggle")}</span></button>`).join("")}
-                </div>
-                <button type="button" class="btn btn-primary bgame-start" data-action="bgame-start" id="bgame-start">${icon("sparkles")} Start</button>
-            </div>`
-    });
-}
-
-function startBuddyGame() {
-    if (!$("bgame")) return;
-    clearInterval(game.timer); clearTimeout(game.pop);
-    Object.assign(game, { score: 0, end: Date.now() + 20000, running: true, cell: -1 });
-    $("bgame-score").textContent = "0";
-    $("bgame-start").hidden = true;
-    $("bgame-msg").textContent = "Hai! Atinge-l repede!";
-    document.querySelectorAll(".bgame-hole").forEach(h => { h.disabled = false; });
-    game.timer = setInterval(() => {
-        if (!$("bgame")) return stopBuddyGame(false);
-        const left = Math.max(0, Math.ceil((game.end - Date.now()) / 1000));
-        $("bgame-time").textContent = left;
-        if (left <= 0) stopBuddyGame(true);
-    }, 200);
-    popBuddy();
-}
-
-/** Iese în altă căsuță; cu cât ai mai multe puncte, cu atât stă mai puțin. */
-function popBuddy() {
-    if (!game.running || !$("bgame")) return;
-    const holes = [...document.querySelectorAll(".bgame-hole")];
-    holes.forEach(h => h.classList.remove("is-up", "is-hit"));
-    let next;
-    do { next = Math.floor(Math.random() * 9); } while (next === game.cell);
-    game.cell = next;
-    holes[next].classList.add("is-up");
-    game.pop = setTimeout(popBuddy, Math.max(450, 1000 - game.score * 25));
-}
-
-function hitBuddy(el) {
-    if (!game.running || Number(el.dataset.i) !== game.cell || el.classList.contains("is-hit")) return;
-    game.score++;
-    $("bgame-score").textContent = game.score;
-    el.classList.add("is-hit");
-    el.querySelector(".bgame-buddy").innerHTML = buddySVG(BUDDY_POKES[Math.floor(Math.random() * BUDDY_POKES.length)]);
-    clearTimeout(game.pop);
-    game.pop = setTimeout(popBuddy, 220);
-}
-
-function stopBuddyGame(finished) {
-    clearInterval(game.timer); clearTimeout(game.pop);
-    game.running = false;
-    if (!finished || !$("bgame")) return;
-    const best = gameBest();
-    const record = game.score > best;
-    if (record) { try { localStorage.setItem(GAME_BEST_KEY, String(game.score)); } catch (_) { /* fără stocare */ } }
-    document.querySelectorAll(".bgame-hole").forEach(h => { h.disabled = true; h.classList.remove("is-up"); });
-    $("bgame-best").textContent = Math.max(best, game.score);
-    $("bgame-msg").textContent = record ? `🏆 Record nou: ${game.score}! ${buddyName()} e amețit.` : game.score >= 15 ? `${game.score} puncte, super rapid!` : `${game.score} puncte. Mai încerci?`;
-    const start = $("bgame-start");
-    start.hidden = false;
-    start.innerHTML = `${icon("refresh")} Încă o dată`;
-    start.focus();
 }
 
 /** Ce simte și ce îi spune mascota elevului azi. */
@@ -385,17 +298,44 @@ function renderDashboard() {
     $("azi-day").innerHTML = homeDayHTML(days, links);
     $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today);
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
-    if ($("azi-exam")) { const eh = homeExamHTML(); $("azi-exam").innerHTML = eh; $("azi-exam").hidden = !eh; }
     if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
     if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
-    $("azi-avg").innerHTML = homeAverageHTML();
-    if (metrics.globalAvg > 0) countUp($("azi-avg").querySelector(".azi-avg-val"), "gpa", metrics.globalAvg);
-    const watch = homeWatchHTML();
-    $("azi-watch").innerHTML = watch;
-    $("azi-watch").hidden = !watch;
-    $("azi-recent").innerHTML = homeRecentHTML();
-    $("azi-more").innerHTML = homeMoreHTML();
+    if ($("azi-tiles")) {
+        $("azi-tiles").innerHTML = homeTilesHTML(days, todo);
+        if (metrics.globalAvg > 0) countUp($("azi-tiles").querySelector(".home-tile.is-hero .home-tile-value"), "gpa", metrics.globalAvg);
+    }
+}
+
+/** Cele patru cifre ale zilei, ca plăci colorate: media, testele din săptămână, planul de azi, examenul (sau riscul). */
+function homeTilesHTML(days, todo) {
+    const gpa = metrics.globalAvg;
+    const change = generalChange(averageTimeline());
+    const prev = lastArchived();
+    const tests7 = todo.tests.filter(o => daysBetween(days.today, o.date) <= 6);
+    const next = todo.tests[0];
+    const items = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === days.today) : null;
+    const exam = homeExamInfo();
+    const tile = ({ color, tab, label, value, caption, hero = false, tone = "" }) => `
+        <button type="button" class="home-tile ${hero ? "is-hero" : ""} ${tone}" style="--tile: var(--c-${color})" data-action="nav" data-tab="${tab}">
+            <span class="home-tile-label">${escapeHTML(label)}</span>
+            <b class="home-tile-value">${value}</b>
+            <small>${caption}</small>
+        </button>`;
+    const delta = change && Math.abs(change.delta) >= TREND_STABLE
+        ? `<span class="${change.delta > 0 ? "is-up" : "is-down"}">${change.delta > 0 ? "▲" : "▼"} ${Math.abs(change.delta).toFixed(2)}</span> ${escapeHTML(change.label)}`
+        : prev?.gpa ? `anul trecut ${prev.gpa.toFixed(2)}` : gpa > 0 ? "ca în catalog" : "încă nu ai note";
+    return [
+        tile({ color: "accent", tab: "tab-catalog", label: "Media generală", value: gpa > 0 ? gpa.toFixed(2) : "–", caption: delta, hero: true }),
+        tile({ color: tests7.length ? "sun" : "mint", tab: "tab-calendar", label: "Teste în 7 zile", value: tests7.length,
+            caption: next ? escapeHTML(`${next.ev.subject ? shortSubjectName(next.ev.subject) : next.ev.title}, ${relativeDay(next.date)}`) : "nimic programat" }),
+        tile({ color: "grape", tab: "tab-plan", label: "Planul de azi", value: items ? (items.length ? `${items.filter(i => i.done).length}/${items.length}` : "liber") : "–",
+            caption: items ? (items.length ? `${items.reduce((n, i) => n + i.min, 0)} min de învățat` : "nimic de învățat azi") : "fă-ți un plan" }),
+        exam
+            ? tile({ color: "tangerine", tab: "tab-examene", label: exam.label, value: exam.n, caption: exam.avg ? `media estimată ${exam.avg.toFixed(2)}` : "adaugă variante" })
+            : tile({ color: metrics.riskCount ? "tomato" : "mint", tab: "tab-catalog", label: "Materii la risc", value: metrics.riskCount,
+                caption: metrics.riskCount ? `sub ${state.settings.calc.riskThreshold.toFixed(2)}` : "toate în siguranță" })
+    ].join("");
 }
 
 /** Una-două propoziții cu ce contează: orele zilei afișate, următoarea evaluare, ce așteaptă nota. */
@@ -675,146 +615,11 @@ function homeTodoHTML({ missed, homework, tests }, links, today) {
     return head + groups.join("");
 }
 
-/* ---------- media ---------- */
-function homeSparkSVG(timeline) {
-    if (timeline.length < 2) return "";
-    const W = 132, H = 44, P = 4;
-    const vals = timeline.map(p => p.avg);
-    let lo = Math.min(...vals), hi = Math.max(...vals);
-    if (hi - lo < 0.5) { const mid = (hi + lo) / 2; lo = mid - 0.25; hi = mid + 0.25; }
-    const x = i => P + (i * (W - 2 * P)) / (vals.length - 1);
-    const y = v => P + ((hi - v) * (H - 2 * P)) / (hi - lo);
-    const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-    const last = pts.at(-1).split(",");
-    return `
-        <svg class="azi-spark" viewBox="0 0 ${W} ${H}" role="img"
-            aria-label="${escapeHTML(`Media generală de la ${vals[0].toFixed(2)} la ${vals.at(-1).toFixed(2)}, din ${shortDayLabel(timeline[0].date)}`)}">
-            <polyline points="${pts.join(" ")}"/>
-            <circle cx="${last[0]}" cy="${last[1]}" r="3"/>
-        </svg>`;
-}
 
-function homeAverageHTML() {
-    const gpa = metrics.globalAvg;
-    const timeline = averageTimeline();
-    const change = generalChange(timeline);
-    const goal = getGoalProgress();
-    const pct = Math.min(100, Math.max(0, goal.percent));
-    const p = metrics.purtare || purtareInfo();
-    let delta = `<span class="azi-delta">${gpa > 0 ? "Tendința apare de la notele din zile diferite." : "Încă nu ai note."}</span>`;
-    if (change) {
-        const dir = change.delta >= TREND_STABLE ? "up" : change.delta <= -TREND_STABLE ? "down" : "flat";
-        const text = dir === "flat" ? "stabilă" : `${change.delta > 0 ? "+" : "−"}${Math.abs(change.delta).toFixed(2)}`;
-        delta = `<span class="azi-delta is-${dir}">${icon(dir === "down" ? "trend-down" : "trend-up")} ${text} <small>${escapeHTML(change.label)}</small></span>`;
-    }
 
-    return `
-        <div class="azi-avg-top">
-            <div class="azi-avg-main">
-                <span class="azi-label">Media generală ${helpDot("gpa")}</span>
-                <b class="azi-avg-val">${gpa > 0 ? gpa.toFixed(2) : "–"}</b>
-                ${delta}
-            </div>
-            ${homeSparkSVG(timeline)}
-        </div>
-        <div class="azi-goal">
-            <div class="azi-goal-row"><span>${escapeHTML(goal.label)}</span><b>${escapeHTML(goal.value)}</b></div>
-            <div class="azi-meter" role="progressbar" aria-label="${escapeHTML(goal.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct.toFixed(0)}"><i style="width:${pct.toFixed(1)}%"></i></div>
-        </div>
-        <ul class="azi-facts">
-            <li><button type="button" data-action="home-risk" ${metrics.riskCount ? "" : "disabled"}><b class="${metrics.riskCount ? "is-risk" : ""}">${metrics.riskCount}</b><span>${metrics.riskCount === 1 ? "materie la risc" : "materii la risc"}</span></button></li>
-            <li><button type="button" data-action="nav" data-tab="tab-statistici"><b>${metrics.tensCount}</b><span>${metrics.tensCount === 1 ? "notă de 10" : "note de 10"}</span></button></li>
-            <li><button type="button" data-action="open-subject" data-mat="${escapeHTML(PURTARE_KEY)}"><b>${p.value}</b><span>purtare</span></button></li>
-        </ul>
-        ${lastYearLine()}`;
-}
 
-function getGoalProgress() {
-    const { goals, targets } = state.settings;
-    if (goals.primary === "tens") {
-        return { label: "Note de 10", value: `${metrics.tensCount} din ${targets.tens}`, percent: targets.tens > 0 ? (metrics.tensCount / targets.tens) * 100 : 0 };
-    }
-    if (goals.primary === "evals") {
-        return { label: "Evaluări", value: `${metrics.totalGrades} din ${targets.evals}`, percent: targets.evals > 0 ? (metrics.totalGrades / targets.evals) * 100 : 0 };
-    }
-    const gpa = metrics.globalAvg;
-    const percent = gpa > 0 ? (gpa / goals.targetGPA) * 100 : 0;
-    return { label: `Spre ținta ${goals.targetGPA.toFixed(2)}`, value: `${Math.min(100, percent).toFixed(0)}%`, percent };
-}
 
-/* ---------- de urmărit ---------- */
-function homeWatchHTML() {
-    const risk = state.settings.calc.riskThreshold;
-    const rows = [];
-    statsEntries().forEach(e => {
-        if (e.standing.key === "risk") {
-            rows.push({ e, rank: 0, plan: planForCondition(e.mat, d => d.exactAvg >= risk), goal: `ieși din risc (${risk.toFixed(2)})` });
-        } else if (e.standing.key === "below" && e.sub.priority) {
-            rows.push({ e, rank: 1, plan: planForCondition(e.mat, d => reachesTarget(d, e.sub.target)), goal: `ajungi la ${fmtTarget(e.sub.target)}` });
-        }
-    });
-    const empty = Object.entries(state.subjects).filter(([, sub]) => !sub.grades.length).map(([mat]) => mat);
-    if (!rows.length && !empty.length) return "";
-    rows.sort((a, b) => a.rank - b.rank || a.e.d.rawAvg - b.e.d.rawAvg);
 
-    return `
-        ${homeCardHead("azi-watch-title", "alert", "De urmărit")}
-        ${rows.length ? `<ul class="azi-watch-list">${rows.slice(0, 4).map(({ e, plan, goal }) => {
-            const pill = planPill(plan);
-            return `
-            <li><button type="button" class="azi-watch-row" data-action="open-subject" data-mat="${escapeHTML(e.mat)}">
-                <span class="azi-watch-main">
-                    <b>${escapeHTML(e.mat)}</b>
-                    <small>Ca să ${escapeHTML(goal)}: ${plan.next > 1
-                        ? `<span class="azi-need is-${pill.tone}">${escapeHTML(pill.text)}</span> la următoarea notă`
-                        : plan.next === 1 ? `<span class="azi-need is-ok">orice notă</span> e suficientă`
-                        : `ai nevoie de <span class="azi-need is-${pill.tone}">${escapeHTML(pill.text)}</span>`}</small>
-                </span>
-                <span class="azi-lesson-avg tone-${gradeTone(e.d.exactAvg)}">${e.d.exactAvg.toFixed(2)}</span>
-            </button></li>`;
-        }).join("")}</ul>` : ""}
-        ${empty.length ? `<p class="azi-more-line">${icon("note")} Fără note încă: ${empty.slice(0, 4).map(m => `<button type="button" class="azi-inline-link" data-action="add-grade" data-mat="${escapeHTML(m)}">${escapeHTML(m)}</button>`).join(", ")}${empty.length > 4 ? ` și încă ${empty.length - 4}` : ""}</p>` : ""}`;
-}
-
-/* ---------- ultimele note ---------- */
-function homeRecentHTML() {
-    const all = [];
-    for (const [mat, sub] of Object.entries(state.subjects)) {
-        sub.grades.forEach((g, idx) => all.push({ mat, idx, g }));
-    }
-    const head = homeCardHead("azi-recent-title", "note", "Ultimele note");
-    if (!all.length) {
-        return `${head}
-            <p class="azi-empty">Aici apar notele pe măsură ce le adaugi.</p>
-            <button type="button" class="btn btn-primary btn-sm" data-action="add-grade">${icon("plus")} Adaugă prima notă</button>`;
-    }
-    all.sort((a, b) => (b.g.date || "").localeCompare(a.g.date || "") || b.idx - a.idx);
-    return `${head}
-        <ul class="azi-grades">${all.slice(0, 5).map(({ mat, idx, g }) => `
-            <li><button type="button" class="azi-grade-row" data-action="edit-grade" data-mat="${escapeHTML(mat)}" data-index="${idx}" title="Modifică nota">
-                <span class="cat-grade-val tone-${gradeTone(Number(g.val))}">${escapeHTML(g.val)}</span>
-                <span class="azi-grade-info"><b>${escapeHTML(mat)}</b><small>${escapeHTML([g.type || "Altele", g.date ? relativeDayLabel(g.date) : ""].filter(Boolean).join(" · "))}</small></span>
-            </button></li>`).join("")}</ul>
-        <div class="azi-card-foot"><button type="button" class="btn btn-text" data-action="nav" data-tab="tab-catalog">${icon("notebook")} Toate notele în Catalog</button></div>`;
-}
-
-/* ---------- realizări + jurnal ---------- */
-function homeMoreHTML() {
-    const unlocked = ACHIEVEMENTS.filter(a => state.achievements[a.key]).length;
-    return `
-        ${homeCardHead("azi-more-title", "trophy", "Realizări", `<span class="cat-count">${unlocked} din ${ACHIEVEMENTS.length}</span>`)}
-        <div class="badges-container">${ACHIEVEMENTS.map(a => {
-            const on = state.achievements[a.key];
-            return `<span class="badge-pill ${on ? "unlocked" : ""}" title="${on ? "Obținută" : "Încă blocată"}">${icon(on ? a.icon : "lock")} ${escapeHTML(a.label)}</span>`;
-        }).join("")}</div>
-        <details class="azi-log">
-            <summary>${icon("clock")} Ce s-a schimbat recent</summary>
-            ${state.activity.length
-                ? `<ul class="activity-list">${state.activity.slice(0, 8).map(act => `
-                    <li class="activity-item"><span>${escapeHTML(act.text)}</span><span>${escapeHTML(formatActivityTime(act))}</span></li>`).join("")}</ul>`
-                : emptyNote("Nicio activitate recentă.")}
-        </details>`;
-}
 
 function formatActivityTime(act) {
     if (!act.ts) return act.time || "";
@@ -825,4 +630,4 @@ function formatActivityTime(act) {
         : `${date.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" })} ${act.time}`;
 }
 
-registerTab("tab-dashboard", { render: renderDashboard, title: "Azi", icon: "home", group: "day" });
+registerTab("tab-dashboard", { render: renderDashboard, title: "Azi", icon: "home", group: "home" });

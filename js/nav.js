@@ -30,12 +30,11 @@ function switchTab(tabId) {
 
     document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
     $("more-btn")?.classList.toggle("is-active", tabId === "tab-setari");
-    // „Note” (bara de jos) ține minte ultima pagină din grupul ei: Catalog, Statistici sau Simulator
+    $("more-btn")?.classList.toggle("active", tabId === "tab-setari"); // pastila din bara de jos stă pe „Eu”
+    // Trei pagini principale (Azi, Note, Calendar); celelalte sunt sub-pagini ale lor și le aprind butonul
     const group = TABS[tabId]?.group;
-    if (group === "grades") ui.gradesTab = tabId;
-    document.querySelectorAll("[data-action='nav'][data-group]").forEach(btn => {
-        if (btn.dataset.group === "grades") btn.dataset.tab = ui.gradesTab || "tab-catalog";
-    });
+    document.body.dataset.page = tabId;
+    document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));
     document.querySelectorAll("[data-action='nav']").forEach(btn => {
         const active = btn.dataset.group ? btn.dataset.group === group : btn.dataset.tab === tabId;
         const isNav = btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn") || btn.classList.contains("subnav-btn");
@@ -118,159 +117,7 @@ function countUp(el, key, to, decimals = 2) {
     requestAnimationFrame(step);
 }
 
-/* ==================== CĂUTARE ȘI COMENZI (Ctrl/⌘ K) ==================== */
-/*
- * O singură casetă pentru tot: găsește materii, note și evenimente și rulează acțiuni
- * („Adaugă notă”, „Deschide Statistici”, „Exportă backup”…). Înlocuiește căutarea din antet.
- */
-const CMDK_ACTIONS = [
-    { label: "Configurare rapidă", hint: "profil, materii, ținte", icon: "sparkles", words: "configurare asistent profil setup start inceput materii plan cadru", run: () => openSetup(0) },
-    { label: "Adaugă notă", hint: "o notă primită", icon: "note", keys: "N", words: "nota noua adauga", run: () => openAddGradeModal() },
-    { label: "Adaugă test sau lucrare", hint: "în calendar", icon: "calendar-check", keys: "T", words: "test lucrare examen teza evaluare", run: () => openEventModal({ type: "Test" }) },
-    { label: "Adaugă temă", hint: "în calendar", icon: "book", keys: "H", words: "tema homework", run: () => openEventModal({ type: "Temă" }) },
-    { label: "Adaugă eveniment", hint: "proiect, prezentare, personal", icon: "calendar", keys: "E", words: "eveniment proiect prezentare", run: () => openEventModal({ type: "Proiect" }) },
-    { label: "Adaugă materie", hint: "în catalog", icon: "plus", keys: "M", words: "materie noua", run: () => promptAddMaterie() },
-    { label: "Mergi la Azi", icon: "home", words: "acasa dashboard azi start ore", run: () => switchTab("tab-dashboard") },
-    { label: "Mergi la Catalog", icon: "notebook", words: "catalog materii note", run: () => switchTab("tab-catalog") },
-    { label: "Mergi la Calendar", icon: "calendar", words: "calendar saptamana orar", run: () => switchTab("tab-calendar") },
-    { label: "Mergi la Statistici", icon: "chart", words: "statistici analiza grafice", run: () => switchTab("tab-statistici") },
-    { label: "Deschide Simulatorul", icon: "target", words: "simulator ipotetic scenariu ce-ar fi daca", run: () => switchTab("tab-simulator") },
-    { label: "Notificări", icon: "bell", words: "notificari alerte", run: () => openNotifPanel() },
-    { label: "Orarul săptămânal", icon: "calendar-days", words: "orar ore program", run: () => openTimetableModal() },
-    { label: "Raport pentru printare", icon: "printer", words: "raport print pdf", run: () => openReportPanel() },
-    { label: "Exportă backup", icon: "download", words: "backup export salvare fisier", run: () => exportBackup() },
-    { label: "Schimbă tema (luminoasă / întunecată)", icon: "moon", words: "tema intunecat luminos dark light", run: () => toggleTheme() },
-    { label: "Setări", icon: "settings", words: "setari preferinte", run: () => switchTab("tab-setari") },
-    { label: "Turul aplicației", icon: "sparkles", words: "tur ghid tutorial ajutor cum merge", run: () => startTour() },
-    { label: "Planul meu", icon: "calendar-check", words: "plan studiu invatat program sesiuni", run: () => switchTab("tab-plan") },
-    { label: "Adaugă o sesiune în plan", icon: "plus", words: "plan sesiune studiu adauga", run: () => { switchTab("tab-plan"); if (state.plan.prefs.setup) openPlanAdd(); } }
-];
-
-const cmdk = { items: [], active: 0, returnFocus: null };
-
-/** Materii, note, evenimente și purtarea care se potrivesc cu textul căutat. */
-function searchData(query) {
-    const q = foldText(String(query || "").trim());
-    if (!q) return [];
-    const results = [];
-    if ("purtare".includes(q)) {
-        const p = metrics.purtare || purtareInfo();
-        results.push({ kind: "Purtare", label: "Purtare", meta: p.current ? `Modulul ${p.current.n}: ${p.value}` : String(p.value), icon: "medal", mat: PURTARE_KEY });
-    }
-    for (const [mat, sub] of Object.entries(state.subjects)) {
-        if (foldText(mat).includes(q)) {
-            const avg = metrics.subjects[mat]?.exactAvg;
-            results.push({ kind: "Materie", label: mat, meta: avg > 0 ? `media ${avg.toFixed(2)}` : "fără note", icon: "notebook", mat });
-        }
-        sub.grades.forEach(g => {
-            if (foldText(`${mat} ${g.val} ${g.type}`).includes(q)) {
-                results.push({ kind: "Notă", label: `${mat}: ${g.val}`, meta: `${g.type || "Altele"}${g.date ? `, ${shortDayLabel(g.date)}` : ""}`, icon: "note", mat });
-            }
-        });
-    }
-    const today = getLocalDateKey();
-    for (const [date, events] of Object.entries(state.calendar)) {
-        events.forEach(ev => {
-            if (foldText(`${ev.title} ${ev.type} ${ev.subject || ""} ${ev.description || ""}`).includes(q)) {
-                const when = ev.repeat ? (seriesDates(ev, date, today, addDays(today, 400))[0] || date) : date;
-                results.push({ kind: "Calendar", label: ev.title, meta: `${ev.type}, ${weekdayLabel(when)}${ev.repeat ? " (se repetă)" : ""}`, icon: EVENT_TYPE_ICON[ev.type] || "calendar", date: when });
-            }
-        });
-    }
-    return results.slice(0, 12);
-}
-
-function openCmdk(initial = "") {
-    const box = $("cmdk");
-    if (!box) return;
-    closeQuickAdd({ restoreFocus: false });
-    if (box.hidden) cmdk.returnFocus = document.activeElement;
-    box.hidden = false;
-    document.body.classList.add("modal-open");
-    const input = $("cmdk-input");
-    input.value = initial;
-    renderCmdk();
-    input.focus();
-}
-
-function closeCmdk({ restoreFocus = true } = {}) {
-    const box = $("cmdk");
-    if (!box || box.hidden) return;
-    box.hidden = true;
-    if ($("action-modal").hidden && $("notif-panel").hidden) document.body.classList.remove("modal-open");
-    if (restoreFocus && cmdk.returnFocus && document.contains(cmdk.returnFocus)) cmdk.returnFocus.focus();
-}
-
-function renderCmdk() {
-    const raw = $("cmdk-input").value;
-    const q = foldText(raw.trim());
-    const actions = CMDK_ACTIONS
-        .map(a => {
-            const hay = foldText(`${a.label} ${a.words || ""}`);
-            const score = !q ? 1 : foldText(a.label).startsWith(q) ? 3 : hay.split(/\s+/).some(w => w.startsWith(q)) ? 2 : hay.includes(q) ? 1 : 0;
-            return { ...a, score };
-        })
-        .filter(a => a.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, q ? 6 : 8);
-    const data = searchData(raw);
-
-    cmdk.items = [
-        ...data.map(r => ({ type: "data", r })),
-        ...actions.map(a => ({ type: "action", a }))
-    ];
-    cmdk.active = 0;
-
-    const row = (it, i) => {
-        const id = `cmdk-opt-${i}`;
-        if (it.type === "data") {
-            const r = it.r;
-            return `<div class="cmdk-item" role="option" id="${id}" data-index="${i}" aria-selected="false">
-                ${icon(r.icon)}<span class="cmdk-main"><b>${escapeHTML(r.label)}</b><small>${escapeHTML(r.meta)}</small></span><span class="cmdk-kind">${escapeHTML(r.kind)}</span></div>`;
-        }
-        const a = it.a;
-        return `<div class="cmdk-item is-action" role="option" id="${id}" data-index="${i}" aria-selected="false">
-            ${icon(a.icon)}<span class="cmdk-main"><b>${escapeHTML(a.label)}</b>${a.hint ? `<small>${escapeHTML(a.hint)}</small>` : ""}</span>${a.keys ? `<kbd>${a.keys}</kbd>` : ""}</div>`;
-    };
-
-    const list = $("cmdk-list");
-    if (cmdk.items.length === 0) {
-        list.innerHTML = `<p class="cmdk-empty">Nimic pentru „${escapeHTML(raw.trim())}”. Încearcă numele unei materii sau o acțiune, de exemplu „notă”.</p>`;
-        return;
-    }
-    const nData = data.length;
-    list.innerHTML = [
-        nData ? `<p class="cmdk-group">Rezultate</p>${cmdk.items.slice(0, nData).map((it, i) => row(it, i)).join("")}` : "",
-        actions.length ? `<p class="cmdk-group">${q ? "Acțiuni" : "Ce vrei să faci?"}</p>${cmdk.items.slice(nData).map((it, i) => row(it, i + nData)).join("")}` : ""
-    ].join("");
-    setCmdkActive(0);
-}
-
-function setCmdkActive(i) {
-    const list = $("cmdk-list");
-    const rows = [...list.querySelectorAll(".cmdk-item")];
-    if (!rows.length) return;
-    cmdk.active = (i + rows.length) % rows.length;
-    rows.forEach((el, k) => {
-        el.classList.toggle("is-active", k === cmdk.active);
-        el.setAttribute("aria-selected", String(k === cmdk.active));
-    });
-    $("cmdk-input").setAttribute("aria-activedescendant", rows[cmdk.active].id);
-    rows[cmdk.active].scrollIntoView({ block: "nearest" });
-}
-
-function runCmdkItem(i) {
-    const it = cmdk.items[i];
-    if (!it) return;
-    closeCmdk({ restoreFocus: false });
-    if (it.type === "action") {
-        it.a.run();
-        return;
-    }
-    if (it.r.date) showDateInCalendar(it.r.date);
-    else openSubjectInCatalog(it.r.mat);
-}
-
+/** Tema întunecată / luminoasă, dintr-o atingere (meniul „Eu”). */
 function toggleTheme() {
     const dark = document.body.classList.contains("dark-mode");
     state.settings.appearance.theme = dark ? "light" : "dark";
@@ -387,7 +234,7 @@ function closeNotifPanel({ restoreFocus = true } = {}) {
     const panel = $("notif-panel");
     if (!panel || panel.hidden) return;
     panel.hidden = true;
-    if ($("action-modal").hidden && $("cmdk").hidden) document.body.classList.remove("modal-open");
+    if ($("action-modal").hidden) document.body.classList.remove("modal-open");
     if (restoreFocus && notifReturn && document.contains(notifReturn)) notifReturn.focus();
 }
 
@@ -410,23 +257,6 @@ function trapFocusIn(container, event) {
 const isTyping = el => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
 
 function bindShellEvents() {
-    const input = $("cmdk-input");
-    input?.addEventListener("input", renderCmdk);
-    input?.addEventListener("keydown", event => {
-        if (event.key === "ArrowDown") { event.preventDefault(); setCmdkActive(cmdk.active + 1); }
-        else if (event.key === "ArrowUp") { event.preventDefault(); setCmdkActive(cmdk.active - 1); }
-        else if (event.key === "Enter") { event.preventDefault(); runCmdkItem(cmdk.active); }
-    });
-    const list = $("cmdk-list");
-    list?.addEventListener("click", event => {
-        const row = event.target.closest(".cmdk-item");
-        if (row) runCmdkItem(Number(row.dataset.index));
-    });
-    list?.addEventListener("mousemove", event => {
-        const row = event.target.closest(".cmdk-item");
-        if (row && Number(row.dataset.index) !== cmdk.active) setCmdkActive(Number(row.dataset.index));
-    });
-
     // Scurtături globale (capturate înaintea celorlalte, ca Escape să închidă întâi panoul de sus)
     document.addEventListener("keydown", event => {
         if (customSelect.open) return; // tastele aparțin listei derulante deschise
@@ -449,21 +279,10 @@ function bindShellEvents() {
             return;
         }
         const modalOpen = !$("action-modal").hidden;
-        if ((event.ctrlKey || event.metaKey) && k.toLowerCase() === "k") {
-            event.preventDefault();
-            if (modalOpen) return; // un formular deschis are prioritate (ar putea avea date nesalvate)
-            if ($("cmdk").hidden) openCmdk(); else closeCmdk();
-            return;
-        }
         // Ctrl/⌘+Z: anulează ultima ștergere (doar cât timp mesajul cu „Anulează” e pe ecran și nu scrii într-un câmp)
         if ((event.ctrlKey || event.metaKey) && !event.shiftKey && k.toLowerCase() === "z" && pendingUndo && !isTyping(event.target)) {
             event.preventDefault();
             pendingUndo.run();
-            return;
-        }
-        if (!$("cmdk").hidden) {
-            if (k === "Escape") { event.preventDefault(); event.stopPropagation(); closeCmdk(); }
-            else trapFocusIn($("cmdk"), event);
             return;
         }
         if (!$("more-menu").hidden) {
@@ -496,8 +315,7 @@ function bindShellEvents() {
             return;
         }
         if (modalOpen || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
-        if (k === "/") { event.preventDefault(); openCmdk(); }
-        else if (k.toLowerCase() === "n") { event.preventDefault(); openQuickAdd($("quick-add-btn")); }
+        if (k.toLowerCase() === "n") { event.preventDefault(); openQuickAdd($("quick-add-btn")); }
     }, true);
 
     // Închide meniul „Adaugă” la redimensionare (poziția lui depinde de buton).

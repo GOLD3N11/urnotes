@@ -145,8 +145,6 @@ function saveSettings({ quiet = false } = {}) {
     s.calc.riskDrop = clampNumber(field("set-risk-drop"), 0.1, 5, 0.5);
     s.appearance.theme = field("set-theme") || "system";
     s.appearance.accent = ACCENTS[field("set-accent")] ? field("set-accent") : "violet";
-    s.appearance.density = field("set-density") || "normal";
-    s.appearance.cursor = CURSOR_MODES.includes(field("set-cursor")) ? field("set-cursor") : "off";
     s.profile.name = cleanName(field("set-name"), 40);
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
@@ -514,10 +512,7 @@ function applyAppearanceSettings() {
     document.body.classList.toggle("dark-mode", dark);
     document.documentElement.classList.toggle("theme-dark", dark); // bare de derulare și controale native întunecate
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#17132A" : "#FBF8F2"; m.removeAttribute("media"); });
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#100E19" : "#F3F1FA"; m.removeAttribute("media"); });
     document.documentElement.style.setProperty("--accent-color", (ACCENTS[a.accent] || ACCENTS.violet)[dark ? "dark" : "light"]);
 
-    document.body.classList.remove("layout-compact", "layout-spacious");
-    if (a.density === "compact" || a.density === "spacious") document.body.classList.add(`layout-${a.density}`);
-    applyCursorSetting();
 }

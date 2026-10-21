@@ -230,14 +230,6 @@ function homeYearHTML() {
         <button type="button" class="btn btn-primary btn-sm mt-2" data-action="year-close">Încheie anul</button>`;
 }
 
-/** Comparația cu anul trecut, pentru cardul mediei. */
-function lastYearLine() {
-    const prev = lastArchived();
-    if (!prev?.gpa) return "";
-    const now = metrics.globalAvg;
-    const diff = now ? now - prev.gpa : 0;
-    return `<p class="azi-lastyear">${icon("layers")} Anul trecut: <b>${prev.gpa.toFixed(2)}</b>${now ? ` <span class="${diff >= 0 ? "is-up" : "is-down"}">(${diff >= 0 ? "+" : "−"}${Math.abs(diff).toFixed(2)})</span>` : ""}</p>`;
-}
 
 Object.assign(ACTIONS, {
     "year-close": () => promptCloseYear(),
