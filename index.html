@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..800&family=Shantell+Sans:wght@400..700&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ui.css">
+    <link rel="stylesheet" href="notion.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>
     <script src="firebase-config.js" defer></script>
     <!-- Aplicația, în ordinea de încărcare (vezi js/; nu schimba ordinea) -->
@@ -53,6 +54,8 @@
     <script src="js/simulator.js" defer></script>
     <script src="js/events.js" defer></script>
     <script src="js/reminders.js" defer></script>
+    <script src="js/notes.js" defer></script>
+    <script src="js/sidetree.js" defer></script>
     <script src="js/years.js" defer></script>
     <script src="js/pal.js" defer></script>
     <script src="js/exams.js" defer></script>
@@ -157,6 +160,7 @@
                 document.body.classList.add("dark-mode");
                 document.documentElement.classList.add("theme-dark");
             }
+            document.body.classList.add(s.style === "urnotes" ? "style-urnotes" : "style-notion");
             var dark = document.body.classList.contains("dark-mode");
             var accents = { violet: ["#5B3CC4", "#C3A6FF"], blue: ["#2347C5", "#8DB4FF"], pink: ["#B8336A", "#FF9EC0"], green: ["#18794E", "#8FDCAF"], orange: ["#C2410C", "#FFB27A"] };
             var ink = accents[s.accent] || accents.violet;
@@ -174,8 +178,12 @@
         </div>
         <nav class="side-nav" aria-label="Navigație principală">
             <button type="button" class="tab-btn side-link active" data-action="nav" data-tab="tab-dashboard" data-group="home" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Azi</span></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar" data-group="calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
+            <div class="side-row side-row-grades">
+                <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
+            </div>
+            <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
+            <div class="side-more" id="side-more"></div>
             <button type="button" class="side-add" data-action="quick-add" aria-haspopup="menu"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span></button>
         </nav>
         <div class="side-pal" id="side-pal"></div>
@@ -315,6 +323,8 @@
                         <div class="cal-seg" role="group" aria-label="Mod de afișare">
                             <button type="button" data-action="cal-view" data-view="week" aria-pressed="true">Săptămână</button>
                             <button type="button" data-action="cal-view" data-view="month" aria-pressed="false">Lună</button>
+                            <button type="button" data-action="cal-view" data-view="table" aria-pressed="false">Tabel</button>
+                            <button type="button" data-action="cal-view" data-view="board" aria-pressed="false">Panou</button>
                         </div>
                     </div>
                     <div id="cal-body"></div>
@@ -648,6 +658,13 @@
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</h3>
                         <div id="badge-setting" class="mt-3" hidden></div>
                         <div class="form-group mt-3">
+                            <label for="set-style">Stil</label>
+                            <select id="set-style" class="glass-select">
+                                <option value="notion">Simplu (ca Notion)</option>
+                                <option value="urnotes">urNotes (colorat, cu post-it-uri)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="set-theme">Temă</label>
                             <select id="set-theme" class="glass-select">
                                 <option value="system">Ca sistemul</option>

@@ -145,6 +145,7 @@ function saveSettings({ quiet = false } = {}) {
     s.calc.riskDrop = clampNumber(field("set-risk-drop"), 0.1, 5, 0.5);
     s.appearance.theme = field("set-theme") || "system";
     s.appearance.accent = ACCENTS[field("set-accent")] ? field("set-accent") : "violet";
+    s.appearance.style = APP_STYLES.includes(field("set-style")) ? field("set-style") : s.appearance.style;
     s.profile.name = cleanName(field("set-name"), 40);
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
@@ -514,5 +515,9 @@ function applyAppearanceSettings() {
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#100E19" : "#F3F1FA"; m.removeAttribute("media"); });
     document.documentElement.style.setProperty("--accent-color", (ACCENTS[a.accent] || ACCENTS.violet)[dark ? "dark" : "light"]);
+    const notion = a.style !== "urnotes";
+    document.body.classList.toggle("style-notion", notion);
+    document.body.classList.toggle("style-urnotes", !notion);
+    if (notion) document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#191919" : "#FFFFFF"; });
 
 }

@@ -21,10 +21,12 @@ const ACTIONS = {
         renderCalendar();
     },
     "cal-view": el => {
-        ui.cal.view = el.dataset.view === "month" ? "month" : "week";
+        ui.cal.view = ["month", "table", "board"].includes(el.dataset.view) ? el.dataset.view : "week";
         renderCalendar();
     },
     "cal-goto": el => calGoto(el.dataset.date),
+    "occ-status": el => setOccStatus(el.dataset.id, el.dataset.date, el.dataset.status),
+    "db-past": el => { ui.cal.dbPast = el.checked; renderCalendar(); },
     "event-open": el => openEventModal({ id: el.dataset.id, date: el.dataset.date }),
     "event-done": el => toggleEventDone(el.dataset.id, el.dataset.date),
     "event-grade": el => openGradeForEvent(el.dataset.id, el.dataset.date),

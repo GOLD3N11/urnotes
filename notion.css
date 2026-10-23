@@ -1,0 +1,155 @@
+/* ==========================================================================
+   urNotes · stilul „Simplu (ca Notion)”: pagini albe, text liniștit, aproape fără culoare.
+   Se aplică peste stilul colorat (ui.css) doar când <body> are clasa .style-notion (stilul implicit).
+   Stilul colorat rămâne în Setări → Aspect → Stil → urNotes.
+   ========================================================================== */
+body.style-notion {
+    --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-hand: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --paper: #FFFFFF;
+    --sheet: #FFFFFF;
+    --rule: #E9E9E7;
+    --ink: #37352F;
+    --ink-2: #63625E;
+    --input-bg: #F7F7F5;
+    --card-hover: #F1F1EF;
+    --side-bg: #F7F7F5;
+    --hover: rgba(55, 53, 47, 0.06);
+    --shadow-card: none;
+    --shadow-pop: 0 0 0 1px rgba(15, 15, 15, 0.05), 0 3px 6px rgba(15, 15, 15, 0.1), 0 9px 24px rgba(15, 15, 15, 0.2);
+    --radius-lg: 8px;
+    --radius-md: 6px;
+    font-size: 15px;
+    letter-spacing: 0;
+}
+body.style-notion.dark-mode {
+    --paper: #191919;
+    --sheet: #191919;
+    --rule: #2F2F2F;
+    --ink: rgba(255, 255, 255, 0.86);
+    --ink-2: #A8A8A8;
+    --input-bg: #252525;
+    --card-hover: #2C2C2C;
+    --side-bg: #202020;
+    --hover: rgba(255, 255, 255, 0.055);
+    --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 3px 6px rgba(0, 0, 0, 0.4), 0 9px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* --- text și titluri --- */
+body.style-notion h1, body.style-notion h2, body.style-notion h3, body.style-notion h4 { font-family: var(--font-hand); letter-spacing: -0.01em; }
+body.style-notion .page-intro h2, body.style-notion .azi-head h2 { font-size: clamp(30px, 4vw, 40px); font-weight: 700; letter-spacing: -0.015em; padding-bottom: 0; }
+body.style-notion .page-intro h2::after, body.style-notion .azi-head h2::after { display: none; }
+body.style-notion .page-intro p { font-size: 15px; }
+body.style-notion h3 { font-weight: 600; }
+body.style-notion .brand-name { font-family: var(--font-hand); font-weight: 700; letter-spacing: -0.02em; }
+
+/* --- suprafețe: secțiuni liniștite, fără umbre --- */
+body.style-notion .glass-card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; box-shadow: none; }
+body.style-notion .btn { border-radius: 6px; font-weight: 500; min-height: 34px; padding-inline: 12px; }
+body.style-notion .btn-sm { min-height: 30px; border-radius: 5px; padding-inline: 10px; }
+body.style-notion .btn-glass { background: var(--sheet); border: 1px solid var(--rule); color: var(--ink); }
+body.style-notion .btn-glass:hover { background: var(--hover); }
+body.style-notion .glass-input, body.style-notion .glass-select { border-radius: 6px; background-color: var(--input-bg); border: 1px solid transparent; }
+body.style-notion .glass-input:focus, body.style-notion .glass-select:focus { border-color: var(--accent-color); }
+body.style-notion .modal-card { border-radius: 10px; box-shadow: var(--shadow-pop); }
+body.style-notion .toast { border-radius: 8px; }
+
+/* --- meniul lateral, ca în Notion --- */
+body.style-notion .sidebar { background: var(--side-bg); border-right: 1px solid var(--rule); padding: 10px 8px 10px calc(8px + env(safe-area-inset-left)); }
+body.style-notion .side-brand { padding: 6px 10px 14px; gap: 8px; }
+body.style-notion .side-brand .brand-logo { width: 26px; height: 26px; }
+body.style-notion .side-brand-text .brand-name { font-size: 16px; }
+body.style-notion .side-brand-text small { display: none; }
+body.style-notion .tab-btn.side-link { min-height: 30px; padding: 4px 10px; gap: 10px; border-radius: 5px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+body.style-notion .tab-btn.side-link .ico { width: 18px; height: 18px; }
+body.style-notion .tab-btn.side-link:hover { background: var(--hover); color: var(--ink); }
+body.style-notion .tab-btn.side-link.active { background: var(--hover); color: var(--ink); font-weight: 600; }
+body.style-notion .side-add {
+    justify-content: flex-start; gap: 10px; min-height: 30px; margin: 4px 0 0; padding: 4px 10px;
+    background: transparent; color: var(--ink-2); border-radius: 5px; clip-path: none; filter: none; box-shadow: none; font-size: 14px; font-weight: 500;
+}
+body.style-notion .side-add::after { display: none; }
+body.style-notion .side-add:hover { background: var(--hover); color: var(--ink); filter: none; }
+body.style-notion .side-pal { display: none; }
+body.style-notion .side-foot { border-top: 0; }
+
+/* --- bara de sus --- */
+body.style-notion .app-bar { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.style-notion .app-bar.is-scrolled { background: var(--paper); box-shadow: none; border-bottom-color: var(--rule); }
+body.style-notion .topbar-crumb b { font-family: var(--font-ui); font-size: 14px; font-weight: 500; }
+body.style-notion .crumb-link { font-size: 14px; font-weight: 400; }
+body.style-notion .topbar-back { border-radius: 6px; font-weight: 500; }
+body.style-notion .notification-btn { border-radius: 6px; width: 34px; height: 34px; min-height: 34px; border-color: transparent; background: transparent; }
+body.style-notion .notification-btn:hover { background: var(--hover); }
+
+/* --- bara de jos (telefon) --- */
+@media (max-width: 900px) {
+    body.style-notion .mobile-bottom-nav { left: 0; right: 0; bottom: 0; border-radius: 0; border: 0; border-top: 1px solid var(--rule); background: var(--paper); box-shadow: none; padding: 4px max(6px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
+    body.style-notion .mobile-nav-btn { font-weight: 500; border-radius: 6px; }
+    body.style-notion .nav-pill { background: var(--hover); border-radius: 6px; }
+    body.style-notion .mobile-nav-btn.active { color: var(--ink); }
+    body.style-notion .mobile-add { width: 44px; height: 44px; margin: 0 6px; transform: none; border-radius: 10px; clip-path: none; filter: none; background: var(--ink); color: var(--paper); }
+    body.style-notion .mobile-add::after { display: none; }
+    body.style-notion { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+body.style-notion .nav-pal { display: none; }
+body.style-notion .more-tab .nav-user { display: block; }
+
+/* --- colegul: doar pe Azi --- */
+body.style-notion .page-pal { display: none !important; }
+body.style-notion .page-intro:has(.page-pal) { grid-template-areas: "text" "actions"; grid-template-columns: minmax(0, 1fr); }
+body.style-notion .empty-pal { display: none; }
+body.style-notion .buddy-bubble { border-radius: 8px; box-shadow: none; border: 1px solid var(--rule); }
+body.style-notion .pal-level { box-shadow: none; }
+
+/* --- plăcile de pe Azi și din Note devin „callout”-uri simple --- */
+body.style-notion .home-tile, body.style-notion .cat-sum {
+    clip-path: none; transform: none; filter: none; border-radius: 6px; box-shadow: none; min-height: 0; padding: 14px 16px;
+    background: color-mix(in srgb, var(--tile) 9%, var(--paper)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--tile) 18%, var(--rule));
+}
+body.style-notion .home-tile::before, body.style-notion .cat-sum::before, body.style-notion .home-tile::after { display: none; }
+body.style-notion .home-tile:hover { transform: none; filter: none; background: color-mix(in srgb, var(--tile) 14%, var(--paper)); }
+body.style-notion .home-tile.is-hero, body.style-notion .cat-sum.is-accent { --tile: #DFAB01; background: color-mix(in srgb, #FBF3DB 100%, transparent); border-color: #F3E3B0; color: var(--ink); margin-top: 0; }
+body.style-notion.dark-mode .home-tile.is-hero, body.style-notion.dark-mode .cat-sum.is-accent { background: #3B3020; border-color: #4A3D27; }
+body.style-notion .home-tile-label, body.style-notion .home-tile.is-hero .home-tile-label,
+body.style-notion .kpi-title, body.style-notion .cat-sum.is-accent .kpi-title { color: var(--ink-2); font-weight: 500; font-size: 13px; }
+body.style-notion .home-tile small, body.style-notion .home-tile.is-hero small, body.style-notion .home-tile.is-hero small span,
+body.style-notion .cat-sum small, body.style-notion .cat-sum.is-accent small { color: var(--ink-2); }
+body.style-notion .home-tile-value, body.style-notion .home-tile.is-hero .home-tile-value, body.style-notion .cat-sum-value, body.style-notion .cat-sum.is-accent .cat-sum-value {
+    font-family: var(--font-ui); font-weight: 700; color: var(--ink); letter-spacing: -0.01em;
+}
+body.style-notion .home-tile-value { font-size: 30px; }
+body.style-notion .home-tile.is-hero .home-tile-value { font-size: 36px; }
+body.style-notion .cat-sum-value { font-size: 30px; }
+body.style-notion .cat-sum.is-accent .cat-sum-value { font-size: 34px; }
+body.style-notion .home-tile small .is-up { color: #448361; } body.style-notion .home-tile small .is-down { color: #D44C47; }
+body.style-notion .home-tiles { padding-top: 0; }
+
+/* --- legăturile din Note: rânduri simple --- */
+body.style-notion .note-link { border-radius: 6px; padding: 8px 10px; border-color: var(--rule); }
+body.style-notion .note-link:hover { background: var(--hover); border-color: var(--rule); }
+body.style-notion .note-link .ico { width: 30px; height: 30px; padding: 6px; border-radius: 6px; background: var(--input-bg); color: var(--ink-2); }
+
+/* --- lista de materii: rândurile unei baze de date --- */
+body.style-notion .cat-list { gap: 0; }
+body.style-notion .cat-row.subj-tile { min-height: 52px; padding: 8px 10px; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; box-shadow: none; background: transparent; }
+body.style-notion .cat-row.subj-tile:hover { background: var(--hover); }
+body.style-notion .cat-row.subj-tile.selected { background: var(--hover); border-color: var(--rule); }
+body.style-notion .subj-chip { width: 26px; height: 26px; border-radius: 5px; font-family: var(--font-ui); font-size: 11.5px; font-weight: 700; transform: none; }
+body.style-notion .subj-tile .cat-row-name { font-size: 14.5px; font-weight: 500; }
+body.style-notion .subj-tile .cat-row-avg b { font-family: var(--font-ui); font-size: 15px; font-weight: 600; }
+body.style-notion .subj-bar { height: 3px; }
+body.style-notion #cat-search { border-radius: 6px; border-color: var(--rule); min-height: 36px; }
+body.style-notion .cat-add-tile { border-radius: 6px; min-height: 40px; border-width: 1px; border-style: dashed; justify-content: flex-start; padding-left: 12px; font-weight: 500; }
+
+/* --- evenimentul ca pagină (deja în stil Notion) --- */
+body.style-notion .np-title { font-family: var(--font-hand); font-weight: 700; }
+body.style-notion .np-icon { border-radius: 8px; }
+
+/* --- diverse --- */
+body.style-notion .page-back { border-radius: 6px; font-weight: 500; }
+body.style-notion .cal-lesson { border-left-width: 3px; }
+body.style-notion .plan-item { border-left-width: 3px !important; }
+body.style-notion .splash-name { font-family: var(--font-hand); font-weight: 700; }
+body.style-notion.dark-mode .home-tile-label, body.style-notion.dark-mode .kpi-title,
+body.style-notion.dark-mode .home-tile small, body.style-notion.dark-mode .cat-sum small { color: rgba(255, 255, 255, 0.78); }

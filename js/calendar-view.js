@@ -12,9 +12,140 @@ function renderCalendar() {
     });
 
     renderCalOverview();
+    // „Tabel” și „Panou” arată testele și temele ca o bază de date (ca în Notion); săptămâna și luna, ca un calendar
+    const dbView = ui.cal.view === "table" || ui.cal.view === "board";
+    document.querySelector(".cal-shell")?.classList.toggle("is-db", dbView);
     if (ui.cal.view === "month") renderMonthView();
+    else if (ui.cal.view === "table") renderTableView();
+    else if (ui.cal.view === "board") renderBoardView();
     else renderWeekView();
 }
+
+/* ---------- baza de date: aceleași teste și teme, ca tabel sau ca panou cu coloane ---------- */
+const OCC_STATUS = { todo: "De făcut", doing: "În lucru", done: "Gata" };
+function occStatus(ev, date, links) {
+    if (isOccurrenceDone(ev, date, links)) return "done";
+    return ev.doingDates?.[date] ? "doing" : "todo";
+}
+
+/** Schimbă starea unei apariții; o notă legată ține testul la „Gata”. */
+function setOccStatus(id, date, status) {
+    const found = findEvent(id);
+    if (!found || !OCC_STATUS[status] || !requireAccount()) return;
+    const { ev } = found;
+    if (linkedGrade(gradeLinks(), ev, date) && status !== "done") { showToast("⚠️ Testul are deja notă, deci rămâne la „Gata”."); return; }
+    const before = occStatus(ev, date, gradeLinks());
+    if (before === status) return;
+    ev.doneDates ||= {}; ev.doingDates ||= {};
+    delete ev.doneDates[date]; delete ev.doingDates[date];
+    if (status === "done") ev.doneDates[date] = true;
+    if (status === "doing") ev.doingDates[date] = true;
+    if (!Object.keys(ev.doneDates).length) delete ev.doneDates;
+    if (!Object.keys(ev.doingDates).length) delete ev.doingDates;
+    if ((status === "done") !== (before === "done")) state.pal.events = Math.max(0, state.pal.events + (status === "done" ? 1 : -1));
+    if (status === "done") addActivity(`Ai bifat „${ev.title}” ca făcut.`);
+    refresh();
+}
+
+function dbRows() {
+    const today = getLocalDateKey();
+    const links = gradeLinks();
+    const from = ui.cal.dbPast ? addDays(today, -60) : addDays(today, -14);
+    return occurrencesBetween(from, addDays(today, 90))
+        .filter(o => ui.cal.dbPast || o.date >= today || occStatus(o.ev, o.date, links) !== "done")
+        .map(o => ({ ...o, status: occStatus(o.ev, o.date, links) }));
+}
+
+function dbTagHTML(ev) {
+    return `<span class="np-tag t-${EVENT_TYPE_CLASS[ev.type] || "personal"}">${icon(EVENT_TYPE_ICON[ev.type] || "pin")} ${escapeHTML(ev.type)}</span>`;
+}
+function dbSubjectHTML(mat) {
+    return mat ? `<span class="np-tag np-subj" style="${subjectStyle(mat)}">${escapeHTML(shortSubjectName(mat))}</span>` : `<span class="np-empty">–</span>`;
+}
+function dbStatusHTML(o) {
+    const next = { todo: "doing", doing: "done", done: "todo" }[o.status];
+    return `<button type="button" class="db-status s-${o.status}" data-action="occ-status" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}" data-status="${next}"
+        title="Schimbă în „${OCC_STATUS[next]}”" aria-label="${escapeHTML(`Stare: ${OCC_STATUS[o.status]}. Schimbă în ${OCC_STATUS[next]}`)}"><i aria-hidden="true"></i>${OCC_STATUS[o.status]}</button>`;
+}
+
+function renderTableView() {
+    const rows = dbRows();
+    const today = getLocalDateKey();
+    $("cal-title").textContent = "Teste și teme";
+    setText("cal-caption", `${plural(rows.length, "rând", "rânduri")}`);
+    $("cal-body").innerHTML = `
+        <div class="db-tools">
+            <label class="db-past"><input type="checkbox" data-action="db-past" ${ui.cal.dbPast ? "checked" : ""}> Arată și ce a trecut și e gata</label>
+        </div>
+        ${rows.length ? `
+        <div class="db-table-wrap">
+            <table class="db-table">
+                <thead><tr><th scope="col">Titlu</th><th scope="col">Tip</th><th scope="col">Materie</th><th scope="col">Data</th><th scope="col">Stare</th></tr></thead>
+                <tbody>
+                    ${rows.map(o => `
+                        <tr class="${o.date < today ? "is-past" : ""} ${o.status === "done" ? "is-done" : ""}">
+                            <td><button type="button" class="db-open" data-action="event-open" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">${escapeHTML(o.ev.title)}</button></td>
+                            <td>${dbTagHTML(o.ev)}</td>
+                            <td>${dbSubjectHTML(o.ev.subject)}</td>
+                            <td class="db-date">${escapeHTML(shortDayLabel(o.date))}${o.ev.time ? ` <span class="np-rel">${escapeHTML(o.ev.time)}</span>` : ""}<small>${escapeHTML(relativeDayLabel(o.date))}</small></td>
+                            <td>${dbStatusHTML(o)}</td>
+                        </tr>`).join("")}
+                </tbody>
+            </table>
+        </div>` : emptyNote("Nimic de dat în următoarele 3 luni. Adaugă un test sau o temă cu „+”.")}`;
+}
+
+function renderBoardView() {
+    const rows = dbRows();
+    const today = getLocalDateKey();
+    $("cal-title").textContent = "Teste și teme";
+    setText("cal-caption", "trage o carte în altă coloană ca să-i schimbi starea");
+    $("cal-body").innerHTML = `
+        <div class="db-board">
+            ${Object.entries(OCC_STATUS).map(([s, label]) => {
+                const list = rows.filter(o => o.status === s);
+                return `
+                    <section class="db-col s-${s}" data-status="${s}" aria-label="${label}">
+                        <h4><i aria-hidden="true"></i>${label} <span class="cat-count">${list.length}</span></h4>
+                        <div class="db-cards">
+                            ${list.map(o => `
+                                <article class="db-card ${o.date < today && s !== "done" ? "is-late" : ""}" draggable="true" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">
+                                    <button type="button" class="db-open" data-action="event-open" data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}">${escapeHTML(o.ev.title)}</button>
+                                    <div class="db-card-tags">${dbTagHTML(o.ev)} ${o.ev.subject ? dbSubjectHTML(o.ev.subject) : ""}</div>
+                                    <div class="db-card-foot"><span>${escapeHTML(shortDayLabel(o.date))} · ${escapeHTML(relativeDayLabel(o.date))}</span>${dbStatusHTML(o)}</div>
+                                </article>`).join("") || `<p class="db-empty">Nimic aici</p>`}
+                        </div>
+                    </section>`;
+            }).join("")}
+        </div>`;
+}
+
+/* tragerea cărților între coloane (mouse); pe telefon, butonul de stare de pe carte */
+document.addEventListener("dragstart", event => {
+    const card = event.target.closest?.(".db-card");
+    if (!card) return;
+    event.dataTransfer.setData("text/urn-occ", JSON.stringify({ id: card.dataset.id, date: card.dataset.date }));
+    event.dataTransfer.effectAllowed = "move";
+    card.classList.add("is-dragging");
+});
+document.addEventListener("dragend", event => event.target.closest?.(".db-card")?.classList.remove("is-dragging"));
+document.addEventListener("dragover", event => {
+    const col = event.target.closest?.(".db-col");
+    if (!col || ![...(event.dataTransfer?.types || [])].includes("text/urn-occ")) return;
+    event.preventDefault();
+    document.querySelectorAll(".db-col.is-over").forEach(c => c !== col && c.classList.remove("is-over"));
+    col.classList.add("is-over");
+});
+document.addEventListener("dragleave", event => { const col = event.target.closest?.(".db-col"); if (col && !col.contains(event.relatedTarget)) col.classList.remove("is-over"); });
+document.addEventListener("drop", event => {
+    const col = event.target.closest?.(".db-col");
+    if (!col) return;
+    const raw = event.dataTransfer?.getData("text/urn-occ");
+    document.querySelectorAll(".db-col.is-over").forEach(c => c.classList.remove("is-over"));
+    if (!raw) return;
+    event.preventDefault();
+    try { const { id, date } = JSON.parse(raw); setOccStatus(id, date, col.dataset.status); } catch (_) { /* ignorăm */ }
+});
 
 /* ---------- rezumat: ce urmează + ce necesită atenție ---------- */
 function renderCalOverview() {

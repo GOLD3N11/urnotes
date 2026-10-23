@@ -201,6 +201,9 @@ const subjectStyle = mat => {
 /** Inițialele de pe placa materiei (ex. „Română” → „Ro”, „Limba engleză” → „En”). */
 const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L}\p{N} ]/gu, "").trim(); const w = s.split(/\s+/); return (w.length > 1 && w[1] ? w[0][0] + w[1][0] : s.slice(0, 2)).replace(/^./, c => c.toUpperCase()); };
 
+/* Stilul aplicației: „notion” (simplu, ca o pagină albă) sau „urnotes” (colorat, cu post-it-uri) */
+const APP_STYLES = ["notion", "urnotes"];
+
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 
 const DEFAULT_SETTINGS = {
@@ -209,7 +212,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00" },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "violet" },
+    appearance: { theme: "system", accent: "violet", style: "notion" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată

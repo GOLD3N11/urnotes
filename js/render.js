@@ -20,7 +20,7 @@ function renderPalChrome() {
     if (renderPalChrome.key === key) return;
     renderPalChrome.key = key;
     const navIcon = document.querySelector("#more-btn > span:first-child");
-    if (navIcon) navIcon.innerHTML = buddySVG("happy", "nav-pal");
+    if (navIcon) navIcon.innerHTML = icon("user", "nav-user") + buddySVG("happy", "nav-pal"); // stilul simplu arată iconița, cel colorat colegul
     const card = $("side-pal");
     if (card) card.innerHTML = `
         <button type="button" class="side-pal-btn" data-action="wardrobe-open" aria-label="${escapeHTML(`${buddyName()}, nivelul ${p.level}: garderoba`)}">
@@ -32,6 +32,7 @@ function renderPalChrome() {
 
 function renderActiveTab({ keepSettingsForm = false } = {}) {
     renderPalChrome();
+    renderSideTree();
     renderPagePal(ui.activeTab); // colegul din antet (pe fiecare pagină)
     // Formularul de setări nu e redesenat la fiecare calcul, ca să nu pierdem ce scrie utilizatorul.
     if (keepSettingsForm && ui.activeTab === "tab-setari") return;

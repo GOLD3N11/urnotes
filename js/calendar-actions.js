@@ -580,6 +580,7 @@ function toggleEventDone(id, date) {
     if (ev.doneDates[date]) delete ev.doneDates[date];
     else ev.doneDates[date] = true;
     const nowDone = Boolean(ev.doneDates[date]);
+    if (nowDone && ev.doingDates?.[date]) { delete ev.doingDates[date]; if (!Object.keys(ev.doingDates).length) delete ev.doingDates; }
     state.pal.events = Math.max(0, state.pal.events + (nowDone ? 1 : -1)); // XP pentru coleg
     if (Object.keys(ev.doneDates).length === 0) delete ev.doneDates;
 

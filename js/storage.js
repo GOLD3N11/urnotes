@@ -36,12 +36,14 @@ function loadState() {
    Formatul datelor are un număr de versiune (DATA_SCHEMA), salvat lângă date și în backup/cont.
    Când formatul se schimbă: crești DATA_SCHEMA și adaugi aici o migrare care primește datele brute
    (exact cum au fost citite) și le aduce la noul format. Migrările rulează în ordine, o singură dată. */
-const DATA_SCHEMA = 3;
+const DATA_SCHEMA = 4;
 const MIGRATIONS = [
     // 2: apare arhiva anilor școlari (anul în curs rămâne cum era)
     { to: 2, run: raw => { if (!Array.isArray(raw.archive)) raw.archive = []; } },
     // 3: apar examenele (EN / Bac) și colegul care crește (nivel, garderobă)
-    { to: 3, run: raw => { raw.exams ||= null; raw.pal ||= null; } }
+    { to: 3, run: raw => { raw.exams ||= null; raw.pal ||= null; } },
+    // 4: fiecare materie are o pagină cu notițe (blocuri); cele vechi pornesc goale
+    { to: 4, run: () => {} }
 ];
 
 function migrateRaw(raw, from) {
@@ -112,6 +114,7 @@ function sanitizeSettings(raw) {
         appearance: {
             theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
             accent: pick(s.appearance.accent, Object.keys(ACCENTS), "violet"),
+            style: pick(s.appearance.style, APP_STYLES, "notion"),
             // (densitatea și cursoarele personalizate au fost scoase în v9)
         },
         school: {
@@ -176,6 +179,10 @@ function normalizeEvent(ev, dateKey) {
     }
     if (ev.done === true) done[dateKey] = true;
     if (Object.keys(done).length) out.doneDates = done;
+    // „În lucru” (panoul din Calendar)
+    const doing = {};
+    if (isPlainObject(ev.doingDates)) Object.keys(ev.doingDates).forEach(d => { if (DATE_KEY_RE.test(d) && ev.doingDates[d] === true && !done[d]) doing[d] = true; });
+    if (Object.keys(doing).length) out.doingDates = doing;
 
     if (out.repeat && Array.isArray(ev.skipDates)) {
         const skip = [...new Set(ev.skipDates.filter(d => typeof d === "string" && DATE_KEY_RE.test(d)))];
@@ -212,7 +219,8 @@ function normalizeState(s) {
             target: clampNumber(sub.target, 1, 10, 10),
             grades: (Array.isArray(sub.grades) ? sub.grades : []).map(normalizeGrade).filter(Boolean),
             priority: Boolean(sub.priority),
-            excludeFromGPA: Boolean(sub.excludeFromGPA)
+            excludeFromGPA: Boolean(sub.excludeFromGPA),
+            notes: sanitizeNotes(sub.notes)
         };
     }
     s.subjects = subjects;

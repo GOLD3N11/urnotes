@@ -390,6 +390,8 @@ function renderCatalogDetail() {
                     last ? escapeHTML(`${last.g.type || "Altele"}${last.g.date ? ` · ${getShortDateLabel(last.g.date)}` : ""}`) : "nimic încă")}
             </div>
 
+            ${notesEditorHTML(mat)}
+
             <div class="cat-detail-grid">
                 ${targetHelperHTML(mat, sub)}
                 <section class="cat-block" aria-labelledby="cat-trend-title">
