@@ -587,7 +587,7 @@ body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, 
 .side-children { display: grid; gap: 1px; margin: 2px 0 4px; }
 .side-children[hidden] { display: none; }
 .side-tree { padding-left: 14px; }
-.side-sub {
+.side-sub { box-sizing: border-box; min-width: 0;
     display: flex; align-items: center; gap: 9px; width: 100%; min-height: 30px; padding: 4px 10px; background: none; border: 0; border-radius: 6px;
     font: inherit; font-size: 13.5px; color: var(--ink-2); text-align: left; cursor: pointer;
 }
@@ -680,3 +680,31 @@ body.dark-mode .s-todo.db-status { color: #B5B4B0; } body.dark-mode .s-doing.db-
 /* meniul „Adaugă” deschis din meniul lateral apare în dreapta lui */
 .quick-add-card.is-side { animation-name: qaInSide; transform-origin: left top; }
 @keyframes qaInSide { from { opacity: 0; transform: translateX(-6px); } }
+
+/* --- Pagini ca în Notion: elemente care se văd doar în stilul Notion (vezi notion.css) --- */
+.page-emoji, .subj-emoji, .side-sub-emoji, .side-ws, .cat-props, .crumb-emoji { display: none; }
+.subj-emoji-btn { display: none; }
+/* „+” pe rândul Note din meniul lateral: o materie nouă */
+.side-row .tab-btn.side-link { padding-right: 64px; }
+.side-row-add { position: absolute; right: 34px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--ink-2); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
+.side-row-add .ico { width: 15px; height: 15px; }
+.side-row:hover .side-row-add, .side-row-add:focus-visible { opacity: 1; }
+.side-row-add:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+@media (hover: none) { .side-row-add { opacity: 1; } }
+/* notițe: mânerul ⋮⋮ și „+” în stânga blocului, citat, linie despărțitoare */
+.nb-tools { position: absolute; left: -46px; top: 3px; display: flex; gap: 0; opacity: 0; transition: opacity 0.12s ease; }
+.nb:hover .nb-tools, .nb:focus-within .nb-tools { opacity: 1; }
+.nb-plus, .nb-grip { display: grid; place-items: center; width: 22px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: color-mix(in srgb, var(--ink-2) 75%, transparent); cursor: pointer; }
+.nb-grip { cursor: grab; }
+.nb-plus .ico, .nb-grip .ico { width: 15px; height: 15px; }
+.nb-plus:hover, .nb-grip:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+.nb.is-dragging { opacity: 0.4; }
+.nb.drop-before { box-shadow: 0 -2px 0 var(--accent-color); }
+.nb.drop-after { box-shadow: 0 2px 0 var(--accent-color); }
+.nb-q .nb-text { padding-left: 14px; border-left: 3px solid var(--ink); font-size: 16px; }
+.nb-hr { min-height: 18px; align-items: center; }
+.nb-hr hr { flex: 1; height: 1px; margin: 8px 0; border: 0; background: var(--rule); outline: 0; }
+.nb-hr hr:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 35%, transparent); border-radius: 2px; }
+@media (max-width: 900px), (hover: none) { .nb-tools { display: none; } }
+.nb-editor { padding-left: 0; }
+@media (min-width: 901px) and (max-width: 1199px) { .side-row-add { display: none; } .side-row .tab-btn.side-link { padding-right: 4px; } }

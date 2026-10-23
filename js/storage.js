@@ -220,7 +220,8 @@ function normalizeState(s) {
             grades: (Array.isArray(sub.grades) ? sub.grades : []).map(normalizeGrade).filter(Boolean),
             priority: Boolean(sub.priority),
             excludeFromGPA: Boolean(sub.excludeFromGPA),
-            notes: sanitizeNotes(sub.notes)
+            notes: sanitizeNotes(sub.notes),
+            ...(sanitizeSubjectIcon(sub.icon) ? { icon: sanitizeSubjectIcon(sub.icon) } : {})
         };
     }
     s.subjects = subjects;

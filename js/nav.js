@@ -96,9 +96,14 @@ function renderTopbarPlace() {
     }
     const crumb = $("topbar-crumb");
     if (crumb) {
-        const here = escapeHTML(def.title || "");
-        crumb.innerHTML = parent
-            ? `<button type="button" class="crumb-link" data-action="nav" data-tab="${def.parent}">${escapeHTML(parent.title)}</button><span class="crumb-sep" aria-hidden="true">›</span><b aria-current="page">${here}</b>`
+        const em = e => e ? `<span class="crumb-emoji" aria-hidden="true">${e}</span>` : "";
+        const here = `${em(PAGE_EMOJI[ui.activeTab])}${escapeHTML(def.title || "")}`;
+        const sep = `<span class="crumb-sep" aria-hidden="true">${document.body.classList.contains("style-notion") ? "/" : "›"}</span>`;
+        const mat = ui.activeTab === "tab-catalog" && ui.catalog?.showDetail && state.subjects[ui.catalog.selected] ? ui.catalog.selected : "";
+        crumb.innerHTML = mat
+            ? `<button type="button" class="crumb-link" data-action="cat-back">${here}</button>${sep}<b aria-current="page">${em(subjectEmoji(mat))}${escapeHTML(mat)}</b>`
+            : parent
+            ? `<button type="button" class="crumb-link" data-action="nav" data-tab="${def.parent}">${em(PAGE_EMOJI[def.parent])}${escapeHTML(parent.title)}</button>${sep}<b aria-current="page">${here}</b>`
             : `<b aria-current="page">${here}</b>`;
     }
 }

@@ -219,6 +219,7 @@ function renderCatalog() {
     layout.classList.toggle("show-detail", ui.catalog.showDetail);
     layout.classList.toggle("auto-pick", ui.catalog.autoPicked);
     $("tab-catalog").classList.toggle("cat-detail-open", ui.catalog.showDetail);
+    if (ui.activeTab === "tab-catalog" && typeof renderTopbarPlace === "function") renderTopbarPlace();
     renderCatalogNav();
 }
 
@@ -290,7 +291,7 @@ function renderCatalogList() {
         return `
             <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
                 style="${subjectStyle(mat)}" ${selected ? 'aria-current="true"' : ""}>
-                <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span>
+                <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
                 <span class="cat-row-main">
                     <span class="cat-row-name">${sub.priority ? '<span class="cat-star" aria-label="prioritară">★</span>' : ""}${escapeHTML(mat)}</span>
                     <span class="cat-row-meta">${escapeHTML(meta)}${sub.excludeFromGPA ? ' · <span class="cat-tag">nu intră în medie</span>' : ""}${inProgramme(mat) ? "" : ' · <span class="cat-tag is-warn">în afara programei</span>'}</span>
@@ -353,11 +354,12 @@ function renderCatalogDetail() {
         <div class="glass-card cat-detail-card">
             <button type="button" class="btn btn-text cat-back" data-action="cat-back">← Toate materiile</button>
 
+            <button type="button" class="page-emoji subj-emoji-btn" data-action="emoji-pick" data-mat="${safeMat}" aria-haspopup="dialog" aria-label="Schimbă pictograma materiei" title="Schimbă pictograma">${subjectEmoji(mat)}</button>
             <header class="cat-detail-head">
                 <div class="cat-detail-title-wrap">
                     <div class="cat-title-row">
                         <h3 class="cat-title" id="cat-detail-title" tabindex="-1">${safeMat}</h3>
-                        <span class="badge ${d.statusClass}">${escapeHTML(d.status)}</span>${d.statusClass === "badge-danger" ? helpDot("risk") : ""}
+                        <span class="cat-status"><span class="badge ${d.statusClass}">${escapeHTML(d.status)}</span>${d.statusClass === "badge-danger" ? helpDot("risk") : ""}</span>
                         ${sub.excludeFromGPA ? `<span class="badge cat-badge-muted">${icon("ban")} Exclusă din medie</span>` : ""}
                         ${inProgramme(mat) ? "" : `<span class="badge badge-warn" title="Nu e în programa ta (${escapeHTML(programmeLabel())}). Din „Editează” o poți înlocui cu o materie din programă, păstrând notele.">În afara programei</span>`}
                     </div>
@@ -377,6 +379,7 @@ function renderCatalogDetail() {
                     <button type="button" class="btn btn-glass" data-action="delete-subject" data-mat="${safeMat}">Șterge materia veche</button>
                 </div>` : ""}
 
+            ${subjectPropsHTML(mat, sub, d, { last, minTotal, reached, gap })}
             <div class="cat-stats">
                 ${stat("Media", sub.grades.length ? `${d.exactAvg.toFixed(2)} <span class="sim-round">→ ${d.roundedAvg}</span>` : "–",
                     sub.grades.length ? "exactă → finală" : "încă fără note")}

@@ -11,25 +11,33 @@ function renderSideTree() {
     if (!subs || !more) return;
     const openMat = ui.activeTab === "tab-catalog" && ui.catalog.showDetail ? ui.catalog.selected : "";
     const names = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
-    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass)]);
+    const wsName = (state.settings.profile?.name || "").trim();
+    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass), names.map(m => state.subjects[m]?.icon), wsName]);
     if (renderSideTree.key === key) return;
     renderSideTree.key = key;
 
     const twist = (k, label) => `<button type="button" class="side-twist ${sideOpen[k] ? "is-open" : ""}" data-action="side-toggle" data-key="${k}" aria-expanded="${sideOpen[k]}" aria-label="${escapeHTML(`${sideOpen[k] ? "Strânge" : "Arată"} ${label}`)}">${icon("chevron")}</button>`;
     document.querySelector('.side-nav [data-tab="tab-catalog"]')?.closest(".side-row")?.querySelector(".side-twist")?.remove();
     const noteRow = document.querySelector('.side-nav .side-row-grades');
-    if (noteRow) noteRow.insertAdjacentHTML("beforeend", twist("grades", "materiile"));
+    noteRow?.querySelector(".side-row-add")?.remove();
+    if (noteRow) noteRow.insertAdjacentHTML("beforeend", `<button type="button" class="side-row-add" data-action="side-add-subject" aria-label="Materie nouă" title="Materie nouă">${icon("plus")}</button>${twist("grades", "materiile")}`);
+    // antetul „spațiului de lucru”, ca în Notion (se vede doar în stilul Notion)
+    const brand = document.querySelector(".sidebar .side-brand");
+    if (brand) {
+        brand.querySelector(".side-ws")?.remove();
+        brand.insertAdjacentHTML("beforeend", `<span class="side-ws"><span class="side-ws-av" aria-hidden="true">${escapeHTML((wsName || "u").slice(0, 1).toUpperCase())}</span><span class="side-ws-name">${escapeHTML(wsName ? `urNotes-ul lui ${wsName}` : "urNotes")}</span></span>`);
+    }
     subs.hidden = !sideOpen.grades;
     subs.innerHTML = names.map(m => `
         <button type="button" class="side-sub ${m === openMat ? "is-active" : ""}" data-action="side-subject" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" ${m === openMat ? 'aria-current="page"' : ""}>
-            <span class="side-sub-dot" aria-hidden="true"></span><span class="side-sub-name">${escapeHTML(m)}</span>${metrics.subjects[m]?.statusClass === "badge-danger" ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
+            <span class="side-sub-dot" aria-hidden="true"></span><span class="side-sub-emoji" aria-hidden="true">${subjectEmoji(m)}</span><span class="side-sub-name">${escapeHTML(m)}</span>${metrics.subjects[m]?.statusClass === "badge-danger" ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
         </button>`).join("") || `<p class="side-empty">Nicio materie încă</p>`;
     more.innerHTML = `
         <div class="side-row">
             <button type="button" class="side-group-head" data-action="side-toggle" data-key="more" aria-expanded="${sideOpen.more}">${icon("chevron", `side-chev ${sideOpen.more ? "is-open" : ""}`)}<span>Mai mult</span></button>
         </div>
         <div class="side-children" ${sideOpen.more ? "" : "hidden"}>
-            ${SIDE_MORE.map(t => `<button type="button" class="side-sub side-page ${ui.activeTab === t ? "is-active" : ""}" data-action="nav" data-tab="${t}" ${ui.activeTab === t ? 'aria-current="page"' : ""}>${icon(TABS[t]?.icon || "note")}<span class="side-sub-name">${escapeHTML(TABS[t]?.title || t)}</span></button>`).join("")}
+            ${SIDE_MORE.map(t => `<button type="button" class="side-sub side-page ${ui.activeTab === t ? "is-active" : ""}" data-action="nav" data-tab="${t}" ${ui.activeTab === t ? 'aria-current="page"' : ""}>${icon(TABS[t]?.icon || "note")}<span class="side-sub-emoji" aria-hidden="true">${PAGE_EMOJI[t] || ""}</span><span class="side-sub-name">${escapeHTML(TABS[t]?.title || t)}</span></button>`).join("")}
         </div>`;
 }
 

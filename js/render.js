@@ -34,6 +34,7 @@ function renderActiveTab({ keepSettingsForm = false } = {}) {
     renderPalChrome();
     renderSideTree();
     renderPagePal(ui.activeTab); // colegul din antet (pe fiecare pagină)
+    renderPageIcons();
     // Formularul de setări nu e redesenat la fiecare calcul, ca să nu pierdem ce scrie utilizatorul.
     if (keepSettingsForm && ui.activeTab === "tab-setari") return;
 

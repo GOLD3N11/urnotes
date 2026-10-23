@@ -20,7 +20,8 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
   - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
   - `utils.js`, `model.js`, `storage.js`, `metrics.js`: datele și calculele.
   - Câte un fișier pentru fiecare pagină sau funcție: `azi.js`, `catalog.js`, `calendar-*.js`, `plan.js`, `stats.js`, `simulator.js`, `reminders.js`, `years.js`, `pal.js` etc.
-  - `notes.js`: notițele din pagina fiecărei materii (blocuri: text, titlu, listă, de bifat; scurtături „# ”, „- ”, „[] ”).
+  - `notes.js`: notițele din pagina fiecărei materii (blocuri: text, titlu, listă, de bifat; scurtături „# ”, „- ”, „[] ”, „> ” citat, „---” linie; blocurile se mută trăgând de mânerul ⋮⋮).
+  - `pages.js`: pictogramele paginilor și ale materiilor (emoji, alese automat sau din alegătorul de pictograme), proprietățile materiei ca într-o bază de date Notion.
   - `sidetree.js`: meniul lateral ca arbore de pagini (Note → fiecare materie, Mai mult → Plan, Progres…).
   - `state.js` (starea) și `boot.js`/`main.js` (pornirea) se încarcă ultimele.
 - `cloud.js`: conturile și sincronizarea (Firebase); `sw.js`: lucrul fără internet și amintirile din fundal.

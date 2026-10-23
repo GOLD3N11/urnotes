@@ -153,3 +153,80 @@ body.style-notion .plan-item { border-left-width: 3px !important; }
 body.style-notion .splash-name { font-family: var(--font-hand); font-weight: 700; }
 body.style-notion.dark-mode .home-tile-label, body.style-notion.dark-mode .kpi-title,
 body.style-notion.dark-mode .home-tile small, body.style-notion.dark-mode .cat-sum small { color: rgba(255, 255, 255, 0.78); }
+
+/* ==========================================================================
+   Și mai mult Notion: pictograme de pagină, spațiul de lucru, proprietăți, fir de navigare
+   ========================================================================== */
+/* pictograma mare deasupra titlului */
+body.style-notion .page-emoji { display: block; margin: 0 0 6px -2px; font-size: 64px; line-height: 1.1; user-select: none; }
+body.style-notion .azi-head .page-emoji { font-size: 56px; }
+body.style-notion .subj-emoji-btn {
+    display: inline-grid; place-items: center; justify-self: start; align-self: flex-start; width: 84px; height: 84px; margin: 6px 0 -12px -6px; padding: 0;
+    border: 0; border-radius: 8px; background: transparent; font-size: 66px; line-height: 1; cursor: pointer;
+}
+body.style-notion .subj-emoji-btn:hover { background: var(--hover); }
+body.style-notion .subj-emoji-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+
+/* pagina materiei: o pagină albă, nu un card */
+body.style-notion .cat-detail-card { max-width: 900px; margin-inline: auto; border: 0; background: transparent; padding: 8px 4px 24px; gap: 18px; }
+body.style-notion .cat-title { font-size: clamp(32px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; }
+body.style-notion .cat-detail-head .subtitle { display: none; }
+body.style-notion .cat-detail-head .btn-star { display: none; }
+body.style-notion .cat-stats { display: none; }
+body.style-notion .cat-block h4 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+body.style-notion .cat-block h4 > .ico { display: none; }
+body.style-notion .cat-block { border: 0; padding: 0; background: transparent; }
+
+/* proprietățile materiei, ca la o pagină dintr-o bază de date */
+body.style-notion .cat-props { display: grid; gap: 1px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+body.style-notion .prop { display: grid; grid-template-columns: minmax(130px, 180px) minmax(0, 1fr); align-items: center; min-height: 34px; border-radius: 4px; }
+body.style-notion .prop:hover { background: var(--hover); }
+body.style-notion .prop-k { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 14px; color: var(--ink-2); }
+body.style-notion .prop-k .ico { width: 16px; height: 16px; opacity: 0.8; }
+body.style-notion .prop-v { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 8px; font-size: 14px; color: var(--ink); }
+body.style-notion .prop-v b { font-weight: 600; }
+body.style-notion .prop-dim { color: var(--ink-2); }
+body.style-notion .prop-tag { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 4px; font-size: 13px; line-height: 1.5; white-space: nowrap; }
+body.style-notion .prop-tag.t-red { background: #FFE2DD; color: #5D1715; }
+body.style-notion .prop-tag.t-yellow { background: #FDECC8; color: #402C1B; }
+body.style-notion .prop-tag.t-green { background: #DBEDDB; color: #1C3829; }
+body.style-notion .prop-tag.t-purple { background: #E8DEEE; color: #412454; }
+body.style-notion.dark-mode .prop-tag.t-red { background: #522E2A; color: #FFDCD7; }
+body.style-notion.dark-mode .prop-tag.t-yellow { background: #564328; color: #FFEAC2; }
+body.style-notion.dark-mode .prop-tag.t-green { background: #2B4632; color: #D7F0DD; }
+body.style-notion.dark-mode .prop-tag.t-purple { background: #483C5A; color: #EBDFFB; }
+@media (max-width: 600px) { body.style-notion .prop { grid-template-columns: 148px minmax(0, 1fr); } body.style-notion .prop-k { white-space: nowrap; } }
+
+/* lista de materii: emoji în loc de inițiale */
+body.style-notion .subj-chip { display: none; }
+body.style-notion .subj-emoji { display: grid; place-items: center; flex: none; width: 26px; height: 26px; font-size: 19px; line-height: 1; }
+
+/* meniul lateral: spațiul de lucru sus, emoji la pagini */
+body.style-notion .side-brand .brand-logo, body.style-notion .side-brand-text { display: none; }
+body.style-notion .side-brand { padding: 6px 8px 12px; }
+body.style-notion .side-ws { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 6px; border-radius: 6px; font-size: 14px; font-weight: 600; color: var(--ink); }
+body.style-notion .side-ws-av { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 5px; background: var(--ink-2); color: var(--paper); font-size: 12px; font-weight: 600; }
+body.style-notion .side-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.style-notion .side-sub-dot { display: none; }
+body.style-notion .side-sub-emoji { display: grid; place-items: center; flex: none; width: 20px; font-size: 15px; line-height: 1; }
+body.style-notion .side-page > .ico { display: none; }
+body.style-notion .side-sub { font-size: 14px; }
+
+/* firul de navigare din bara de sus: mereu vizibil, cu emoji */
+body.style-notion .topbar-crumb { gap: 2px; }
+body.style-notion .topbar-crumb b, body.style-notion .crumb-link { display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 4px; }
+body.style-notion .topbar-crumb b { opacity: 1 !important; transform: none !important; }
+body.style-notion .crumb-link { border: 0; background: transparent; color: var(--ink-2); cursor: pointer; }
+body.style-notion .crumb-link:hover { background: var(--hover); color: var(--ink); }
+body.style-notion .crumb-emoji { display: inline; font-size: 15px; line-height: 1; }
+body.style-notion .crumb-sep { color: color-mix(in srgb, var(--ink-2) 60%, transparent); }
+
+/* alegătorul de pictograme */
+.emoji-pop { position: fixed; z-index: 1600; width: 316px; padding: 8px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow-pop, 0 10px 30px rgba(0, 0, 0, 0.2)); }
+.emoji-pop-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+.emoji-opt { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 0; border-radius: 6px; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+.emoji-opt:hover, .emoji-opt:focus-visible { background: var(--hover, var(--input-bg)); outline: 0; }
+.emoji-opt.is-on { box-shadow: inset 0 0 0 2px var(--accent-color); }
+body.style-notion .cat-title-row .cat-status { display: none; }
+@media (min-width: 901px) { body.style-notion .cat-back { display: none; } }
