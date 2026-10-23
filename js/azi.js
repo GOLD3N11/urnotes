@@ -295,8 +295,11 @@ function renderDashboard() {
     setText("azi-summary", homeSummary(days, todo));
     renderBuddy(days, todo);
 
+    const step = homeNextStep(days, todo, links);
+    if ($("azi-next")) { const nh = homeNextHTML(step, days.today); $("azi-next").innerHTML = nh; $("azi-next").hidden = !nh; }
     $("azi-day").innerHTML = homeDayHTML(days, links);
-    $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today);
+    $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today, step.key || "");
+    if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; }
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
     if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
@@ -547,79 +550,195 @@ function homeDayHTML({ today, next, pick, date }, links) {
         </div>`;
 }
 
-/* ---------- de făcut ---------- */
-function homeTodoHTML({ missed, homework, tests }, links, today) {
-    const total = missed.length + homework.length + tests.length;
-    const head = homeCardHead("azi-todo-title", "check-circle", "De făcut", total ? `<span class="cat-count">${total}</span>` : "");
-    if (!total) {
-        return `${head}<p class="azi-empty">${icon("sparkles")} Nimic de făcut acum: nicio temă în următoarele 7 zile, niciun test în următoarele două săptămâni.</p>`;
-    }
+/* ---------- următorul pas: un singur lucru, cel mai important acum ---------- */
+const occKey = o => `${o.ev.id}@${o.date}`;
 
-    const groups = [];
-    if (missed.length) {
-        groups.push(`
-            <h4 class="azi-group">Au trecut — completează</h4>
-            <ul class="azi-list">${missed.slice(0, 5).map(({ ev, date, older }) => {
-                const grade = NEEDS_GRADE.has(ev.type);
-                return `
-                <li class="azi-item is-missed">
-                    <i class="ev-dot ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}" aria-hidden="true"></i>
-                    <button type="button" class="azi-item-main" data-action="cal-goto" data-date="${date}">
-                        <b>${escapeHTML(ev.title)}</b>
-                        <small>${escapeHTML([ev.subject, dayWord(date, today), older && `+${older} mai ${older === 1 ? "veche" : "vechi"}`].filter(Boolean).join(" · "))}</small>
-                    </button>
-                    <span class="azi-item-actions">
-                        ${grade && canGradeOccurrence(ev, date, links) ? `<button type="button" class="btn btn-primary btn-sm" data-action="event-grade" data-id="${escapeHTML(ev.id)}" data-date="${date}">${icon("plus")} Notă</button>` : ""}
-                        <button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${escapeHTML(ev.id)}" data-date="${date}"
-                            title="${grade ? "Marchează ca încheiat fără notă" : "Marchează ca făcut"}">${icon("check")} ${grade ? "Fără notă" : "Făcut"}</button>
-                    </span>
-                    ${grade && canGradeOccurrence(ev, date, links) ? `
-                    <div class="azi-quick-grade" role="group" aria-label="${escapeHTML(`Ce ai luat la ${ev.title}?`)}">
-                        <span>Ce ai luat?</span>
-                        ${[4, 5, 6, 7, 8, 9, 10].map(v => `<button type="button" class="qg-btn tone-${gradeTone(v)}" data-action="event-quick-grade" data-id="${escapeHTML(ev.id)}" data-date="${date}" data-val="${v}" aria-label="Nota ${v}">${v}</button>`).join("")}
-                    </div>` : ""}
-                </li>`;
-            }).join("")}</ul>
-            ${missed.length > 5 ? `<p class="azi-more-line">și încă ${missed.length - 5} în Calendar</p>` : ""}`);
+/** Alege ce merită făcut acum, în ordinea: o notă de scris, un test azi/mâine, o sesiune din plan, o temă pentru mâine, o materie la risc. */
+function homeNextStep(days, todo, links) {
+    const { today } = days;
+    const tomorrow = addDays(today, 1);
+    const hour = new Date().getHours();
+    const toGrade = todo.missed.find(o => NEEDS_GRADE.has(o.ev.type) && canGradeOccurrence(o.ev, o.date, links));
+    if (toGrade) return { kind: "grade", occ: toGrade, key: occKey(toGrade) };
+    const testSoon = todo.tests.find(o => o.date === today || o.date === tomorrow);
+    const planToday = state.plan.prefs.setup ? planItemsOn(today).filter(it => !it.done) : [];
+    if (testSoon && !(testSoon.date === today && hour >= 15)) {
+        const session = planToday.find(it => it.mat === testSoon.ev.subject);
+        return { kind: "test", occ: testSoon, key: occKey(testSoon), session };
     }
-    if (homework.length) {
-        groups.push(`
-            <h4 class="azi-group">Teme de predat</h4>
-            <ul class="azi-list">${homework.map(({ ev, date }) => `
-                <li class="azi-item">
-                    <button type="button" class="azi-check" data-action="event-done" data-id="${escapeHTML(ev.id)}" data-date="${date}"
-                        aria-pressed="false" title="Bifează ca făcută" aria-label="${escapeHTML(`Făcută: ${ev.title}`)}"></button>
-                    <button type="button" class="azi-item-main" data-action="cal-goto" data-date="${date}">
-                        <b>${escapeHTML(ev.title)}</b>
-                        <small>${escapeHTML([ev.subject, ev.time].filter(Boolean).join(" · ") || "Temă")}</small>
-                    </button>
-                    <span class="azi-when ${date === today ? "is-today" : ""}">${escapeHTML(dayWord(date, today).split(",")[0])}</span>
-                </li>`).join("")}</ul>`);
-    }
-    if (tests.length) {
-        groups.push(`
-            <h4 class="azi-group">Teste și evaluări</h4>
-            <ul class="azi-list">${tests.map(({ ev, date }) => {
-                const n = daysBetween(today, date);
-                return `
-                <li class="azi-item">
-                    <span class="azi-count ${n <= 2 ? "is-near" : ""}" aria-hidden="true"><b>${n === 0 ? "azi" : n}</b>${n === 0 ? "" : `<small>${n === 1 ? "zi" : "zile"}</small>`}</span>
-                    <button type="button" class="azi-item-main" data-action="cal-goto" data-date="${date}">
-                        <b>${escapeHTML(ev.title)}</b>
-                        <small>${escapeHTML([ev.type, ev.subject, `${dayWord(date, today)}${ev.time ? `, ${ev.time}` : ""}`].filter(Boolean).join(" · "))}</small>
-                    </button>
-                    ${state.subjects[ev.subject] ? `<button type="button" class="btn btn-text btn-sm" data-action="open-in-sim" data-mat="${escapeHTML(ev.subject)}" title="Ce notă îți trebuie? (Simulator)" aria-label="${escapeHTML(`Ce notă îmi trebuie la ${ev.subject}`)}">${icon("target")} <span class="azi-btn-label">Ce-mi trebuie</span></button>` : ""}
-                </li>`;
-            }).join("")}</ul>`);
-    }
-    return head + groups.join("");
+    if (planToday.length) return { kind: "plan", item: planToday[0], left: planToday.length };
+    const hw = todo.homework.find(o => o.date === today || o.date === tomorrow);
+    if (hw) return { kind: "homework", occ: hw, key: occKey(hw) };
+    const risk = Object.keys(state.subjects)
+        .filter(m => metrics.subjects[m]?.statusClass === "badge-danger")
+        .sort((a, b) => metrics.subjects[a].exactAvg - metrics.subjects[b].exactAvg)[0];
+    if (risk) return { kind: "risk", mat: risk };
+    if (todo.tests[0]) return { kind: "upcoming", occ: todo.tests[0], key: occKey(todo.tests[0]) };
+    return { kind: "clear" };
 }
 
+function homeNextHTML(step, today) {
+    if (!Object.keys(state.subjects).length) return "";
+    const b = (action, label, ic, cls = "btn-glass", data = "") => `<button type="button" class="btn ${cls} btn-sm" data-action="${action}" ${data}>${icon(ic)} ${label}</button>`;
+    const dataOcc = o => `data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}"`;
+    const subjBtn = mat => state.subjects[mat] ? b("open-subject", `Notițele de ${escapeHTML(shortSubjectName(mat))}`, "pen", "btn-glass", `data-mat="${escapeHTML(mat)}"`) : "";
+    let emoji = "✨", kicker = "", title = "", text = "", actions = "", tone = "";
+    if (step.kind === "grade") {
+        const { ev, date } = step.occ;
+        emoji = "📝"; tone = "is-warm"; kicker = `${ev.type === "Examen" ? "Examenul" : ev.type === "Test" ? "Testul" : "Evaluarea"} de ${dayWord(date, today)}`;
+        title = `Ce ai luat la „${escapeHTML(ev.title)}”?`;
+        text = "Scrie nota și îți refac media pe loc.";
+        actions = `<div class="azi-quick-grade is-big" role="group" aria-label="${escapeHTML(`Nota la ${ev.title}`)}">${[4, 5, 6, 7, 8, 9, 10].map(v => `<button type="button" class="qg-btn tone-${gradeTone(v)}" data-action="event-quick-grade" ${dataOcc(step.occ)} data-val="${v}" aria-label="Nota ${v}">${v}</button>`).join("")}</div>
+            <div class="azi-next-actions">${b("event-grade", "Altă notă", "plus", "btn-glass", dataOcc(step.occ))}${b("event-done", "N-am primit notă", "check", "btn-text", dataOcc(step.occ))}</div>`;
+    } else if (step.kind === "test" || step.kind === "upcoming") {
+        const { ev, date } = step.occ;
+        const n = daysBetween(today, date);
+        emoji = n <= 1 ? "🎯" : "🗓️"; tone = n <= 1 ? "is-hot" : "";
+        kicker = n === 0 ? "Azi" : n === 1 ? "Mâine" : `În ${n} zile`;
+        title = `${escapeHTML(ev.type)}${ev.subject ? ` la ${escapeHTML(ev.subject)}` : `: ${escapeHTML(ev.title)}`}${ev.time ? ` · ${escapeHTML(ev.time)}` : ""}`;
+        const d = metrics.subjects[ev.subject];
+        text = n <= 1
+            ? (d && state.subjects[ev.subject].grades.length ? `Media acum e ${d.exactAvg.toFixed(2)}. Recapitulează ce ai notat și vezi de ce notă ai nevoie.` : "Recapitulează ce ai notat la materia asta.")
+            : "Cel mai important test din următoarele două săptămâni.";
+        actions = `<div class="azi-next-actions">
+            ${step.session ? b("focus-start", `Începe recapitularea · ${step.session.min} min`, "timer", "btn-primary", `data-id="${escapeHTML(step.session.id)}"`) : ""}
+            ${state.subjects[ev.subject] ? b("open-in-sim", "Ce notă îmi trebuie", "target", step.session ? "btn-glass" : "btn-primary", `data-mat="${escapeHTML(ev.subject)}"`) : ""}
+            ${subjBtn(ev.subject)}
+        </div>`;
+    } else if (step.kind === "plan") {
+        const it = step.item, k = PLAN_KINDS[it.kind] || {};
+        emoji = "⏱️"; kicker = "Din planul de azi";
+        title = `${escapeHTML(it.mat)} · ${escapeHTML((k.label || "sesiune").toLocaleLowerCase("ro"))} ${it.min} min`;
+        text = it.reason ? `De ce acum: ${escapeHTML(it.reason)}.` : (step.left > 1 ? `Mai ai ${plural(step.left, "sesiune", "sesiuni")} azi.` : "Ultima sesiune de azi.");
+        actions = `<div class="azi-next-actions">${b("focus-start", "Începe acum", "timer", "btn-primary", `data-id="${escapeHTML(it.id)}"`)}${subjBtn(it.mat)}</div>`;
+    } else if (step.kind === "homework") {
+        const { ev, date } = step.occ;
+        emoji = "📚"; kicker = date === today ? "De predat azi" : "De predat mâine";
+        title = escapeHTML(ev.title);
+        text = ev.description ? escapeHTML(ev.description.slice(0, 140)) : (ev.subject ? escapeHTML(ev.subject) : "");
+        actions = `<div class="azi-next-actions">${b("event-done", "Am făcut-o", "check", "btn-primary", dataOcc(step.occ))}${subjBtn(ev.subject)}</div>`;
+    } else if (step.kind === "risk") {
+        const d = metrics.subjects[step.mat];
+        emoji = "🛟"; tone = "is-warm"; kicker = "Are nevoie de tine";
+        title = `${escapeHTML(step.mat)} e la ${d.exactAvg.toFixed(2)}`;
+        text = `Sub pragul tău de ${state.settings.calc.riskThreshold.toFixed(2)}. Vezi ce note te scot din risc.`;
+        actions = `<div class="azi-next-actions">${b("open-in-sim", "Ce notă îmi trebuie", "target", "btn-primary", `data-mat="${escapeHTML(step.mat)}"`)}${subjBtn(step.mat)}</div>`;
+    } else {
+        emoji = "🌤️"; kicker = "Ești la zi";
+        title = "Nimic urgent acum";
+        text = "Nicio notă de scris, niciun test în următoarele două săptămâni. Bun moment să-ți recitești notițele.";
+        actions = `<div class="azi-next-actions">${b("nav", "Vezi materiile", "notebook", "btn-glass", `data-tab="tab-catalog"`)}</div>`;
+    }
+    return `
+        <div class="azi-next ${tone}">
+            <span class="azi-next-emoji" aria-hidden="true">${emoji}</span>
+            <div class="azi-next-body">
+                <p class="azi-next-kicker">Următorul pas · ${escapeHTML(kicker)}</p>
+                <h3 id="azi-next-title" class="azi-next-title">${title}</h3>
+                ${text ? `<p class="azi-next-text">${text}</p>` : ""}
+                ${actions}
+            </div>
+        </div>`;
+}
 
+/* ---------- de făcut: pe zile (întârziate, azi, mâine, mai încolo) ---------- */
+function homeTodoHTML({ missed, homework, tests }, links, today, skip = "") {
+    const tomorrow = addDays(today, 1);
+    const rows = [];
+    missed.forEach(o => rows.push({ o, when: "late", sort: o.date, kind: NEEDS_GRADE.has(o.ev.type) ? "grade" : "late" }));
+    homework.forEach(o => rows.push({ o, when: o.date === today ? "today" : o.date === tomorrow ? "tomorrow" : "later", sort: o.date, kind: "homework" }));
+    tests.forEach(o => rows.push({ o, when: o.date === today ? "today" : o.date === tomorrow ? "tomorrow" : "later", sort: o.date, kind: "test" }));
+    const list = rows.filter(r => occKey(r.o) !== skip);
+    const total = rows.length;
+    const head = homeCardHead("azi-todo-title", "check-circle", "De făcut", total ? `<span class="cat-count">${total}</span>` : "");
+    if (!list.length) {
+        return `${head}<p class="azi-empty">${icon("sparkles")} ${total ? "Doar ce e mai sus. În rest, ești la zi." : "Nimic de făcut acum: nicio temă în următoarele 7 zile, niciun test în următoarele două săptămâni."}</p>`;
+    }
+    const GROUPS = [["late", "Au trecut — completează"], ["today", "Azi"], ["tomorrow", "Mâine"], ["later", "Mai încolo"]];
+    const rowHTML = ({ o: { ev, date, older }, kind }) => {
+        const id = escapeHTML(ev.id);
+        const main = `
+            <button type="button" class="azi-item-main" data-action="cal-goto" data-date="${date}">
+                <b>${escapeHTML(ev.title)}</b>
+                <small>${escapeHTML([ev.type !== "Temă" || kind !== "homework" ? ev.type : "", ev.subject, kind === "later" || kind === "test" || kind === "homework" ? `${dayWord(date, today)}${ev.time ? `, ${ev.time}` : ""}` : dayWord(date, today), older && `+${older} mai ${older === 1 ? "veche" : "vechi"}`].filter(Boolean).join(" · "))}</small>
+            </button>`;
+        if (kind === "homework") {
+            return `<li class="azi-item"><button type="button" class="azi-check" data-action="event-done" data-id="${id}" data-date="${date}" aria-pressed="false" title="Bifează ca făcută" aria-label="${escapeHTML(`Făcută: ${ev.title}`)}"></button>${main}</li>`;
+        }
+        if (kind === "test") {
+            const n = daysBetween(today, date);
+            return `<li class="azi-item">
+                <span class="azi-count ${n <= 2 ? "is-near" : ""}" aria-hidden="true"><b>${n === 0 ? "azi" : n}</b>${n === 0 ? "" : `<small>${n === 1 ? "zi" : "zile"}</small>`}</span>
+                ${main}
+                ${state.subjects[ev.subject] ? `<button type="button" class="btn btn-text btn-sm" data-action="open-in-sim" data-mat="${escapeHTML(ev.subject)}" title="Ce notă îți trebuie? (Simulator)" aria-label="${escapeHTML(`Ce notă îmi trebuie la ${ev.subject}`)}">${icon("target")} <span class="azi-btn-label">Ce-mi trebuie</span></button>` : ""}
+            </li>`;
+        }
+        const grade = kind === "grade";
+        const canGrade = grade && canGradeOccurrence(ev, date, links);
+        return `<li class="azi-item is-missed">
+            <i class="ev-dot ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}" aria-hidden="true"></i>
+            ${main}
+            <span class="azi-item-actions">
+                ${canGrade ? `<button type="button" class="btn btn-primary btn-sm" data-action="event-grade" data-id="${id}" data-date="${date}">${icon("plus")} Notă</button>` : ""}
+                <button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${id}" data-date="${date}" title="${grade ? "Marchează ca încheiat fără notă" : "Marchează ca făcut"}">${icon("check")} ${grade ? "Fără notă" : "Făcut"}</button>
+            </span>
+        </li>`;
+    };
+    const groups = GROUPS.map(([g, label]) => {
+        const items = list.filter(r => r.when === g).sort((a, b) => a.sort.localeCompare(b.sort));
+        if (!items.length) return "";
+        const cap = g === "later" ? 4 : g === "late" ? 5 : 99;
+        return `
+            <h4 class="azi-group ${g === "late" ? "is-late" : ""}">${label}</h4>
+            <ul class="azi-list">${items.slice(0, cap).map(rowHTML).join("")}</ul>
+            ${items.length > cap ? `<button type="button" class="btn btn-text btn-sm azi-more-btn" data-action="nav" data-tab="tab-calendar">și încă ${items.length - cap} în Calendar →</button>` : ""}`;
+    }).join("");
+    return head + groups;
+}
 
+/* ---------- săptămâna ta: ce s-a întâmplat și ce urmează ---------- */
+function gpaOn(date) {
+    const subset = Object.fromEntries(Object.entries(state.subjects).map(([mat, sub]) => [mat, { ...sub, grades: sub.grades.filter(g => g.date && g.date <= date) }]));
+    return calculateMetrics(subset).rawGlobalAvg;
+}
 
-
-
+function homeWeekHTML(today, links = gradeLinks()) {
+    if (!Object.keys(state.subjects).length) return "";
+    const wd = parseDateKey(today).getDay();
+    // luni și marți arătăm săptămâna trecută întreagă (recapitulare); de miercuri, săptămâna în curs
+    const recap = wd === 1 || wd === 2;
+    const from = recap ? addDays(weekStart(today), -7) : weekStart(today);
+    const to = recap ? addDays(from, 6) : today;
+    const grades = [];
+    Object.entries(state.subjects).forEach(([mat, sub]) => sub.grades.forEach(g => { if (g.date && g.date >= from && g.date <= to) grades.push({ mat, val: Number(g.val) }); }));
+    const avg = grades.length ? grades.reduce((n, g) => n + g.val, 0) / grades.length : 0;
+    const best = grades.reduce((m, g) => (!m || g.val > m.val ? g : m), null);
+    const before = gpaOn(addDays(from, -1)), after = recap ? gpaOn(to) : metrics.rawGlobalAvg;
+    const delta = before > 0 && after > 0 ? after - before : null;
+    const occ = occurrencesBetween(from, to).filter(o => o.ev.type !== "Personal");
+    const doneOcc = occ.filter(o => isOccurrenceDone(o.ev, o.date, links)).length;
+    const planItems = state.plan.prefs.setup ? state.plan.items.filter(it => it.date >= from && it.date <= to) : [];
+    const planDone = planItems.filter(it => it.done);
+    const nextFrom = recap ? weekStart(today) : addDays(weekStart(today), 7);
+    const nextTests = occurrencesBetween(nextFrom, addDays(nextFrom, 6)).filter(o => NEEDS_GRADE.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links));
+    const stat = (value, label, sub = "") => `<div class="week-stat"><b>${value}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ""}</div>`;
+    const deltaHTML = delta === null ? "–" : `<span class="${delta > 0.004 ? "is-up" : delta < -0.004 ? "is-down" : ""}">${delta > 0.004 ? "▲" : delta < -0.004 ? "▼" : "="} ${Math.abs(delta).toFixed(2)}</span>`;
+    const line = grades.length
+        ? `${plural(grades.length, "notă nouă", "note noi")}, media lor ${avg.toFixed(2)}${best ? `; cea mai bună: ${best.val} la ${shortSubjectName(best.mat)}` : ""}.`
+        : recap ? "Nicio notă nouă săptămâna trecută." : "Nicio notă nouă săptămâna asta, deocamdată.";
+    return `
+        ${homeCardHead("azi-week-title", "chart", recap ? "Săptămâna trecută" : "Săptămâna asta", `<span class="subtitle">${escapeHTML(`${shortDayLabel(from)} – ${shortDayLabel(to)}`)}</span>`)}
+        <p class="week-line">${escapeHTML(line)}</p>
+        <div class="week-stats">
+            ${stat(grades.length, grades.length === 1 ? "notă" : "note")}
+            ${stat(deltaHTML, "media generală", delta === null ? "" : `acum ${after.toFixed(2)}`)}
+            ${stat(`${doneOcc}/${occ.length}`, "teste și teme", "încheiate")}
+            ${planItems.length ? stat(`${planDone.length}/${planItems.length}`, "sesiuni", `${planDone.reduce((n, it) => n + it.min, 0)} min`) : ""}
+        </div>
+        <p class="week-next">${icon("calendar")} ${nextTests.length
+            ? `${recap ? "Săptămâna asta" : "Săptămâna viitoare"}: ${escapeHTML(nextTests.slice(0, 3).map(o => o.ev.subject ? shortSubjectName(o.ev.subject) : o.ev.title).join(", "))}${nextTests.length > 3 ? ` și încă ${nextTests.length - 3}` : ""} (${plural(nextTests.length, "evaluare", "evaluări")}).`
+            : `${recap ? "Săptămâna asta" : "Săptămâna viitoare"} n-ai nicio evaluare în calendar.`}</p>`;
+}
 
 function formatActivityTime(act) {
     if (!act.ts) return act.time || "";

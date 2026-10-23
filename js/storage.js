@@ -126,7 +126,8 @@ function sanitizeSettings(raw) {
         },
         remind: {
             on: s.remind?.on === true,
-            time: REMIND_TIMES.includes(s.remind?.time) ? s.remind.time : "19:00"
+            time: REMIND_TIMES.includes(s.remind?.time) ? s.remind.time : "19:00",
+            ahead: s.remind?.ahead !== false
         },
         modules: sanitizeModules(s.modules),
         report: {

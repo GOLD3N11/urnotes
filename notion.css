@@ -230,3 +230,19 @@ body.style-notion .crumb-sep { color: color-mix(in srgb, var(--ink-2) 60%, trans
 .emoji-opt.is-on { box-shadow: inset 0 0 0 2px var(--accent-color); }
 body.style-notion .cat-title-row .cat-status { display: none; }
 @media (min-width: 901px) { body.style-notion .cat-back { display: none; } }
+/* Azi: următorul pas ca un „callout” Notion */
+body.style-notion .azi-next { border-radius: 6px; background: #F1F1EF; border-color: transparent; }
+body.style-notion .azi-next.is-hot { background: #FBF3DB; }
+body.style-notion .azi-next.is-warm { background: #FDEBEC; }
+body.style-notion.dark-mode .azi-next { background: #2C2C2C; }
+body.style-notion.dark-mode .azi-next.is-hot { background: #3B3020; }
+body.style-notion.dark-mode .azi-next.is-warm { background: #3E2726; }
+body.style-notion .azi-next-title { font-family: var(--font-ui); font-weight: 700; font-size: 19px; }
+body.style-notion .azi-next-kicker { text-transform: none; letter-spacing: 0; font-weight: 500; }
+body.style-notion .week-stat { border-radius: 6px; }
+body.style-notion .week-stat .is-up { color: #2F6A4A; } body.style-notion .week-stat .is-down { color: #B03A35; }
+body.style-notion.dark-mode .week-stat .is-up { color: #7BC59A; } body.style-notion.dark-mode .week-stat .is-down { color: #F28B85; }
+body.style-notion .azi-group.is-late { color: #B03A35; }
+body.style-notion.dark-mode .azi-group.is-late { color: #F28B85; }
+body.style-notion .catalog-layout:not(.show-detail) .cat-list-pane { max-width: none; }
+@media (max-width: 600px) { body.style-notion .page-emoji { font-size: 44px; } body.style-notion .subj-emoji-btn { width: 64px; height: 64px; font-size: 50px; } }

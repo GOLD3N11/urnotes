@@ -708,3 +708,52 @@ body.dark-mode .s-todo.db-status { color: #B5B4B0; } body.dark-mode .s-doing.db-
 @media (max-width: 900px), (hover: none) { .nb-tools { display: none; } }
 .nb-editor { padding-left: 0; }
 @media (min-width: 901px) and (max-width: 1199px) { .side-row-add { display: none; } .side-row .tab-btn.side-link { padding-right: 4px; } }
+
+/* --- Azi: următorul pas (un singur lucru important) --- */
+.azi-next-wrap { display: block; }
+.azi-next {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; padding: 18px 20px;
+    background: color-mix(in srgb, var(--c-accent) 10%, var(--sheet)); border: 1px solid color-mix(in srgb, var(--c-accent) 26%, var(--rule)); border-radius: 18px;
+}
+.azi-next.is-hot { background: color-mix(in srgb, var(--c-sun) 22%, var(--sheet)); border-color: color-mix(in srgb, var(--c-sun) 50%, var(--rule)); }
+.azi-next.is-warm { background: color-mix(in srgb, var(--c-tomato) 12%, var(--sheet)); border-color: color-mix(in srgb, var(--c-tomato) 32%, var(--rule)); }
+.azi-next-emoji { font-size: 34px; line-height: 1; padding-top: 2px; }
+.azi-next-kicker { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); }
+.azi-next-title { margin: 0; font-family: var(--font-hand); font-size: 21px; font-weight: 800; line-height: 1.25; color: var(--ink); }
+.azi-next-text { margin: 4px 0 0; font-size: 14.5px; color: var(--ink-2); }
+.azi-next-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.azi-quick-grade.is-big { margin: 12px 0 0; gap: 6px; }
+.azi-quick-grade.is-big .qg-btn { min-width: 42px; height: 42px; font-size: 17px; }
+.azi-group.is-late { color: var(--risk); }
+.azi-more-btn { margin: 2px 0 6px; }
+@media (max-width: 600px) {
+    .azi-next { padding: 14px 14px 16px; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+    .azi-next-emoji { font-size: 28px; }
+    .azi-next-title { font-size: 19px; }
+    .azi-quick-grade.is-big { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .azi-quick-grade.is-big .qg-btn { min-width: 0; width: 100%; }
+}
+
+/* --- Azi: săptămâna ta --- */
+.week-line { margin: 2px 0 12px; font-size: 14.5px; color: var(--ink); }
+.week-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+.week-stat { display: grid; gap: 1px; padding: 10px 12px; border-radius: 12px; background: var(--input-bg); }
+.week-stat b { font-size: 20px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+.week-stat span { font-size: 13px; color: var(--ink); }
+.week-stat small { font-size: 12px; color: var(--ink-2); }
+.week-stat .is-up { color: #23703D; } .week-stat .is-down { color: var(--risk); }
+body.dark-mode .week-stat .is-up { color: #7BC59A; }
+.week-next { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.week-next .ico { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+
+/* --- Lustruire --- */
+/* Note: legăturile spre Progres / Ce-ar fi dacă / Examene încap toate, fără derulare laterală */
+@media (max-width: 600px) {
+    .note-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 8px; }
+    .note-link { min-width: 0; padding: 10px 12px; gap: 10px; }
+    .note-link:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .note-link .ico { width: 34px; height: 34px; padding: 7px; }
+    .note-link b { font-size: 14px; }
+}
+/* lista de materii: o pagină, nu o cutie cu derulare proprie */
+.catalog-layout .cat-list-pane { position: static; max-height: none; }

@@ -4,7 +4,7 @@
 "use strict";
 
 const PAGE_EMOJI = {
-    "tab-dashboard": "☀️", "tab-calendar": "📅", "tab-catalog": "📒", "tab-plan": "🗓️",
+    "tab-dashboard": "☀️", "tab-calendar": "🗓️", "tab-catalog": "📒", "tab-plan": "⏱️",
     "tab-statistici": "📈", "tab-simulator": "🔮", "tab-examene": "🎓", "tab-setari": "⚙️"
 };
 

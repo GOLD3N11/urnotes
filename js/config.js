@@ -210,7 +210,7 @@ const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
     calc: { method: "arithmetic", rounding: "2", riskThreshold: 8, riskDrop: 0.5, rev: 2 },
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
-    remind: { on: false, time: "19:00" },
+    remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
     appearance: { theme: "system", accent: "violet", style: "notion" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5

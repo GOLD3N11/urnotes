@@ -2798,8 +2798,11 @@ kbd {
 @media (max-width: 1120px) {
     .azi-col { display: contents; }
     
-    .azi-day { order: 2; }
-    .azi-todo { order: 3; }
+    .azi-next-wrap { order: 1; }
+    .azi-todo { order: 2; }
+    .azi-day { order: 3; }
+    .azi-plan { order: 4; }
+    .azi-week { order: 5; }
     
     
     

@@ -203,7 +203,7 @@ function bindEvents() {
     document.addEventListener("change", event => {
         const el = event.target;
         if (!el.closest?.("#tab-setari") || !el.matches("input, select") || el.type === "file") return;
-        if (el.id === "set-remind-on" || el.id === "set-remind-time") {
+        if (el.id === "set-remind-on" || el.id === "set-remind-time" || el.id === "set-remind-ahead") {
             if (!canEdit()) { renderReminderSetting(); requireAccount(); return; }
             saveReminderSetting();
             return;

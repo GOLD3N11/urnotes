@@ -25,11 +25,19 @@ function reminderDigest(today = getLocalDateKey()) {
     const links = gradeLinks();
     const events = occurrencesBetween(tomorrow, until).filter(o => !isOccurrenceDone(o.ev, o.date, links));
     const plan = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === today && !it.done) : [];
-    if (!events.length && !plan.length) return null;
+    // din timp: testele de peste 2-3 zile, ca să apuci să recapitulezi
+    const ahead = state.settings.remind?.ahead !== false
+        ? occurrencesBetween(addDays(until, 1), addDays(today, 3)).filter(o => EXAM_TYPES.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links))
+        : [];
+    // testele trecute care încă așteaptă nota (doar ultimele 7 zile)
+    const ungraded = occurrencesBetween(addDays(today, -7), today)
+        .filter(o => NEEDS_GRADE.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links) && canGradeOccurrence(o.ev, o.date, links));
+    if (!events.length && !plan.length && !ahead.length && !ungraded.length) return null;
 
+    const label = ev => ev.subject && EXAM_TYPES.has(ev.type) ? `${ev.type.toLocaleLowerCase("ro")} la ${shortSubjectName(ev.subject)}` : ev.title;
     const lines = [];
     const byDay = new Map();
-    events.forEach(o => byDay.set(o.date, [...(byDay.get(o.date) || []), o.ev.title]));
+    events.forEach(o => byDay.set(o.date, [...(byDay.get(o.date) || []), label(o.ev)]));
     byDay.forEach((titles, date) => {
         const when = date === tomorrow ? "Mâine" : WEEKDAY_LONG[parseDateKey(date).getDay()];
         lines.push(`${when}: ${titles.slice(0, 3).join(", ")}${titles.length > 3 ? ` și încă ${titles.length - 3}` : ""}.`);
@@ -38,9 +46,20 @@ function reminderDigest(today = getLocalDateKey()) {
         const min = plan.reduce((n, it) => n + it.min, 0);
         lines.push(`Din planul de azi mai ai ${plural(plan.length, "sesiune", "sesiuni")} (${min} min).`);
     }
-    const exam = events.some(o => EXAM_TYPES.has(o.ev.type));
-    const title = exam ? "Ai un test în curând" : events.length ? "Pentru mâine" : "Planul de azi";
-    return { title, body: lines.join(" "), exam, count: events.length, plan: plan.length, until };
+    if (ahead.length) {
+        const o = ahead[0];
+        lines.push(`${capitalize(WEEKDAY_LONG[parseDateKey(o.date).getDay()].toLocaleLowerCase("ro"))} ai ${label(o.ev)}${ahead.length > 1 ? ` (și încă ${ahead.length - 1})` : ""}: începe să recapitulezi de acum.`);
+    }
+    if (ungraded.length) lines.push(ungraded.length === 1 ? `Scrie nota de la „${ungraded[0].ev.title}”.` : `${ungraded.length} teste așteaptă nota.`);
+    const examTomorrow = events.find(o => EXAM_TYPES.has(o.ev.type) && o.date === tomorrow);
+    const exam = events.some(o => EXAM_TYPES.has(o.ev.type)) || ahead.length > 0;
+    const title = examTomorrow ? `Mâine: ${label(examTomorrow.ev)}`
+        : events.some(o => EXAM_TYPES.has(o.ev.type)) ? "Ai un test în curând"
+        : events.length ? "Pentru mâine"
+        : plan.length ? "Planul de azi"
+        : ahead.length ? "Un test se apropie"
+        : "O notă de scris";
+    return { title: capitalize(title), body: lines.join(" "), exam, count: events.length, plan: plan.length, until };
 }
 
 async function showSystemNotification(d) {
@@ -157,6 +176,10 @@ function renderReminderSetting() {
             <input type="checkbox" id="set-remind-on" ${r.on ? "checked" : ""}>
             <span><b>Amintește-mi seara ce am a doua zi</b><small>teste, teme și ce a rămas din planul zilei</small></span>
         </label>
+        <label class="remind-toggle mt-2">
+            <input type="checkbox" id="set-remind-ahead" ${r.ahead !== false ? "checked" : ""} ${r.on ? "" : "disabled"}>
+            <span><b>Și cu 2-3 zile înainte de un test</b><small>ca să apuci să recapitulezi; plus notele pe care n-ai apucat să le scrii</small></span>
+        </label>
         <div class="form-group mt-3">
             <label for="set-remind-time">La ce oră</label>
             <select id="set-remind-time" class="glass-select" ${r.on ? "" : "disabled"}>
@@ -173,6 +196,7 @@ function saveReminderSetting() {
     const r = state.settings.remind;
     const wasOn = r.on;
     r.on = Boolean($("set-remind-on")?.checked);
+    if ($("set-remind-ahead")) r.ahead = Boolean($("set-remind-ahead").checked);
     r.time = REMIND_TIMES.includes(field("set-remind-time")) ? field("set-remind-time") : r.time;
     // Pornită acum, după ora aleasă: nu-ți dăm imediat amintirea de azi (ai văzut deja ce ai, ești chiar aici)
     if (r.on && !wasOn && hhmm() >= r.time) markRemindShown(getLocalDateKey());

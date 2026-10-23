@@ -30,6 +30,7 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 Trei pagini principale: **Azi**, **Note** și **Calendar** (plus „+” pentru adăugare și „Eu” pentru cont și setări).
 Restul sunt sub-pagini, cu buton „înapoi”: **Plan** (din Azi), **Progresul tău**, **Ce-ar fi dacă** și **Examene** (din Note), **Setări**.
+Pe **Azi**: „Următorul pas” (un singur lucru important acum: o notă de scris, testul de mâine, sesiunea din plan, tema de predat sau materia la risc), apoi „De făcut” pe zile (au trecut, azi, mâine, mai încolo) și „Săptămâna asta” (luni și marți: recapitularea săptămânii trecute). Amintirea de seară poate anunța și testele de peste 2-3 zile.
 În **Calendar**, testele și temele se pot vedea și ca **Tabel** (rânduri cu tip, materie, dată, stare) sau **Panou** (coloane De făcut · În lucru · Gata; tragi o carte ca să-i schimbi starea).
 O sub-pagină se înregistrează cu `parent`: `registerTab("tab-…", { …, parent: "tab-catalog" })`.
 
