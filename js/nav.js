@@ -169,16 +169,24 @@ function openQuickAdd(anchor) {
     quickAddReturn = anchor || document.activeElement;
     box.hidden = false;
     $("quick-add-btn")?.setAttribute("aria-expanded", "true");
-    // Pe ecrane mari, meniul apare sub butonul „Adaugă”; pe telefon e o foaie care urcă de jos.
+    // Pe ecrane mari, meniul apare lângă butonul apăsat: în dreapta celui din meniul lateral, sub cel din bara de sus.
+    // Pe telefon e o foaie care urcă de jos.
     const card = box.querySelector(".quick-add-card");
-    const btn = $("quick-add-btn");
-    if (btn && btn.offsetParent !== null && window.innerWidth > 900) {
+    const visible = el => el && el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0;
+    const btn = [anchor, document.querySelector(".side-add"), $("quick-add-btn")].find(el => el?.closest && visible(el) && !el.closest("#quick-add"));
+    card.style.top = card.style.right = card.style.left = card.style.bottom = "";
+    card.classList.remove("is-side");
+    if (btn && window.innerWidth > 900) {
         const r = btn.getBoundingClientRect();
-        card.style.top = `${Math.round(r.bottom + 8)}px`;
-        card.style.right = `${Math.round(window.innerWidth - r.right)}px`;
-    } else {
-        card.style.top = "";
-        card.style.right = "";
+        const h = card.offsetHeight || 360, gap = 8, pad = 12;
+        if (btn.closest(".sidebar")) {
+            card.classList.add("is-side");
+            card.style.left = `${Math.round(r.right + gap + 4)}px`;
+            card.style.top = `${Math.round(Math.max(pad, Math.min(r.top - 8, window.innerHeight - h - pad)))}px`;
+        } else {
+            card.style.top = `${Math.round(Math.min(r.bottom + gap, window.innerHeight - h - pad))}px`;
+            card.style.right = `${Math.round(window.innerWidth - r.right)}px`;
+        }
     }
     box.querySelector(".qa-item")?.focus();
 }
@@ -334,7 +342,7 @@ function bindShellEvents() {
             return;
         }
         if (modalOpen || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
-        if (k.toLowerCase() === "n") { event.preventDefault(); openQuickAdd($("quick-add-btn")); }
+        if (k.toLowerCase() === "n") { event.preventDefault(); openQuickAdd(); }
     }, true);
 
     // Închide meniul „Adaugă” la redimensionare (poziția lui depinde de buton).

@@ -1,7 +1,7 @@
 /* urNotes — lucru fără internet.
    Fișierele aplicației: mai întâi rețeaua (ca să primești mereu ultima versiune), copia salvată doar când nu e semnal.
    Fonturile și Chart.js: copia salvată imediat, actualizată în fundal. Firebase nu trece pe aici. */
-const CACHE = "urnotes-v6";
+const CACHE = "urnotes-v7";
 const APP_JS = ["js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/sidetree.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "js/state.js", "js/boot.js", "js/main.js"];
 const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "notion.css", "cloud.js", "firebase-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
 const REMIND_CACHE = "urnotes-remind"; // amintirile scrise de aplicație (vezi checkReminder în js/reminders.js)
