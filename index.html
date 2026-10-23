@@ -138,6 +138,17 @@
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
         <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/></symbol>
     </svg>
+    <!-- Ecranul de pornire (o dată pe sesiune): post-it-ul urNotes se lipește, apoi aplicația -->
+    <div id="splash" class="splash" aria-hidden="true">
+        <div class="splash-inner">
+            <svg class="splash-logo" viewBox="0 0 64 64"><use href="#i-logo"/></svg>
+            <b class="brand-name splash-name"><span class="brand-ur">ur</span>Notes</b>
+            <small class="splash-tag">notele tale, cu un coleg de bancă</small>
+        </div>
+    </div>
+    <script>
+        try { if (sessionStorage.getItem("urn_splash_seen")) document.getElementById("splash").remove(); } catch (e) {}
+    </script>
     <script>
         // Aplică tema salvată înainte de prima afișare (evită „flash”-ul alb în dark mode).
         try {
@@ -167,6 +178,7 @@
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar" data-group="calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
             <button type="button" class="side-add" data-action="quick-add" aria-haspopup="menu"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span></button>
         </nav>
+        <div class="side-pal" id="side-pal"></div>
         <div class="side-foot">
             <button type="button" id="account-chip" class="account-chip" data-action="account-open"></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-setari"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span>Setări</span></button>
@@ -370,7 +382,7 @@
                 </div>
 
                 <div id="stats-empty" class="glass-card empty-state" hidden>
-                    <div class="empty-state-icon" aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></div>
+                    <div class="empty-state-icon empty-state-pal" aria-hidden="true" data-pal-mood="worried"></div>
                     <h3>Încă nu sunt statistici</h3>
                     <p>Adaugă materiile și primele note; aici vei vedea media, ce materii au nevoie de atenție și cum evoluezi.</p>
                     <button class="btn btn-primary" type="button" data-action="add-subject">Adaugă materie</button>

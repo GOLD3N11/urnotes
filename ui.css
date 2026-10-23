@@ -385,3 +385,134 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
 .np textarea.np-notes { font-size: 16px !important; }
 /* numărătoarea din „Urmează”: cifra în culoarea evenimentului, dar destul de închisă ca să se citească */
 .cal-countdown b { color: color-mix(in srgb, var(--ev) 62%, var(--ink)); }
+
+/* ==========================================================================
+   MARCA urNotes: post-it-ul și colegul
+   Plăcile importante sunt bilețele lipite (colț îndoit, puțin strâmbe, bandă adezivă pe cel principal),
+   „+” e un post-it, colegul apare în meniu, în mesaje și pe paginile goale.
+   ========================================================================== */
+:root {
+    --note: #FFC93C;          /* post-it-ul mărcii */
+    --note-fold: #E0A21C;
+    --tape: rgba(255, 158, 192, 0.75);
+    --note-ink: #2A1B5C;
+}
+
+/* --- bilețelele (plăcile de pe Azi și din Note) --- */
+.home-tile, .cat-sum {
+    --fold: 22px;
+    background: color-mix(in srgb, var(--tile) 30%, #FFFFFF);
+    border-radius: 6px 6px 6px 6px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%);
+    box-shadow: none;
+    filter: drop-shadow(0 6px 10px rgba(22, 18, 42, 0.10));
+    transform: rotate(var(--tilt, 0deg));
+}
+.home-tile::before, .cat-sum::before {
+    content: ""; position: absolute; right: 0; bottom: 0; width: var(--fold); height: var(--fold);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--tile) 55%, #6B5A2A) 50%, transparent 50%);
+    opacity: 0.55;
+}
+.cat-sum { position: relative; }
+.home-tile::after { display: none; }
+.home-tile:nth-child(2), .cat-sum:nth-child(2) { --tilt: 0.8deg; }
+.home-tile:nth-child(3), .cat-sum:nth-child(3) { --tilt: -0.7deg; }
+.home-tile:nth-child(4) { --tilt: 0.5deg; }
+.home-tile:hover { transform: rotate(0deg) translateY(-3px); box-shadow: none; filter: drop-shadow(0 12px 16px rgba(22, 18, 42, 0.16)); }
+
+/* bilețelul principal: media, pe post-it galben, cu bandă adezivă */
+.home-tile.is-hero, .cat-sum.is-accent {
+    --tile: var(--note); --tilt: -1.2deg;
+    background: var(--note); color: var(--note-ink);
+    overflow: visible;
+}
+.home-tile.is-hero::before, .cat-sum.is-accent::before { background: linear-gradient(135deg, var(--note-fold) 50%, transparent 50%); opacity: 1; }
+.home-tile.is-hero .home-tile-label, .home-tile.is-hero small, .home-tile.is-hero small span,
+.cat-sum.is-accent .kpi-title, .cat-sum.is-accent small { color: color-mix(in srgb, var(--note-ink) 78%, transparent); }
+.home-tile.is-hero small .is-up { color: #13683F; } .home-tile.is-hero small .is-down { color: #9F1D12; }
+.home-tile.is-hero .home-tile-value, .cat-sum.is-accent .cat-sum-value { color: var(--note-ink); }
+.home-tile-wrap { position: relative; }
+.home-tiles { padding-top: 6px; }
+.home-tile.is-hero { margin-top: 4px; }
+body.dark-mode .home-tile:not(.is-hero), body.dark-mode .cat-sum:not(.is-accent) { background: color-mix(in srgb, var(--tile) 26%, var(--sheet)); filter: none; }
+body.dark-mode .home-tile.is-hero, body.dark-mode .cat-sum.is-accent { filter: none; }
+
+/* --- „+” e un post-it --- */
+.mobile-add, .side-add {
+    background: var(--note); color: var(--note-ink);
+    border-radius: 8px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    box-shadow: none; filter: drop-shadow(0 6px 10px rgba(22, 18, 42, 0.18));
+}
+.mobile-add { transform: rotate(-4deg); }
+.side-add { position: relative; }
+.mobile-add::after, .side-add::after {
+    content: ""; position: absolute; right: 0; bottom: 0; width: 12px; height: 12px;
+    background: linear-gradient(135deg, var(--note-fold) 50%, transparent 50%);
+}
+.mobile-add { position: relative; }
+.mobile-add:hover, .side-add:hover { filter: drop-shadow(0 8px 14px rgba(22, 18, 42, 0.24)); }
+
+/* --- marca --- */
+.brand-name { font-family: var(--font-hand); font-weight: 800; letter-spacing: -0.03em; }
+.side-brand-text .brand-name { font-size: 24px; }
+.brand-logo { transition: transform 0.25s ease; }
+.side-brand:hover .brand-logo { transform: rotate(-8deg) scale(1.06); }
+/* sublinierea de pix de sub titluri (ca valul din logo) */
+.page-intro h2, .azi-head h2 { position: relative; padding-bottom: 6px; }
+.page-intro h2::after, .azi-head h2::after {
+    content: ""; position: absolute; left: 2px; bottom: -4px; width: 74px; height: 10px; background: var(--accent-color);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M2 6 Q11 0 20 6 T38 6 T56 6 T72 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M2 6 Q11 0 20 6 T38 6 T56 6 T72 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+    opacity: 0.85;
+}
+
+/* --- colegul în meniu --- */
+.nav-pal { width: 28px; height: 28px; margin: -3px 0 -1px; }
+.side-pal { margin: auto 0 10px; }
+.side-pal-btn {
+    position: relative; display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 2px 10px; width: 100%; padding: 10px 12px 14px;
+    background: color-mix(in srgb, var(--note) 26%, var(--sheet)); border: 0; border-radius: 14px; font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+}
+.side-pal-btn:hover { background: color-mix(in srgb, var(--note) 40%, var(--sheet)); }
+.side-pal-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 40%, transparent); outline-offset: 2px; }
+.side-pal-buddy { width: 44px; height: 44px; grid-row: span 2; }
+.side-pal-text { display: grid; line-height: 1.2; }
+.side-pal-text small { color: var(--ink-2); font-size: 12.5px; }
+.side-pal-bar { position: absolute; left: 12px; right: 12px; bottom: 7px; height: 4px; border-radius: 99px; background: color-mix(in srgb, var(--note-fold) 30%, transparent); overflow: hidden; }
+.side-pal-bar i { display: block; height: 100%; background: var(--accent-color); border-radius: inherit; }
+.side-foot { margin-top: 0; }
+@media (min-width: 901px) and (max-width: 1199px) {
+    .side-pal-btn { grid-template-columns: 1fr; justify-items: center; padding: 8px 4px 12px; }
+    .side-pal-text { display: none; }
+    .side-pal-buddy { grid-row: auto; }
+}
+
+/* --- colegul în mesaje și pe paginile goale --- */
+.toast-pal { flex: none; display: grid; place-items: center; width: 34px; height: 34px; margin: -6px 2px -6px -4px; }
+.toast-buddy { width: 34px; height: 34px; }
+.empty-note { display: flex; align-items: center; gap: 10px; }
+.empty-pal { flex: none; display: grid; }
+.empty-buddy { width: 34px; height: 34px; }
+.empty-state-pal { width: 96px !important; height: 96px !important; background: none !important; }
+.empty-state-pal .buddy { width: 96px; height: 96px; }
+.cat-list-empty { display: grid; justify-items: center; gap: 10px; padding: 26px 16px; text-align: center; }
+.empty-big-buddy { width: 92px; height: 92px; }
+
+/* --- ecranul de pornire --- */
+.splash { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; background: var(--paper, #F3F1FA); transition: opacity 0.4s ease, visibility 0.4s; }
+.splash.is-out { opacity: 0; visibility: hidden; }
+.splash-inner { display: grid; justify-items: center; gap: 6px; }
+.splash-logo { width: 112px; height: 112px; filter: drop-shadow(0 12px 18px rgba(22, 18, 42, 0.18)); }
+.splash-name { font-size: 40px; color: var(--ink, #16122A); }
+.splash-tag { font-size: 14px; color: var(--ink-2, #5E587A); }
+@media (prefers-reduced-motion: no-preference) {
+    .splash-logo { animation: splashStick 0.6s cubic-bezier(.3, 1.5, .5, 1) both; }
+    .splash-name, .splash-tag { animation: splashUp 0.45s ease 0.2s both; }
+}
+@keyframes splashStick { from { transform: translateY(-40px) rotate(-24deg) scale(0.6); opacity: 0; } }
+@keyframes splashUp { from { transform: translateY(8px); opacity: 0; } }
+body.dark-mode .splash { background: #100E19; }
+/* tema întunecată: textul mic de pe bilețele și de pe cartonașul colegului, mai deschis (contrast ≥ 4.5) */
+body.dark-mode .home-tile:not(.is-hero) small, body.dark-mode .cat-sum:not(.is-accent) small { color: color-mix(in srgb, var(--ink) 88%, transparent); }
+body.dark-mode .side-pal-btn { background: color-mix(in srgb, var(--note) 14%, var(--sheet)); }
+body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, transparent); }

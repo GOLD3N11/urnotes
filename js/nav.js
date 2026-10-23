@@ -340,7 +340,10 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
     const toastIcon = warn ? "alert" : lead && TOAST_ICONS[lead[1]] ? TOAST_ICONS[lead[1]] : action ? "trash" : "check-circle";
     const toast = document.createElement("div");
     toast.className = `toast${warn ? " is-warn" : ""}${action ? " has-action" : ""}`;
-    toast.innerHTML = `${icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
+    // Veștile bune le dă colegul: fața lui în locul bifei (avertizările și „Anulează” rămân cu iconiță)
+    const PAL_TOAST = { "check-circle": "happy", trophy: "love", flame: "love", sparkles: "love", medal: "love", "trend-up": "happy", target: "happy", graduation: "happy", calendar: "focused", bell: "focused", "calendar-days": "happy", save: "happy" };
+    const palMood = !warn && !action && PAL_TOAST[toastIcon];
+    toast.innerHTML = `${palMood ? `<span class="toast-pal" aria-hidden="true">${buddySVG(palMood, "toast-buddy")}</span>` : icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
         ? `<button type="button" class="toast-action" title="${escapeHTML(actionIcon === "undo" ? `${action} (Ctrl+Z)` : action)}">${icon(actionIcon)} ${escapeHTML(action)}</button>` : ""}`;
     container.appendChild(toast);
 

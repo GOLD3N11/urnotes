@@ -396,6 +396,7 @@ function renderStatistics() {
     const year = statsEntries();
     const hasSubjects = year.length > 0;
     $("stats-empty").hidden = hasSubjects;
+    if (!hasSubjects) document.querySelectorAll("#stats-empty [data-pal-mood]").forEach(el => { el.innerHTML = buddySVG(el.dataset.palMood); });
     body.hidden = !hasSubjects;
     $("stats-nav").hidden = !hasSubjects;
     if (!hasSubjects) {

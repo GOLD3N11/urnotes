@@ -12,7 +12,26 @@ function registerTab(id, def) {
     TAB_RENDERERS[id] = def.render;
 }
 
+/** Colegul din meniu: fața lui pe butonul „Eu” (telefon) și cartonașul cu nivelul (meniul lateral). */
+function renderPalChrome() {
+    const look = palLook();
+    const p = palProgress();
+    const key = `${look.color}|${look.acc}|${p.level}|${Math.round(p.pct * 20)}|${buddyName()}`;
+    if (renderPalChrome.key === key) return;
+    renderPalChrome.key = key;
+    const navIcon = document.querySelector("#more-btn > span:first-child");
+    if (navIcon) navIcon.innerHTML = buddySVG("happy", "nav-pal");
+    const card = $("side-pal");
+    if (card) card.innerHTML = `
+        <button type="button" class="side-pal-btn" data-action="wardrobe-open" aria-label="${escapeHTML(`${buddyName()}, nivelul ${p.level}: garderoba`)}">
+            ${buddySVG("happy", "side-pal-buddy")}
+            <span class="side-pal-text"><b>${escapeHTML(buddyName())}</b><small>nivelul ${p.level}</small></span>
+            <span class="side-pal-bar" aria-hidden="true"><i style="width:${(p.pct * 100).toFixed(0)}%"></i></span>
+        </button>`;
+}
+
 function renderActiveTab({ keepSettingsForm = false } = {}) {
+    renderPalChrome();
     renderPagePal(ui.activeTab); // colegul din antet (pe fiecare pagină)
     // Formularul de setări nu e redesenat la fiecare calcul, ca să nu pierdem ce scrie utilizatorul.
     if (keepSettingsForm && ui.activeTab === "tab-setari") return;
@@ -28,7 +47,7 @@ function renderActiveTab({ keepSettingsForm = false } = {}) {
 }
 
 function emptyNote(text) {
-    return `<p class="empty-note">${escapeHTML(text)}</p>`;
+    return `<p class="empty-note"><span class="empty-pal" aria-hidden="true">${buddySVG("focused", "empty-buddy")}</span><span>${escapeHTML(text)}</span></p>`;
 }
 
 function setText(id, value) {

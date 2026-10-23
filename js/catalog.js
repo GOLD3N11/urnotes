@@ -262,11 +262,14 @@ function renderCatalogList() {
         list.innerHTML = pinned + (Object.keys(state.subjects).length === 0
             ? `
             <div class="cat-list-empty">
-                <p>Nu ai încă nicio materie.</p>
+                ${buddySVG("happy", "empty-big-buddy")}
+                <p>Nu ai încă nicio materie. Le pun eu pe toate, după programa ta.</p>
+                <button type="button" class="btn btn-primary" data-action="setup-open">Alege programa</button>
                 <button type="button" class="btn btn-primary" data-action="add-subject">+ Adaugă materie</button>
             </div>`
             : `
             <div class="cat-list-empty">
+                ${buddySVG("surprised", "empty-big-buddy")}
                 <p>Nicio materie nu se potrivește.</p>
                 <button type="button" class="btn btn-glass" data-action="cat-clear-filters">Arată toate materiile</button>
             </div>`);
