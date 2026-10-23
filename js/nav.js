@@ -85,7 +85,26 @@ function moveNavPill(pop = true) {
 
 /** Titlul mare al paginii „urcă” în bara de sus când derulezi (ca în aplicațiile de iPhone). */
 let titleObserver = null;
+/** Bara de sus știe unde ești: butonul „înapoi” pe sub-pagini și, pe ecrane mari, calea („Note › Progresul tău”). */
+function renderTopbarPlace() {
+    const def = TABS[ui.activeTab] || {};
+    const parent = def.parent && TABS[def.parent];
+    const back = $("topbar-back");
+    if (back) {
+        back.hidden = !parent;
+        if (parent) { back.dataset.tab = def.parent; setText("topbar-back-label", parent.title); back.setAttribute("aria-label", `Înapoi la ${parent.title}`); }
+    }
+    const crumb = $("topbar-crumb");
+    if (crumb) {
+        const here = escapeHTML(def.title || "");
+        crumb.innerHTML = parent
+            ? `<button type="button" class="crumb-link" data-action="nav" data-tab="${def.parent}">${escapeHTML(parent.title)}</button><span class="crumb-sep" aria-hidden="true">›</span><b aria-current="page">${here}</b>`
+            : `<b aria-current="page">${here}</b>`;
+    }
+}
+
 function watchPageTitle() {
+    renderTopbarPlace();
     const slot = $("topbar-title");
     if (!slot || !("IntersectionObserver" in window)) return;
     titleObserver?.disconnect();

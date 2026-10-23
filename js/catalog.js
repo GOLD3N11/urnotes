@@ -741,4 +741,4 @@ function bindCatalogNav() {
     }, { passive: true });
 }
 
-registerTab("tab-catalog", { render: renderCatalog, title: "Catalog", icon: "notebook", group: "grades" });
+registerTab("tab-catalog", { render: renderCatalog, title: "Note", icon: "notebook", group: "grades" });

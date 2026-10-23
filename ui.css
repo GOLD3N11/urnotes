@@ -111,7 +111,57 @@ body.dark-mode .tab-btn.side-link.active { background: color-mix(in srgb, var(--
 .side-foot { border-top: 1px solid var(--rule); }
 
 /* Bara de sus: doar clopoțelul (și marca, pe telefon); „Adaugă” stă în meniu */
-.app-bar { background: transparent; border: 0; }
+/* Bara de sus: aceeași culoare ca pagina, cu o umbră fină doar după ce derulezi (conținutul nu mai trece „prin” ea) */
+.app-bar {
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3);
+    border-bottom: 1px solid transparent; box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.app-bar.is-scrolled { background: color-mix(in srgb, var(--paper) 96%, transparent); border-bottom-color: var(--rule); box-shadow: 0 6px 18px -14px rgba(22, 18, 42, 0.35); }
+body.dark-mode .app-bar.is-scrolled { box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.7); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .app-bar { background: var(--paper); } }
+.topbar { gap: 10px; }
+.topbar-actions { margin-left: auto; }
+.notification-btn { width: 42px; height: 42px; min-height: 42px; padding: 0; border-radius: 14px; }
+
+/* înapoi (sub-pagini) */
+.topbar-back {
+    flex: none; display: inline-flex; align-items: center; gap: 2px; min-height: 40px; padding: 0 12px 0 6px;
+    background: var(--sheet); border: 1px solid var(--rule); border-radius: 99px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer;
+}
+.topbar-back .ico { width: 20px; height: 20px; transform: rotate(180deg); }
+.topbar-back:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.topbar-back:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 40%, transparent); outline-offset: 2px; }
+.topbar-back[hidden] { display: none; }
+
+/* calea, pe ecrane mari */
+.topbar-crumb { display: none; align-items: center; gap: 8px; min-width: 0; font-size: 15px; }
+.topbar-crumb b { font-family: var(--font-hand); font-size: 19px; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crumb-link { padding: 4px 8px; margin: 0 -4px; background: none; border: 0; border-radius: 8px; font: inherit; font-weight: 650; color: var(--ink-2); cursor: pointer; }
+.crumb-link:hover { color: var(--accent-color); background: var(--input-bg); }
+.crumb-sep { color: var(--ink-2); }
+
+@media (min-width: 901px) {
+    .app-bar { margin-bottom: 8px; }
+    .topbar { height: 56px; }
+    .topbar-brand { display: none; }
+    .topbar-crumb { display: flex; }
+    .topbar-back { display: none; }          /* pe ecrane mari, calea face treaba asta */
+    /* titlul paginii apare în bară abia când pagina l-a acoperit (la început e deja mare, dedesubt) */
+    .topbar-crumb b { opacity: 0; transform: translateY(6px); transition: opacity 0.2s ease, transform 0.2s ease; }
+    body.is-subpage .topbar-crumb b, body.title-docked .topbar-crumb b { opacity: 1; transform: none; }
+    .page-intro .page-back { display: none; }            /* „înapoi” e în bară */
+}
+@media (max-width: 900px) {
+    .app-bar { margin-bottom: 10px; }
+    .topbar { height: 58px; }
+    /* pe sub-pagini, în locul siglei: „‹ Note” */
+    body.is-subpage .topbar-brand .brand-logo, body.is-subpage .topbar-brand .brand-name { display: none; }
+    body.is-subpage .topbar-title { left: 6px; }
+    body.is-subpage:not(.title-docked) .topbar-title { opacity: 0; }
+    .page-intro .page-back { display: none; }
+}
 @media (min-width: 901px) {
     .quick-add-btn { display: none; }
     .topbar { height: 64px; }
