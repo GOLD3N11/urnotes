@@ -10,103 +10,337 @@ function subjectsBySoonest(after = getLocalDateKey()) {
     return Object.keys(state.subjects).sort((a, b) => next[a].localeCompare(next[b]) || a.localeCompare(b, "ro"));
 }
 
-function evSubjectChipsHTML(selected) {
-    const chip = (m, label) => `<button type="button" class="ev-subj-chip ${m === selected ? "is-on" : ""}" data-action="ev-pick-subject" data-mat="${escapeHTML(m)}" role="radio" aria-checked="${m === selected}">${escapeHTML(label)}</button>`;
-    return subjectsBySoonest().map(m => chip(m, shortSubjectName(m))).join("") + chip("", "Fără materie");
+/* ---------- scriere liberă: „test mate vineri la 8” → tip, materie, dată, oră ---------- */
+const NP_TYPE_WORDS = {
+    test: "Test", teste: "Test", testul: "Test", lucrare: "Test", lucrarea: "Test", evaluare: "Test", evaluarea: "Test", extemporal: "Test",
+    teza: "Examen", teze: "Examen", examen: "Examen", examenul: "Examen", simulare: "Examen", simularea: "Examen", bac: "Examen",
+    tema: "Temă", teme: "Temă", temele: "Temă",
+    proiect: "Proiect", proiectul: "Proiect", referat: "Proiect", referatul: "Proiect", portofoliu: "Proiect",
+    prezentare: "Prezentare", prezentarea: "Prezentare"
+};
+/* porecle obișnuite → bucăți din numele materiei (se folosesc doar dacă elevul are materia) */
+const NP_SUBJECT_ALIASES = {
+    mate: "matematic", matem: "matematic", ro: "romana", rom: "romana", romana: "romana", engl: "engleza", eng: "engleza", engleza: "engleza",
+    fr: "franceza", franceza: "franceza", germ: "germana", germana: "germana", info: "informatic", bio: "biolog", chim: "chimi", fiz: "fizica",
+    geo: "geograf", ist: "istori", sport: "educatie fizica", tic: "tic", rel: "religi", psiho: "psiholog", eco: "economi", filo: "filosof",
+    desen: "plastic", muzica: "muzic", dirig: "dirigentie", opt: "optional", logica: "logic"
+};
+/* cum arată în titlu cuvântul de tip scris fără diacritice */
+const NP_TYPE_DISPLAY = { tema: "Temă", teme: "Teme", temele: "Temele", teza: "Teză", teze: "Teze" };
+const NP_WEEKDAYS = { luni: 1, marti: 2, miercuri: 3, joi: 4, vineri: 5, sambata: 6, duminica: 0 };
+const NP_MONTHS = ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"];
+const NP_LINK_WORDS = new Set(["pe", "la", "ora", "in", "de", "din", "pentru", "pt", "si"]);
+
+/** Materia la care se referă un cuvânt (sau null). */
+function npSubjectFor(word) {
+    const w = foldText(word).replace(/[^a-z0-9]/g, "");
+    if (w.length < 2) return null;
+    const subjects = Object.keys(state.subjects);
+    const folded = subjects.map(m => [m, foldText(m), foldText(shortSubjectName(m))]);
+    const alias = NP_SUBJECT_ALIASES[w];
+    if (alias) {
+        const hit = folded.find(([, full, short]) => full.includes(alias) || short.includes(alias));
+        if (hit) return hit[0];
+    }
+    if (w.length < 4) return folded.find(([, , short]) => short === w)?.[0] || null;
+    return folded.find(([, full, short]) => short === w || full === w)?.[0]
+        || folded.find(([, full, short]) => short.startsWith(w) || full.split(/\s+/).some(part => part.length >= 4 && part.startsWith(w)))?.[0]
+        || null;
 }
+
+/**
+ * Ce se înțelege dintr-un rând scris liber. Întoarce câmpurile găsite și textul rămas (fără dată și oră),
+ * ca titlul să nu repete „vineri la 8”.
+ */
+function parseEventText(text, today = getLocalDateKey()) {
+    const words = String(text).trim().split(/\s+/).filter(Boolean);
+    const f = words.map(w => foldText(w).replace(/[.,;!?]+$/, ""));
+    const out = { type: null, subject: null, date: null, time: null };
+    const used = new Set(), typeIdx = new Set(), subjIdx = new Set(), subjExtra = new Set();
+    const take = (...idx) => idx.forEach(i => used.add(i));
+    const linkBefore = i => { if (i > 0 && NP_LINK_WORDS.has(f[i - 1]) && !used.has(i - 1)) used.add(i - 1); };
+    const nextWeekday = wd => { for (let k = 1; k <= 7; k++) { const d = addDays(today, k); if (parseDateKey(d).getDay() === wd) return d; } return null; };
+    const ymdOf = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const validDay = (y, m, d) => { const dt = new Date(y, m - 1, d); return dt.getMonth() === m - 1 && dt.getDate() === d; };
+    const upcoming = (m, d) => {
+        const y = Number(today.slice(0, 4));
+        if (!validDay(y, m, d)) return null;
+        const k = ymdOf(y, m, d);
+        return k >= today ? k : (validDay(y + 1, m, d) ? ymdOf(y + 1, m, d) : null);
+    };
+    for (let i = 0; i < f.length; i++) {
+        const w = f[i];
+        // dată
+        if (!out.date) {
+            let d = null, n = 1;
+            if (w === "azi" || w === "astazi") d = today;
+            else if (w === "maine") d = addDays(today, 1);
+            else if (w === "poimaine") d = addDays(today, 2);
+            else if (w in NP_WEEKDAYS) d = nextWeekday(NP_WEEKDAYS[w]);
+            else if (w === "saptamana" && f[i + 1] === "viitoare") { d = addDays(today, 7); n = 2; }
+            else if (w === "peste" && /^\d{1,2}$/.test(f[i + 1] || "") && /^zi/.test(f[i + 2] || "")) { d = addDays(today, Number(f[i + 1])); n = 3; }
+            else if (/^\d{1,2}[./]\d{1,2}([./]\d{2,4})?$/.test(w)) {
+                const [dd, mm] = w.split(/[./]/).map(Number);
+                if (mm >= 1 && mm <= 12) d = upcoming(mm, dd);
+            } else if (/^\d{1,2}$/.test(w) && NP_MONTHS.some(m => (f[i + 1] || "").startsWith(m))) {
+                d = upcoming(NP_MONTHS.findIndex(m => f[i + 1].startsWith(m)) + 1, Number(w)); n = 2;
+            } else if (/^\d{1,2}$/.test(w) && f[i - 1] === "pe" && Number(w) >= 1 && Number(w) <= 31) {
+                const y = Number(today.slice(0, 4)), m = Number(today.slice(5, 7));
+                const k = validDay(y, m, Number(w)) ? ymdOf(y, m, Number(w)) : null;
+                d = k && k >= today ? k : upcoming(m === 12 ? 1 : m + 1, Number(w));
+            }
+            if (d) { out.date = d; take(...Array.from({ length: n }, (_, k) => i + k)); linkBefore(i); i += n - 1; continue; }
+        }
+        // oră
+        if (!out.time) {
+            let t = null;
+            const hm = /^(\d{1,2})[:.h](\d{2})$/.exec(w);
+            if (hm && Number(hm[1]) <= 23 && Number(hm[2]) <= 59 && (w.includes(":") || w.includes("h") || Number(hm[2]) > 12 || ["la", "ora"].includes(f[i - 1]))) t = [hm[1], hm[2]];
+            else if (/^\d{1,2}$/.test(w) && ["la", "ora"].includes(f[i - 1]) && Number(w) >= 6 && Number(w) <= 22 && !NP_MONTHS.some(m => (f[i + 1] || "").startsWith(m))) t = [w, "00"];
+            if (t) { out.time = `${String(t[0]).padStart(2, "0")}:${t[1]}`; take(i); linkBefore(i); continue; }
+        }
+        // tip
+        if (!out.type && NP_TYPE_WORDS[w]) { out.type = NP_TYPE_WORDS[w]; typeIdx.add(i); continue; }
+        // materie (sare peste cuvintele de legătură)
+        if (!out.subject && !NP_LINK_WORDS.has(w)) {
+            const two = i + 1 < f.length ? npSubjectFor(`${words[i]} ${words[i + 1]}`) : null;
+            const m = npSubjectFor(words[i]);
+            if (m) { out.subject = m; subjIdx.add(i); continue; }
+            if (two && f[i] === "ed") { out.subject = two; subjIdx.add(i); subjExtra.add(i + 1); i++; continue; }
+        }
+    }
+    // titlul: fără dată și oră; tipul cu diacritice, materia cu numele ei scurt („mate” → „Matematică”)
+    const title = words.map((w, i) => {
+        if (used.has(i) || subjExtra.has(i)) return null;
+        if (typeIdx.has(i)) return NP_TYPE_DISPLAY[f[i]] || w;
+        if (subjIdx.has(i)) return shortSubjectName(out.subject);
+        return w;
+    }).filter(Boolean).join(" ");
+    return { ...out, rest: title };
+}
+
+/** Titlul salvat: fără dată și oră; dacă n-a rămas decât tipul și materia, titlul automat („Test Matematică”). */
+function eventTitleFrom(raw, type, subject) {
+    const text = String(raw || "").trim().replace(/\s+/g, " ");
+    if (!text) return autoEventTitle(type, subject);
+    const t = parseEventText(text).rest;
+    if (!t) return autoEventTitle(type, subject);
+    return (t[0].toLocaleUpperCase("ro") + t.slice(1)).slice(0, 100);
+}
+
+/* ---------- formularul, ca o pagină din Notion: un titlu mare și proprietăți dedesubt ---------- */
+const npForm = { manual: new Set(), prop: "" };
+const NP_PROPS = [
+    { key: "type", label: "Tip", icon: "layers" },
+    { key: "subject", label: "Materie", icon: "notebook" },
+    { key: "date", label: "Data", icon: "calendar" },
+    { key: "time", label: "Ora", icon: "clock" },
+    { key: "repeat", label: "Se repetă", icon: "repeat" }
+];
 
 function eventFormHTML(v, { editing = false, occurrenceDate = "", autoDate = false } = {}) {
     const subjects = Object.keys(state.subjects);
     const isSeries = Boolean(v.repeat);
-    const moreOpen = Boolean(v.repeat || v.description || (v.title && v.title !== autoEventTitle(v.type, v.subject)));
+    const typed = v.title && v.title !== autoEventTitle(v.type, v.subject) ? v.title : "";
     return `
-        <div class="ev-type-picker" role="radiogroup" aria-label="Tip eveniment">
-            ${EVENT_TYPES.map(t => `
-                <label class="ev-type-opt ev-${EVENT_TYPE_CLASS[t]}">
-                    <input type="radio" name="ev-type" value="${escapeHTML(t)}" ${t === v.type ? "checked" : ""}>
-                    <span>${icon(EVENT_TYPE_ICON[t])} ${escapeHTML(t)}</span>
-                </label>`).join("")}
-        </div>
-        <div class="form-group">
-            <label for="ev-subject">Materie</label>
-            ${subjects.length ? `<div class="ev-subj-strip" role="radiogroup" aria-label="Alege materia">${evSubjectChipsHTML(v.subject)}</div>` : ""}
-            <select id="ev-subject" class="glass-select ${subjects.length ? "ev-subject-select" : ""}">
-                <option value="" ${v.subject ? "" : "selected"}>Fără materie</option>
-                ${subjects.map(m => `<option value="${escapeHTML(m)}" ${m === v.subject ? "selected" : ""}>${escapeHTML(m)}</option>`).join("")}
-            </select>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="ev-date">${isSeries && editing ? "Începe pe" : "Data"}</label>
-                <input type="date" id="ev-date" class="glass-input" value="${escapeHTML(v.date)}" ${autoDate ? "data-auto" : ""}>
+        <div class="np" data-auto-date="${autoDate ? "1" : ""}">
+            <div class="np-icon" id="np-icon" aria-hidden="true"></div>
+            <input type="text" id="ev-title" class="np-title" maxlength="100" autocomplete="off" spellcheck="false" enterkeyhint="done"
+                aria-label="Titlu" value="${escapeHTML(typed)}" placeholder="${escapeHTML(v.subject ? autoEventTitle(v.type, v.subject) : "ex: test la mate vineri la 8")}">
+            ${editing ? "" : `<p class="np-hint">Scrie pe un rând: tipul, materia și ziua le completez eu. Le poți schimba mai jos.</p>`}
+            <div class="np-props" role="list">
+                ${NP_PROPS.map(p => `
+                    <div class="np-row" role="listitem">
+                        <span class="np-label">${icon(p.icon)} ${p.label}${p.key === "date" && isSeries && editing ? " (începe)" : ""}</span>
+                        <button type="button" class="np-val" id="np-val-${p.key}" data-action="np-open" data-prop="${p.key}" aria-haspopup="listbox" aria-expanded="false"></button>
+                    </div>`).join("")}
             </div>
-            <div class="form-group">
-                <label for="ev-time">Ora <span class="label-hint">(opțional)</span></label>
-                <input type="time" id="ev-time" class="glass-input" value="${escapeHTML(v.time || "")}">
-            </div>
-        </div>
-        <div id="ev-next-lesson" class="ev-hint ev-date-chips" role="group" aria-label="Alege repede ziua"></div>
-        <details class="ev-more" ${moreOpen ? "open" : ""}>
-        <summary>Titlu, repetare, notițe</summary>
-        <div class="form-group">
-            <label for="ev-title">Titlu <span class="label-hint">(opțional)</span></label>
-            <input type="text" id="ev-title" class="glass-input" maxlength="100" autocomplete="off"
-                value="${escapeHTML(v.title && v.title !== autoEventTitle(v.type, v.subject) ? v.title : "")}" placeholder="${escapeHTML(autoEventTitle(v.type, v.subject))}">
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="ev-repeat">Se repetă</label>
-                <select id="ev-repeat" class="glass-select">
+            <div class="np-pop" id="np-pop" role="dialog" aria-label="Alege" hidden></div>
+            <div class="np-divider"></div>
+            <textarea id="ev-description" class="np-notes" rows="2" maxlength="500" placeholder="Adaugă o notiță… (ex: capitolele 3–4, de adus calculatorul)">${escapeHTML(v.description || "")}</textarea>
+
+            <!-- câmpurile reale (citite la salvare); proprietățile de mai sus doar le completează -->
+            <div class="np-fields" hidden>
+                ${EVENT_TYPES.map(t => `<input type="radio" name="ev-type" value="${escapeHTML(t)}" ${t === v.type ? "checked" : ""} aria-label="${escapeHTML(t)}">`).join("")}
+                <select id="ev-subject" aria-label="Materie">
+                    <option value="" ${v.subject ? "" : "selected"}>Fără materie</option>
+                    ${subjects.map(m => `<option value="${escapeHTML(m)}" ${m === v.subject ? "selected" : ""}>${escapeHTML(m)}</option>`).join("")}
+                </select>
+                <input type="date" id="ev-date" value="${escapeHTML(v.date)}" ${autoDate ? "data-auto" : ""} aria-label="Data">
+                <input type="time" id="ev-time" value="${escapeHTML(v.time || "")}" aria-label="Ora">
+                <select id="ev-repeat" aria-label="Se repetă">
                     <option value="0" ${!v.repeat ? "selected" : ""}>Nu</option>
                     <option value="1" ${v.repeat?.every === 1 ? "selected" : ""}>Săptămânal</option>
                     <option value="2" ${v.repeat?.every === 2 ? "selected" : ""}>La 2 săptămâni</option>
                 </select>
+                <input type="date" id="ev-until" value="${escapeHTML(v.repeat?.until || "")}" ${v.repeat ? "" : "disabled"} aria-label="Până la">
             </div>
-            <div class="form-group">
-                <label for="ev-until">Până la <span class="label-hint">(opțional)</span></label>
-                <input type="date" id="ev-until" class="glass-input" value="${escapeHTML(v.repeat?.until || "")}" ${v.repeat ? "" : "disabled"}>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="ev-description">Notițe <span class="label-hint">(opțional)</span></label>
-            <textarea id="ev-description" class="glass-input" rows="2" maxlength="500" placeholder="ex: capitolele 3–4, de adus calculatorul">${escapeHTML(v.description || "")}</textarea>
-        </div>
-        </details>
-        ${editing ? `
-            <div class="ev-edit-foot">
-                ${isSeries ? `<p class="modal-hint">↻ Eveniment repetat: modificările se aplică întregii serii.</p>` : ""}
-                <button type="button" class="btn btn-text text-danger" data-action="event-delete" data-id="${escapeHTML(v.id)}" data-date="${escapeHTML(occurrenceDate)}">${icon("trash")} Șterge evenimentul</button>
-            </div>` : ""}`;
+            ${editing ? `
+                <div class="ev-edit-foot">
+                    ${isSeries ? `<p class="modal-hint">↻ Eveniment repetat: modificările se aplică întregii serii.</p>` : ""}
+                    <button type="button" class="btn btn-text text-danger" data-action="event-delete" data-id="${escapeHTML(v.id)}" data-date="${escapeHTML(occurrenceDate)}">${icon("trash")} Șterge evenimentul</button>
+                </div>` : ""}
+        </div>`;
 }
 
-/** Actualizează în dialog: titlul propus, „următoarea oră” și câmpul „Până la”. */
+const npType = () => document.querySelector("input[name='ev-type']:checked")?.value || "Test";
+function npSetType(t) { const r = document.querySelector(`input[name='ev-type'][value="${CSS.escape(t)}"]`); if (r) r.checked = true; }
+
+/** Redesenează valorile proprietăților (și pictograma paginii) din câmpurile reale. */
 function syncEventForm() {
     if (!$("ev-subject")) return;
-    const type = document.querySelector("input[name='ev-type']:checked")?.value || "Test";
+    const type = npType();
     const subject = $("ev-subject").value;
-    $("ev-title").placeholder = autoEventTitle(type, subject);
-    $("ev-until").disabled = $("ev-repeat").value === "0";
-
     const dateEl = $("ev-date");
+    $("ev-until").disabled = $("ev-repeat").value === "0";
+    $("ev-title").placeholder = subject ? autoEventTitle(type, subject) : "ex: test la mate vineri la 8";
+    // eveniment nou fără zi aleasă: la alegerea materiei, data sare la următoarea ei oră
     const next = subject ? nextLessonDate(subject) : null;
-    // Eveniment nou fără zi aleasă: la alegerea materiei, data sare singură la următoarea ei oră
-    if (next && dateEl.hasAttribute("data-auto")) dateEl.value = next;
-    document.querySelectorAll(".ev-subj-chip").forEach(b => {
-        const on = b.dataset.mat === subject;
-        b.classList.toggle("is-on", on);
-        b.setAttribute("aria-checked", String(on));
-    });
+    if (next && dateEl.hasAttribute("data-auto") && !npForm.manual.has("date")) dateEl.value = next;
 
-    const today = getLocalDateKey();
-    const options = [];
-    if (next) options.push({ date: next, html: `${icon("calendar")} Ora de ${escapeHTML(shortSubjectName(subject))}: <b>${escapeHTML(weekdayLabel(next))}</b>`, label: `Următoarea oră de ${subject}` });
-    [[0, "Azi"], [1, "Mâine"], [2, "Poimâine"], [7, "Peste o săptămână"]].forEach(([n, label]) => {
-        const date = addDays(today, n);
-        if (date !== next) options.push({ date, html: escapeHTML(label), label });
-    });
-    $("ev-next-lesson").innerHTML = options.map(o => `
-        <button type="button" class="ev-hint-btn ${dateEl.value === o.date ? "is-active" : ""}" data-action="ev-use-date" data-date="${o.date}" aria-pressed="${dateEl.value === o.date}" aria-label="${escapeHTML(`${o.label}, ${longDateLabel(o.date)}`)}">${o.html}</button>`).join("");
+    const cls = EVENT_TYPE_CLASS[type] || "personal";
+    $("np-icon").className = `np-icon t-${cls}`;
+    $("np-icon").innerHTML = icon(EVENT_TYPE_ICON[type] || "pin");
+    const empty = text => `<span class="np-empty">${text}</span>`;
+    const set = (key, html) => { const el = $(`np-val-${key}`); if (el) el.innerHTML = html; };
+    set("type", `<span class="np-tag t-${cls}">${icon(EVENT_TYPE_ICON[type])} ${escapeHTML(type)}</span>`);
+    set("subject", subject ? `<span class="np-tag np-subj" style="${subjectStyle(subject)}">${escapeHTML(subject)}</span>` : empty("Fără materie"));
+    const d = dateEl.value;
+    set("date", DATE_KEY_RE.test(d) ? `${escapeHTML(longDateLabel(d))} <span class="np-rel">${escapeHTML(relativeDayLabel(d))}</span>${next === d ? ` <span class="np-rel">· ora de ${escapeHTML(shortSubjectName(subject))}</span>` : ""}` : empty("Alege ziua"));
+    set("time", TIME_RE.test($("ev-time").value) ? escapeHTML($("ev-time").value) : empty("Fără oră"));
+    const every = Number($("ev-repeat").value);
+    set("repeat", every ? `${every === 2 ? "La 2 săptămâni" : "Săptămânal"}${$("ev-until").value ? ` <span class="np-rel">până pe ${escapeHTML(shortDayLabel($("ev-until").value))}</span>` : ""}` : empty("Nu"));
 }
+
+/** Când scrii titlul: ce înțeleg completez în proprietățile pe care nu le-ai ales tu. */
+function applyEventText() {
+    const p = parseEventText($("ev-title").value);
+    if (p.type && !npForm.manual.has("type")) npSetType(p.type);
+    if (!npForm.manual.has("subject")) $("ev-subject").value = p.subject || (npForm.presetSubject ?? "");
+    if (p.date && !npForm.manual.has("date")) { $("ev-date").value = p.date; $("ev-date").removeAttribute("data-auto"); }
+    else if (!p.date && !npForm.manual.has("date") && npForm.autoDate) { $("ev-date").setAttribute("data-auto", ""); $("ev-date").value = npForm.presetDate; }
+    if (!npForm.manual.has("time")) $("ev-time").value = p.time || (npForm.presetTime ?? "");
+    syncEventForm();
+}
+
+/* ---------- alegerea unei proprietăți (meniul mic de sub rând) ---------- */
+function npOption(prop, value, html, on = false, extra = "") {
+    return `<button type="button" class="np-opt ${on ? "is-on" : ""}" data-action="np-set" data-prop="${prop}" data-value="${escapeHTML(value)}" role="option" aria-selected="${on}" ${extra}>${html}${on ? `<span class="np-check">${icon("check")}</span>` : ""}</button>`;
+}
+
+function npPopHTML(prop) {
+    const today = getLocalDateKey();
+    if (prop === "type") {
+        return EVENT_TYPES.map(t => npOption("type", t, `<span class="np-tag t-${EVENT_TYPE_CLASS[t]}">${icon(EVENT_TYPE_ICON[t])} ${escapeHTML(t)}</span>`, npType() === t)).join("");
+    }
+    if (prop === "subject") {
+        const cur = $("ev-subject").value;
+        return `<input type="search" class="np-search" id="np-search" placeholder="Caută o materie…" autocomplete="off" aria-label="Caută o materie">
+            <div class="np-opts" id="np-subject-opts">
+                ${subjectsBySoonest().map(m => npOption("subject", m, `<span class="np-tag np-subj" style="${subjectStyle(m)}">${escapeHTML(m)}</span>`, m === cur, `data-search="${escapeHTML(foldText(`${m} ${shortSubjectName(m)}`))}"`)).join("")}
+                ${npOption("subject", "", `<span class="np-empty">Fără materie</span>`, !cur, 'data-search="-"')}
+            </div>`;
+    }
+    if (prop === "date") {
+        const cur = $("ev-date").value;
+        const subject = $("ev-subject").value;
+        const next = subject ? nextLessonDate(subject) : null;
+        const opts = [];
+        if (next) opts.push([next, `Ora de ${shortSubjectName(subject)}`]);
+        [[0, "Azi"], [1, "Mâine"], [2, "Poimâine"], [7, "Peste o săptămână"]].forEach(([n, l]) => { const d = addDays(today, n); if (d !== next) opts.push([d, l]); });
+        return opts.map(([d, l]) => npOption("date", d, `<span>${escapeHTML(l)}</span><span class="np-rel">${escapeHTML(shortDayLabel(d))}</span>`, d === cur)).join("")
+            + `<label class="np-other">Altă zi <input type="date" id="np-date-input" value="${escapeHTML(cur)}"></label>`;
+    }
+    if (prop === "time") {
+        const cur = $("ev-time").value;
+        return npOption("time", "", `<span class="np-empty">Fără oră</span>`, !cur)
+            + `<div class="np-times">${["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"].map(t => `<button type="button" class="np-time ${t === cur ? "is-on" : ""}" data-action="np-set" data-prop="time" data-value="${t}">${t}</button>`).join("")}</div>`
+            + `<label class="np-other">Altă oră <input type="time" id="np-time-input" value="${escapeHTML(cur)}"></label>`;
+    }
+    if (prop === "repeat") {
+        const cur = $("ev-repeat").value;
+        return [["0", "Nu se repetă"], ["1", "Săptămânal"], ["2", "La 2 săptămâni"]].map(([v, l]) => npOption("repeat", v, escapeHTML(l), v === cur)).join("")
+            + (cur !== "0" ? `<label class="np-other">Până pe <input type="date" id="np-until-input" value="${escapeHTML($("ev-until").value)}" min="${escapeHTML($("ev-date").value)}"></label>` : "");
+    }
+    return "";
+}
+
+function npOpen(prop) {
+    const pop = $("np-pop");
+    if (!pop) return;
+    if (npForm.prop === prop && !pop.hidden) { npClose(); return; }
+    npForm.prop = prop;
+    const btn = $(`np-val-${prop}`);
+    document.querySelectorAll(".np-val").forEach(b => b.setAttribute("aria-expanded", String(b === btn)));
+    pop.innerHTML = npPopHTML(prop);
+    pop.hidden = false;
+    // sub rândul ales, în interiorul paginii
+    const host = pop.parentElement.getBoundingClientRect(), r = btn.getBoundingClientRect();
+    pop.style.top = `${Math.round(r.bottom - host.top + 4)}px`;
+    pop.style.left = `${Math.round(Math.max(0, r.left - host.left))}px`;
+    (pop.querySelector("#np-search") || pop.querySelector(".np-opt.is-on, .np-time.is-on") || pop.querySelector("button, input"))?.focus({ preventScroll: true });
+}
+
+function npClose(focusBack = true) {
+    const pop = $("np-pop");
+    if (!pop || pop.hidden) return;
+    pop.hidden = true;
+    const prop = npForm.prop;
+    npForm.prop = "";
+    document.querySelectorAll(".np-val").forEach(b => b.setAttribute("aria-expanded", "false"));
+    if (focusBack) $(`np-val-${prop}`)?.focus({ preventScroll: true });
+}
+
+function npSet(prop, value, { close = true } = {}) {
+    npForm.manual.add(prop);
+    if (prop === "type") npSetType(value);
+    if (prop === "subject") $("ev-subject").value = state.subjects[value] ? value : "";
+    if (prop === "date" && DATE_KEY_RE.test(value)) { $("ev-date").value = value; $("ev-date").removeAttribute("data-auto"); }
+    if (prop === "time") $("ev-time").value = TIME_RE.test(value) ? value : "";
+    if (prop === "repeat") { $("ev-repeat").value = ["0", "1", "2"].includes(value) ? value : "0"; if (value === "0") $("ev-until").value = ""; }
+    if (prop === "until") { $("ev-until").value = DATE_KEY_RE.test(value) ? value : ""; npForm.manual.delete("until"); }
+    syncEventForm();
+    if (prop === "repeat" && value !== "0") { npOpen("repeat"); npOpen("repeat"); return; } // rămâne deschis, apare „Până pe”
+    if (close) npClose();
+}
+
+/** Tastele din formularul de eveniment: Enter în titlu salvează, Escape închide întâi meniul mic. */
+function npKeydown(event) {
+    if (!document.querySelector("#action-modal .np")) return;
+    const pop = $("np-pop");
+    if (event.key === "Escape" && pop && !pop.hidden) { event.preventDefault(); event.stopImmediatePropagation(); npClose(); return; }
+    if (event.target.id === "ev-title" && event.key === "Enter" && !event.isComposing) { event.preventDefault(); $("action-modal-confirm")?.click(); return; }
+    if (event.target.id === "np-search" && event.key === "Enter") {
+        event.preventDefault();
+        $("np-subject-opts")?.querySelector(".np-opt:not([hidden])")?.click();
+        return;
+    }
+    if (pop && !pop.hidden && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+        const items = [...pop.querySelectorAll(".np-opt:not([hidden]), .np-time")];
+        if (!items.length) return;
+        event.preventDefault();
+        const i = items.indexOf(document.activeElement);
+        items[(i + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+    }
+}
+document.addEventListener("keydown", npKeydown, true);
+document.addEventListener("input", event => {
+    if (event.target.id === "ev-title" && document.querySelector("#action-modal .np")) applyEventText();
+    if (event.target.id === "np-search") {
+        const q = foldText(event.target.value.trim());
+        $("np-subject-opts")?.querySelectorAll(".np-opt").forEach(o => { o.hidden = Boolean(q) && !o.dataset.search.includes(q); });
+    }
+});
+document.addEventListener("change", event => {
+    const id = event.target.id;
+    if (id === "np-date-input") npSet("date", event.target.value);
+    if (id === "np-time-input") npSet("time", event.target.value);
+    if (id === "np-until-input") { npSet("until", event.target.value, { close: false }); npClose(); }
+});
+document.addEventListener("pointerdown", event => {
+    const pop = $("np-pop");
+    if (pop && !pop.hidden && !pop.contains(event.target) && !event.target.closest(".np-val")) npClose(false);
+}, true);
 
 function readEventForm() {
     const type = EVENT_TYPES.includes(document.querySelector("input[name='ev-type']:checked")?.value)
@@ -132,7 +366,7 @@ function readEventForm() {
         subject,
         date,
         time,
-        title: field("ev-title").trim().replace(/\s+/g, " ").slice(0, 100) || autoEventTitle(type, subject),
+        title: eventTitleFrom(field("ev-title"), type, subject),
         description: field("ev-description").trim().slice(0, 500),
         repeat: every === 1 || every === 2 ? { every, until: until || "" } : null
     };
@@ -147,9 +381,10 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
             return;
         }
         const { ev, start } = found;
+        Object.assign(npForm, { manual: new Set(["type", "subject", "date", "time", "repeat"]), prop: "", autoDate: false, presetSubject: ev.subject, presetDate: start, presetTime: ev.time || "" });
         openModal({
             layout: "panel",
-            title: `${ev.title}`,
+            title: "Eveniment",
             confirmText: "Salvează",
             body: eventFormHTML({ ...ev, date: start }, { editing: true, occurrenceDate: date || start }),
             onConfirm: () => {
@@ -165,9 +400,12 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
     // Adăugare: data implicită = ziua aleasă, altfel următoarea oră a materiei, altfel azi.
     const preset = state.subjects[subject] ? subject : "";
     const when = DATE_KEY_RE.test(date) ? date : (preset && nextLessonDate(preset)) || getLocalDateKey();
+    // ce vine deja ales (ziua din calendar, materia din orar) nu se mai schimbă după ce scrii
+    const manual = new Set([...(DATE_KEY_RE.test(date) ? ["date"] : []), ...(preset ? ["subject"] : [])]);
+    Object.assign(npForm, { manual, prop: "", autoDate: !DATE_KEY_RE.test(date), presetSubject: preset, presetDate: when, presetTime: "" });
     openModal({
         layout: "panel",
-        title: `Eveniment nou · ${weekdayLabel(when)}`,
+        title: "Eveniment nou",
         confirmText: "Adaugă",
         body: eventFormHTML({ type: EVENT_TYPES.includes(type) ? type : "Test", subject: preset, date: when, title: "" }, { autoDate: !DATE_KEY_RE.test(date) }),
         onConfirm: () => {
@@ -186,8 +424,8 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
         }
     });
     syncEventForm();
-    // Cu materia deja aleasă, utilizatorul de obicei vrea doar să confirme.
-    (preset ? $("action-modal-confirm") : $("ev-subject"))?.focus();
+    // Cu materia deja aleasă, de obicei vrei doar să confirmi; altfel scrii direct titlul.
+    (preset ? $("action-modal-confirm") : $("ev-title"))?.focus();
 }
 
 function saveEventEdits(id, values) {
@@ -467,7 +705,10 @@ function handleModalChange(event) {
     }
     if (el.id === "modal-grade-mat") syncGradeSubjectChips();
     if (el.id === "ev-date") el.removeAttribute("data-auto"); // a ales singur ziua: n-o mai mutăm
-    if (el.id === "ev-subject" || el.id === "ev-repeat" || el.id === "ev-date" || el.name === "ev-type") syncEventForm();
+    if (el.id === "ev-subject" || el.id === "ev-repeat" || el.id === "ev-date" || el.name === "ev-type") {
+        npForm.manual.add(el.id === "ev-subject" ? "subject" : el.id === "ev-date" ? "date" : el.id === "ev-repeat" ? "repeat" : "type");
+        syncEventForm();
+    }
 }
 
 /* ---------- drag & drop în săptămână ---------- */

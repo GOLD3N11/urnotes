@@ -32,21 +32,12 @@ const ACTIONS = {
     "event-delete": el => promptDeleteEvent(el.dataset.id, el.dataset.date),
     "event-delete-one": el => deleteOccurrence(el.dataset.id, el.dataset.date),
     "event-delete-all": el => deleteSeries(el.dataset.id),
-    "ev-use-date": el => {
-        if (!$("ev-date")) return;
-        $("ev-date").value = el.dataset.date;
-        $("ev-date").removeAttribute("data-auto");
-        syncEventForm();
-    },
+    "np-open": el => npOpen(el.dataset.prop),
+    "np-set": el => npSet(el.dataset.prop, el.dataset.value),
     "grade-pick-subject": el => {
         if (!$("modal-grade-mat")) return;
         $("modal-grade-mat").value = el.dataset.mat;
         syncGradeSubjectChips();
-    },
-    "ev-pick-subject": el => {
-        if (!$("ev-subject")) return;
-        $("ev-subject").value = el.dataset.mat;
-        syncEventForm();
     },
     "timetable": () => openTimetableModal(),
     "tt-tap": el => {
