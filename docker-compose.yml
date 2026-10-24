@@ -20,6 +20,8 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgres://urnotes:urnotes@db:5432/urnotes
+      # local: permite AUTH_MODE=dev (jetoane de test, pentru Postman); în producție serverul îl refuză
+      NODE_ENV: development
     ports:
       - "8080:8080"
     depends_on:
