@@ -3,96 +3,20 @@
 "use strict";
 
 /* ==================== MOTOR DE CALCUL ==================== */
-function emptyMetrics() {
-    return {
-        subjects: {},
-        globalAvg: 0,
-        rawGlobalAvg: 0,
-        riskCount: 0,
-        totalGrades: 0,
-        tensCount: 0,
-        maxGrade: null,
-        minGrade: null,
-        purtare: null
-    };
-}
+/* Regulile de calcul sunt în shared/rules.js, comune cu serverul (aceeași medie peste tot). */
+const emptyMetrics = () => URN_RULES.emptyMetrics();
 
 /**
  * Calculează mediile pentru un set de materii.
  * Implicit cele reale; Simulatorul trimite o copie cu notele ipotetice adăugate.
  */
 function calculateMetrics(subjects = state.subjects) {
-    const calc = state.settings.calc;
-    const decimals = Number(calc.rounding);
-    const m = emptyMetrics();
-
-    let weightedSum = 0;
-    let weightTotal = 0;
-    let arithmeticSum = 0;
-    let arithmeticCount = 0;
-
-    for (const [mat, sub] of Object.entries(subjects)) {
-        let sum = 0;
-        const count = sub.grades.length;
-
-        sub.grades.forEach(g => {
-            const value = clampNumber(g.val, 1, 10, 1);
-            sum += value;
-
-            m.totalGrades++;
-            if (value === 10) m.tensCount++;
-            m.maxGrade = m.maxGrade === null ? value : Math.max(m.maxGrade, value);
-            m.minGrade = m.minGrade === null ? value : Math.min(m.minGrade, value);
-        });
-
-        const rawAvg = count > 0 ? sum / count : 0;
-        const exactAvg = count > 0 ? roundValue(rawAvg, decimals) : 0;
-        const d = {
-            rawAvg,
-            exactAvg,
-            // media la materie din catalog: media aritmetică exactă rotunjită la întreg (la ,50 în favoarea elevului)
-            roundedAvg: count > 0 ? roundValue(rawAvg, 0) : 0,
-            requiredNotes: Math.max(0, Math.ceil(sub.ore) + 3 - sub.grades.length)
-        };
-
-        if (sub.grades.length === 0) {
-            d.status = "Fără note";
-            d.statusClass = "badge-warn";
-        } else if (exactAvg < calc.riskThreshold) {
-            d.status = "Risc";
-            d.statusClass = "badge-danger";
-            m.riskCount++;
-        } else {
-            d.status = "Sigur";
-            d.statusClass = "badge-ok";
-        }
-
-        if (!sub.excludeFromGPA && rawAvg > 0) {
-            weightedSum += rawAvg * sub.ore;
-            weightTotal += sub.ore;
-            // „ca în catalog” (ROFUIP): media generală = media aritmetică a mediilor ÎNTREGI pe materii (+ purtarea)
-            arithmeticSum += d.roundedAvg;
-            arithmeticCount++;
-        }
-
-        m.subjects[mat] = d;
-    }
-
-    // Purtarea intră ca o materie, dar doar dacă există și alte medii (altfel media generală ar fi doar purtarea).
-    m.purtare = purtareInfo();
-    if (!state.purtare.excludeFromGPA && arithmeticCount > 0) {
-        weightedSum += m.purtare.avg * PURTARE_WEIGHT;
-        weightTotal += PURTARE_WEIGHT;
-        arithmeticSum += m.purtare.avg;
-        arithmeticCount++;
-    }
-
-    m.rawGlobalAvg = calc.method === "weighted"
-        ? (weightTotal > 0 ? weightedSum / weightTotal : 0)
-        : (arithmeticCount > 0 ? arithmeticSum / arithmeticCount : 0);
-    m.globalAvg = roundValue(m.rawGlobalAvg, decimals);
-
-    return m;
+    return URN_RULES.computeMetrics(subjects, {
+        calc: state.settings.calc,
+        purtare: purtareInfo(),
+        purtareExcluded: state.purtare.excludeFromGPA,
+        purtareWeight: PURTARE_WEIGHT
+    });
 }
 
 function updateHistoryPoint() {

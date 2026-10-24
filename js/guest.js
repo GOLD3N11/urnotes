@@ -6,7 +6,7 @@
 /* Fără cont se poate răsfoi tot, dar nu se poate adăuga sau schimba nimic: orice încercare deschide
    autentificarea. Cine n-are date pe acest dispozitiv vede un caiet de exemplu, ținut doar în memorie.
    Nimic din modul vizitator nu se salvează. */
-const guest = { on: false, demo: false, base: null, fp: "", restoring: false };
+const guest = { on: false, demo: false, base: null, fp: "", restoring: false, viewer: false }; // viewer: cont de părinte/profesor (viewer.js)
 const GUEST_SESSION_KEY = "pro_guest_browse_v4"; // a ales „doar mă uit” în această sesiune: nu-i mai arătăm autentificarea la pornire
 
 /** Acțiunile care doar arată ceva (navigare, filtre, vederi). Restul cer cont. */
@@ -22,11 +22,15 @@ const GUEST_OK = new Set([
 const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan", "stats", "exams"]);
 
 /** Poate modifica? Fără conturi configurate (ex. teste locale) aplicația merge ca înainte. */
-const canEdit = () => !cloud.configured || Boolean(cloud.user);
+const canEdit = () => (!cloud.configured || Boolean(cloud.user)) && !guest.viewer;
 
 /** Când cineva fără cont încearcă să schimbe ceva: îi explicăm și îi deschidem autentificarea. */
 function requireAccount() {
     if (canEdit()) return true;
+    if (guest.viewer) {
+        showToast("👁 Ca părinte sau profesor poți doar să te uiți. Doar elevul își schimbă notele.", { duration: 4500 });
+        return false;
+    }
     if (!cloud.seenUser && cloud.api !== null) {
         showToast("O clipă, verific dacă ești în cont…");
         return false;
@@ -139,7 +143,8 @@ function renderGuestBar() {
         document.querySelectorAll("#tab-setari [data-guest-locked]").forEach(el => { el.disabled = false; el.removeAttribute("data-guest-locked"); });
         return;
     }
-    bar.innerHTML = `
+    bar.classList.toggle("is-viewer", guest.viewer);
+    bar.innerHTML = guest.viewer ? viewerBarHTML() : `
         <span class="guest-bar-text">${icon("eye")}<span><b>Ești vizitator.</b> ${guest.demo ? "Te uiți la un caiet de exemplu." : "Te uiți la notele de pe acest dispozitiv."} Ca să adaugi sau să schimbi ceva, intră în cont.</span></span>
         <button type="button" class="btn btn-primary btn-sm" data-action="guest-signin">Intră în cont</button>`;
     // Setările se văd, dar nu se pot schimba

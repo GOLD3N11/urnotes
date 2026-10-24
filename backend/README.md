@@ -7,6 +7,8 @@ Un singur serviciu, împărțit în module. Fiecare modul are tabelele lui (pref
 | Accounts | conturile (elev, părinte, profesor), legăturile părinte/profesor ↔ elev, integrarea Adservio, regula de acces | `accounts_*` |
 | School data | anii școlari, săptămâna de schi pe județe, examenele (EN, Bac) | `school_*` |
 | Notifications | amintirea de seară ca notificare push, chiar cu aplicația închisă | `notif_*` |
+| Student data | caietul elevului, înregistrare cu înregistrare (materii, note, evenimente, setări…), cu un cursor pentru sincronizare; rezumatul mediilor; importul de note | `data_records` |
+| Classes | clasele profesorului: cod de intrare, elevi, teste puse o dată pentru toată clasa | `class_*` |
 
 Planul complet (fazele 1–6) e în documentul „urNotes: architecture review and backend plan”.
 
@@ -19,7 +21,19 @@ Planul complet (fazele 1–6) e în documentul „urNotes: architecture review a
 | Integrarea Adservio (permisă de elev) | — | doar notele importate |
 | Administrator (`ADMIN_EMAILS`) | datele școlare | anii, județele, examenele |
 
-Regula e scrisă o singură dată, în `src/modules/accounts/policy.ts`, și e verificată de teste.
+Regula e scrisă o singură dată, în `src/modules/accounts/policy.ts`, și e verificată de teste. Un profesor e legat de elev și când elevul intră într-o clasă de-a lui.
+
+## Sincronizarea caietului
+
+Caietul nu mai urcă întreg: fiecare materie (`subject/<nume>`), notă (`grade/<id>`), eveniment (`event/<id>`) și restul (`doc/settings`, `doc/plan`…) e o înregistrare separată. Fiecare scriere primește un număr `rev` crescător; scrierile aceluiași elev se pun la coadă (un lacăt pe elev), așa că „dă-mi ce s-a schimbat după rev N” nu sare niciodată peste ceva. O ștergere rămâne ca înregistrare `deleted`, ca celelalte dispozitive s-o afle.
+
+În aplicație (`js/serversync.js`): citește ce s-a schimbat de la cursor, pune peste caiet (o modificare făcută aici și netrimisă câștigă la aceeași înregistrare), apoi trimite doar ce diferă. Două dispozitive care schimbă lucruri diferite nu se mai suprascriu.
+
+Mediile se calculează cu aceleași reguli peste tot: `shared/rules.js` e folosit și de aplicație, și de server (`GET /v1/students/:id/summary`).
+
+## Adservio
+
+Adservio nu are un API public, așa că serverul nu se poate conecta singur la el. Calea pregătită: o integrare creată de administrator (o cheie), permisă de elev, trimite notele la `POST /v1/students/:id/imported-grades`. Fiecare notă vine cu id-ul ei din Adservio (`adservio:<id>`), deci un import repetat nu dublează nimic, iar integrarea nu poate atinge altceva decât notele importate de ea. Dacă Adservio oferă un export sau un acord de acces, legătura se scrie ca un mic program care citește de acolo și trimite aici.
 
 ## Pornire locală
 
@@ -49,6 +63,10 @@ npm test
 
 Testele pornesc singure un PostgreSQL temporar (dacă găsesc `initdb` în `/usr/lib/postgresql`); altfel, dă-le o bază goală prin `TEST_DATABASE_URL`.
 
+## Postman
+
+`postman/urnotes.postman_collection.json` trece prin tot API-ul în ordine (conturi, coduri, date școlare, Adservio, amintiri, sincronizarea caietului, clase), cu verificări la fiecare cerere. Pornește serverul cu `postman/postman.env` (AUTH_MODE=dev, pe o bază goală), importă colecția și apasă Run.
+
 ## API
 
 Toate răspunsurile sunt JSON; erorile au forma `{ "error": "cod", "message": "text" }`. Cererile cu cont trimit `Authorization: Bearer <jetonul Firebase>`; integrările trimit `Authorization: Integration <cheie>`.
@@ -73,6 +91,14 @@ Toate răspunsurile sunt JSON; erorile au forma `{ "error": "cod", "message": "t
 | `GET` / `PUT /v1/notifications/settings` `{ enabled, time, timezone }` | cont | amintirea de seară |
 | `PUT /v1/notifications/digests` `{ from, days }` | cont | textul amintirilor pe zile (îl scrie aplicația) |
 | `POST /v1/notifications/shown` `{ day }` | cont | amintirea a fost văzută în aplicație; serverul n-o mai trimite |
+| `GET /v1/students/:id/records?since&limit` | elevul, părinte, profesor | ce s-a schimbat după `since` (`records`, `cursor`, `more`) |
+| `POST /v1/students/:id/records` `{ changes: [{ collection, id, data }] }` | elevul (integrarea: doar `grade/adservio:*`) | scrie până la 1000 de înregistrări; `data: null` șterge |
+| `GET /v1/students/:id/summary` | elevul, părinte, profesor | media generală și pe materii, calculate pe server |
+| `POST /v1/students/:id/imported-grades` `{ grades: [{ externalId, subject, val, type?, date? }] }` | integrarea | notele importate din Adservio |
+| `GET` / `POST /v1/classes` `{ name, subject? }` | profesor (elevul: doar `GET`) | clasele tale · o clasă nouă, cu cod |
+| `POST /v1/classes/join` `{ code }` | elev | intri în clasă; testele ei viitoare îți apar în calendar |
+| `GET /v1/classes/:id/members` · `DELETE …/members/:studentId` | profesorul clasei (elevul: doar ieșirea lui) | elevii · scoți un elev |
+| `GET` / `POST /v1/classes/:id/events` · `PUT` / `DELETE …/events/:eventId` | profesorul clasei | testele clasei; orice schimbare ajunge în calendarul fiecărui elev |
 
 ## Date școlare
 

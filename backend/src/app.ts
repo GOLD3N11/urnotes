@@ -14,8 +14,12 @@ import { schoolRoutes } from "./modules/school/routes.js";
 import { NotificationsService } from "./modules/notifications/service.js";
 import { notificationsRoutes } from "./modules/notifications/routes.js";
 import { noPushSender, webPushSender, type PushSender } from "./modules/notifications/push.js";
+import { RecordsService } from "./modules/records/service.js";
+import { recordsRoutes } from "./modules/records/routes.js";
+import { ClassesService } from "./modules/classes/service.js";
+import { classesRoutes } from "./modules/classes/routes.js";
 
-export interface Services { accounts: AccountsService; school: SchoolService; notifications: NotificationsService }
+export interface Services { accounts: AccountsService; school: SchoolService; notifications: NotificationsService; records: RecordsService; classes: ClassesService }
 
 export interface AppDeps {
     config: Config;
@@ -23,20 +27,37 @@ export interface AppDeps {
     verifier: TokenVerifier;
     push?: PushSender;
     logger?: boolean;
+    /** „azi” în România (testele îl fixează) */
+    today?: () => string;
 }
 
-export function createServices({ config, db, push }: AppDeps): Services {
+export function createServices(deps: AppDeps): Services {
+    const { config, db, push } = deps;
     const sender = push ?? (config.vapid ? webPushSender(config.vapid) : noPushSender);
+    const today = deps.today ?? (() => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date()));
+    const accounts = new AccountsService(db, config.adminEmails);
+    const records = new RecordsService(db, accounts);
+    // ștergerea contului: fiecare modul își șterge datele lui
+    accounts.onDelete(async id => { await db.query("DELETE FROM data_records WHERE student_id = $1", [id]); });
+    accounts.onDelete(async id => {
+        await db.query("DELETE FROM class_members WHERE student_id = $1", [id]);
+        await db.query("DELETE FROM class_groups WHERE teacher_id = $1", [id]);
+    });
+    accounts.onDelete(async id => {
+        for (const t of ["notif_subscriptions", "notif_settings", "notif_digests", "notif_delivered"]) await db.query(`DELETE FROM ${t} WHERE user_id = $1`, [id]);
+    });
     return {
-        accounts: new AccountsService(db, config.adminEmails),
+        accounts,
         school: new SchoolService(db),
-        notifications: new NotificationsService(db, sender, config.vapid?.publicKey ?? null)
+        notifications: new NotificationsService(db, sender, config.vapid?.publicKey ?? null),
+        records,
+        classes: new ClassesService(db, accounts, records, today)
     };
 }
 
 export async function buildApp(deps: AppDeps, services = createServices(deps)): Promise<FastifyInstance> {
     const { config, verifier } = deps;
-    const app = Fastify({ logger: deps.logger ?? false, bodyLimit: 256 * 1024, trustProxy: true });
+    const app = Fastify({ logger: deps.logger ?? false, bodyLimit: 4 * 1024 * 1024, trustProxy: true });
 
     await app.register(cors, {
         origin: (origin, cb) => cb(null, !origin || config.corsOrigins.includes(origin)),
@@ -77,5 +98,7 @@ export async function buildApp(deps: AppDeps, services = createServices(deps)): 
     await app.register(accountsRoutes, { accounts: services.accounts });
     await app.register(schoolRoutes, { school: services.school });
     await app.register(notificationsRoutes, { notifications: services.notifications });
+    await app.register(recordsRoutes, { records: services.records, accounts: services.accounts });
+    await app.register(classesRoutes, { classes: services.classes });
     return app;
 }

@@ -219,30 +219,12 @@ function sanitizePurtare(raw) {
 
 /** Situația purtării la o dată: modulele, modulul curent și media lor. */
 function purtareInfo(today = getLocalDateKey()) {
-    const list = state.settings.modules;
-    const year = list[0].start.slice(0, 4);
-    const modules = list.map((m, i) => {
-        const key = `${year}-${i + 1}`;
-        const saved = state.purtare.grades[key];
-        const status = today < m.start ? "upcoming" : today > m.end ? "done" : "current";
-        return {
-            n: i + 1,
-            key,
-            start: m.start,
-            end: m.end,
-            status,
-            val: status === "upcoming" ? null : (saved?.val ?? 10),
-            reason: saved?.reason || "",
-            changed: Boolean(saved)
-        };
-    });
-
+    // regula (notele pe module și media) e comună cu serverul: shared/rules.js
+    const { modules, avg } = URN_RULES.purtareSummary(state.settings.modules, state.purtare.grades, today);
     const started = modules.filter(m => m.status !== "upcoming");
     const current = modules.find(m => m.status === "current") || null;
     const lastDone = [...modules].reverse().find(m => m.status === "done") || null;
     const next = modules.find(m => m.status === "upcoming") || null;
-    // Înainte de primul modul nota e 10 (se reînnoiește); după ultimul rămâne media anului.
-    const avg = started.length ? started.reduce((s, m) => s + m.val, 0) / started.length : 10;
     const shown = current || lastDone;
 
     return {

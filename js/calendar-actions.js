@@ -595,7 +595,7 @@ function quickGradeForEvent(id, date, val) {
     if (!found || v === null || !canGradeOccurrence(found.ev, date, gradeLinks())) return;
     const { ev } = found;
     withUndo(`Ai adăugat nota ${v} la ${ev.subject} („${ev.title}”).`, () => {
-        state.subjects[ev.subject].grades.push({ val: v, type: GRADE_TYPE_FOR_EVENT[ev.type] || "Test", date, eventId: ev.id, eventDate: date });
+        state.subjects[ev.subject].grades.push({ id: uid(), val: v, type: GRADE_TYPE_FOR_EVENT[ev.type] || "Test", date, eventId: ev.id, eventDate: date });
         addActivity(`Ai adăugat nota ${v} (${GRADE_TYPE_FOR_EVENT[ev.type] || "Test"}) la ${ev.subject}.`);
     });
 }

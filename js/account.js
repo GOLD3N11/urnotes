@@ -93,6 +93,11 @@ async function onCloudUser(user) {
     cloud.seenUser = true;
     cloud.unwatch?.();
     cloud.unwatch = null;
+    if (cloud.user?.uid !== user?.uid && api.enabled) {
+        srvStop();
+        api.me = null;
+        if (guest.viewer) leaveViewer();
+    }
     cloud.user = user;
 
     if (!user) {
@@ -111,7 +116,10 @@ async function onCloudUser(user) {
     closeAuth();
     leaveGuest();
     renderAccount();
-    await reconcileWithCloud();
+    // Cu serverul urNotes: sincronizare notă cu notă (serversync.js); fără el, copia întreagă din Firebase.
+    if (api.enabled) await srvBoot(user);
+    else await reconcileWithCloud();
+    if (guest.viewer) return; // părinte/profesor: caietul e al elevului, nu-i schimbăm numele
     // Numele din contul Google devine numele elevului, dacă nu și-a scris deja altul.
     if (cloud.user?.uid === user.uid && !state.settings.profile.name && user.name) {
         state.settings.profile.name = cleanName(user.name, 40);
@@ -124,7 +132,7 @@ async function onCloudUser(user) {
             $("setup-buddy").innerHTML = setupBuddyHTML();
         }
     }
-    if (cloud.user?.uid === user.uid) cloud.unwatch = cloud.api.watch(onRemoteChange);
+    if (!api.enabled && cloud.user?.uid === user.uid) cloud.unwatch = cloud.api.watch(onRemoteChange);
 }
 
 /** La conectare: ce facem dacă și contul, și dispozitivul au date. */
@@ -212,7 +220,8 @@ function onLocalDataChange() {
     cloud.dirty = true;
     setSyncMeta({ uid: cloud.user.uid, dirty: true });
     setSyncStatus("pending");
-    scheduleUpload();
+    if (api.enabled) srvSchedule();
+    else scheduleUpload();
 }
 
 function scheduleUpload(delay = SYNC_DELAY) {
@@ -541,6 +550,7 @@ function confirmSignOut() {
     openModal({
         title: "Ieși din cont?",
         confirmText: "Ieși",
+        guestOk: true,
         body: `
             <p>Notele rămân în contul tău și le regăsești când intri din nou.</p>
             <label class="check-row mt-3"><input type="checkbox" id="signout-wipe"> Șterge și datele de pe acest dispozitiv</label>
@@ -548,7 +558,9 @@ function confirmSignOut() {
         onConfirm: async () => {
             const wipe = Boolean($("signout-wipe")?.checked);
             closeActionModal();
-            if (cloud.dirty) await uploadNow(); // ultimele modificări ajung în cont înainte de ieșire
+            // ultimele modificări ajung în cont înainte de ieșire
+            if (srv.on) await srvSync();
+            else if (cloud.dirty && !api.enabled) await uploadNow();
             try {
                 await cloud.api.signOut();
             } catch (err) {
@@ -573,6 +585,7 @@ function confirmDeleteAccount() {
     openModal({
         title: "Șterge contul",
         danger: true,
+        guestOk: true,
         confirmText: "Șterge definitiv",
         body: `
             <p>Se șterg contul <b>${escapeHTML(cloud.user?.email || "")}</b> și copia notelor din cloud. Nu se poate anula.</p>
@@ -580,6 +593,12 @@ function confirmDeleteAccount() {
         onConfirm: async () => {
             closeActionModal();
             try {
+                if (api.enabled) {
+                    // întâi contul de pe server (notele, legăturile, clasele), apoi contul de autentificare
+                    await api.request("DELETE", "/v1/me").catch(err => { if (err.status !== 404 && err.status !== 401) throw err; });
+                    srvStop();
+                    lsSet(SRV_KEY, null);
+                }
                 await cloud.api.deleteAccount();
                 setSyncMeta({ uid: null, lastSyncAt: 0, dirty: false });
                 lsSet(SYNC_KEYS.choice, null);
@@ -600,6 +619,7 @@ function openAccountPanel() {
     const method = u.providers.includes("google.com") ? "Google" : "email și parolă";
     openModal({
         layout: "panel",
+        guestOk: true,
         title: "Contul tău",
         confirmText: "",
         cancelText: "Închide",
@@ -646,7 +666,9 @@ const ACCOUNT_ACTIONS = {
         closeAuth();
     },
     "sync-now": async () => {
-        await (cloud.needsReconcile ? reconcileWithCloud() : uploadNow());
+        if (guest.viewer) await viewerReload();
+        else if (api.enabled) await (srv.on ? srvSync() : srvBoot(cloud.user));
+        else await (cloud.needsReconcile ? reconcileWithCloud() : uploadNow());
         if (cloud.status === "synced") showToast("☁ Sincronizat.");
         if (!$("action-modal").hidden && $("action-modal-title").textContent === "Contul tău") openAccountPanel();
     },

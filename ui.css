@@ -1021,3 +1021,19 @@ body:not(.style-notion) #cal-title { font-family: var(--font-hand); font-weight:
 .link-code { display: grid; gap: 4px; margin: 4px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); }
 .link-code b { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
 .link-code small { font-size: 12.5px; color: var(--ink-2); }
+
+/* ==================== PĂRINȚI, PROFESORI, CLASE (viewer.js) ==================== */
+.guest-bar.is-viewer { background: color-mix(in srgb, var(--accent, #4F7CFF) 12%, var(--sheet)); }
+.viewer-chips, .viewer-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.viewer-chips .chip { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--rule); background: var(--sheet); color: inherit; font: inherit; font-size: 12.5px; cursor: pointer; }
+.viewer-chips .chip.is-on { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.links-btns { display: flex !important; gap: 6px; flex: none; }
+#account-classes .account-actions .glass-input { flex: 1 1 160px; min-width: 0; }
+.cal-ev-cls { font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--input-bg); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 12em; }
+body.is-viewer .fab, body.is-viewer [data-action="quick-add"] { display: none !important; }
+@media (max-width: 900px) { .guest-bar.is-viewer .viewer-actions .btn { width: auto; flex: 1 1 auto; } }
+#action-modal-body .link-code + .account-sub, #action-modal-body .links-list + .account-sub, #action-modal-body .account-actions + .account-sub,
+#action-modal-body .muted-small + .account-sub, #action-modal-body .account-actions + h3 { margin-top: 20px; }
+#action-modal-body .account-sub + .links-list, #action-modal-body .links-list + .form-row { margin-top: 8px; }
+/* părinte/profesor fără niciun elev: caietul gol (cu îndemnurile de configurare) nu-i e de folos */
+body.viewer-empty .content-body > .tab-content { display: none !important; }

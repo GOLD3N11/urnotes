@@ -25,7 +25,11 @@ const toIntegration = (r: Record<string, unknown>): Integration => ({
 });
 
 export class AccountsService {
+    private deleteHooks: ((userId: string) => Promise<void>) [] = [];
     constructor(private db: Db, private adminEmails: string[], private now: () => Date = () => new Date()) {}
+
+    /** Celelalte module își șterg datele când un cont e șters (fiecare modul își curăță tabelele lui). */
+    onDelete(fn: (userId: string) => Promise<void>) { this.deleteHooks.push(fn); }
 
     private isAdminEmail(id: Identity) {
         return Boolean(id.email) && id.emailVerified && this.adminEmails.includes(id.email.toLowerCase());
@@ -73,6 +77,7 @@ export class AccountsService {
     }
 
     async deleteUser(user: User): Promise<void> {
+        for (const fn of this.deleteHooks) await fn(user.id);
         await this.db.query("DELETE FROM accounts_users WHERE id = $1", [user.id]);
     }
 
@@ -125,6 +130,13 @@ export class AccountsService {
             studentId: String(r.student_id), viewerId: String(r.viewer_id), relation: r.relation as "parent" | "teacher",
             name: String(r.name), email: String(r.email), createdAt: new Date(String(r.created_at)).toISOString()
         }));
+    }
+
+    /** Intrarea într-o clasă îl leagă pe profesorul clasei de elev (vede, nu schimbă). Pentru modulul Classes. */
+    async linkTeacher(studentId: string, teacherId: string) {
+        await this.db.query(
+            `INSERT INTO accounts_links (student_id, viewer_id, relation) VALUES ($1, $2, 'teacher')
+             ON CONFLICT (student_id, viewer_id) DO NOTHING`, [studentId, teacherId]);
     }
 
     /** Elevul sau cel legat pot desface legătura. */

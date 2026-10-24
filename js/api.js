@@ -6,6 +6,7 @@
    - datele școlare (anii, săptămâna de schi pe județe, examenele), publicate de administrator
    - amintirea de seară trimisă ca notificare push, chiar cu aplicația închisă
    - conturile de părinte și profesor, legate de elev printr-un cod (văd datele, nu le schimbă)
+   Fazele 4–6: caietul se sincronizează notă cu notă (serversync.js), iar părinții și profesorii îl văd (viewer.js).
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 
@@ -46,15 +47,30 @@ const api = {
         return { status: res.status, data, headers: res.headers };
     },
 
-    /** Contul de pe server: îl creăm ca elev la prima nevoie (aplicația aceasta e a elevului). */
-    async ensureStudent() {
-        if (api.me?.registered) return api.me.user;
+    /** Cine sunt pe server (o singură cerere; se uită la ieșirea din cont). */
+    async loadMe() {
+        if (api.me) return api.me;
         const { data } = await api.request("GET", "/v1/me");
         api.me = data;
-        if (data.registered) return data.user;
-        const created = await api.request("POST", "/v1/me", { role: "student", name: state.settings.profile.name || cloud.user?.name || "" });
+        return data;
+    },
+
+    /** Contul de pe server; la prima intrare îl creăm. Cine are deja note e elev; altfel întrebăm: elev, părinte sau profesor? */
+    async ensureRole() {
+        const me = await api.loadMe();
+        if (me.registered) return me.user;
+        const role = hasLocalData() ? "student" : await (api.rolePick ||= pickRole().finally(() => { api.rolePick = null; }));
+        if (api.me?.registered) return api.me.user;
+        const created = await api.request("POST", "/v1/me", { role, name: state.settings.profile.name || cloud.user?.name || "" });
         api.me = { user: created.data.user, registered: true };
         return api.me.user;
+    },
+
+    /** Pentru ce ține de caietul propriu (sincronizare, amintiri): doar un cont de elev. */
+    async ensureStudent() {
+        const user = await api.ensureRole();
+        if (user.role !== "student") throw new ApiError(403, "not_student", "Contul acesta e de părinte sau profesor: nu are caiet propriu.");
+        return user;
     }
 };
 
@@ -149,15 +165,59 @@ if (typeof navigator !== "undefined" && navigator.serviceWorker) {
     });
 }
 
+/* ==================== ROLUL CONTULUI ==================== */
+const ROLE_TEXT = { student: "elev", parent: "părinte", teacher: "profesor" };
+/** Prima intrare cu un cont nou (și fără note pe dispozitiv): cine folosește aplicația? */
+function pickRole() {
+    cloud.asking = true; // întrebarea are nevoie de un răspuns
+    return new Promise(resolve => {
+        cloud.resolveRole = role => {
+            cloud.asking = false;
+            cloud.resolveRole = null;
+            closeActionModal();
+            resolve(role);
+        };
+        const card = (role, emoji, title, hint) => `
+            <button type="button" class="reset-option-card" data-action="role-pick" data-role="${role}">
+                <span><span class="reset-option-title">${emoji} ${title}</span><span class="reset-option-hint">${hint}</span></span>
+                <span class="reset-option-arrow" aria-hidden="true">→</span>
+            </button>`;
+        openModal({
+            title: "Cine folosește urNotes?",
+            confirmText: "",
+            cancelText: "",
+            guestOk: true,
+            body: `<p class="modal-hint">Alege o singură dată; contul rămâne așa.</p>
+                ${card("student", "🎒", "Sunt elev", "îmi țin notele, testele și planul de învățat")}
+                ${card("parent", "👪", "Sunt părinte", "văd notele copilului, cu un cod primit de la el (fără să le pot schimba)")}
+                ${card("teacher", "🧑‍🏫", "Sunt profesor", "fac clase, pun teste în calendarul elevilor și le văd notele")}`
+        });
+    });
+}
+
 /* ==================== PĂRINȚI ȘI PROFESORI ==================== */
 /** Secțiunea din panoul contului: codurile pentru părinți/profesori și cine îți vede datele. */
 async function renderLinksBox() {
     const box = $("account-links");
     if (!box) return;
     try {
-        const me = await api.ensureStudent();
+        const me = await api.ensureRole();
         const { data } = await api.request("GET", "/v1/me/links");
         const rel = { parent: "părinte", teacher: "profesor" };
+        if (me.role !== "student") {
+            box.innerHTML = `
+                <h3 class="account-sub">${icon("user")} Elevii pe care îi urmărești</h3>
+                <p class="subtitle">Cont de ${ROLE_TEXT[me.role]}: vezi notele și calendarul elevilor legați de tine, fără să le poți schimba.</p>
+                ${data.links.length ? `<ul class="links-list">${data.links.map(l => `
+                    <li><span><b>${escapeHTML(l.name || l.email)}</b><small>${l.email && l.name ? escapeHTML(l.email) : "elev"}</small></span>
+                        <button type="button" class="btn btn-text btn-sm text-danger" data-action="link-remove" data-student="${escapeHTML(l.studentId)}" data-viewer="${escapeHTML(me.id)}">Nu mai urmări</button></li>`).join("")}</ul>`
+                    : `<p class="muted-small">Încă nu urmărești niciun elev.</p>`}
+                <div class="account-actions">
+                    <button type="button" class="btn btn-glass btn-sm" data-action="viewer-code">${icon("plus")} Am un cod de la un elev</button>
+                    ${me.role === "teacher" ? `<button type="button" class="btn btn-glass btn-sm" data-action="classes-open">${icon("user")} Clasele mele</button>` : ""}
+                </div>`;
+            return;
+        }
         box.innerHTML = `
             <h3 class="account-sub">${icon("user")} Părinți și profesori</h3>
             <p class="subtitle">Cei legați de tine vor putea vedea notele și calendarul tău oricând, dar nu vor putea schimba nimic. Doar tu (și importul din Adservio, dacă îl pornești) modifici datele.</p>
@@ -169,13 +229,16 @@ async function renderLinksBox() {
                 <button type="button" class="btn btn-glass btn-sm" data-action="link-invite" data-relation="parent">${icon("plus")} Cod pentru un părinte</button>
                 <button type="button" class="btn btn-glass btn-sm" data-action="link-invite" data-relation="teacher">${icon("plus")} Cod pentru un profesor</button>
             </div>
-            <div id="link-code" aria-live="polite"></div>`;
+            <div id="link-code" aria-live="polite"></div>
+            <div id="account-classes"></div>`;
+        renderStudentClasses();
     } catch (err) {
         box.innerHTML = `<p class="muted-small">${escapeHTML(err.code === "offline" ? "Serverul urNotes nu răspunde acum; încearcă mai târziu." : err.message)}</p>`;
     }
 }
 
 Object.assign(ACTIONS, {
+    "role-pick": el => cloud.resolveRole?.(ROLE_TEXT[el.dataset.role] ? el.dataset.role : "student"),
     "link-invite": async el => {
         const out = $("link-code");
         try {
@@ -189,8 +252,10 @@ Object.assign(ACTIONS, {
     "link-remove": async el => {
         try {
             await api.request("DELETE", `/v1/links/${encodeURIComponent(el.dataset.student)}/${encodeURIComponent(el.dataset.viewer)}`);
-            showToast("✓ Nu-ți mai vede datele.");
+            const mine = api.me?.user?.role === "student";
+            showToast(mine ? "✓ Nu-ți mai vede datele." : "✓ Nu mai urmărești acest elev.");
             renderLinksBox();
+            if (!mine && typeof viewerReload === "function") viewerReload();
         } catch (err) {
             showToast(`⚠️ ${err.message}`);
         }
@@ -204,6 +269,6 @@ if (api.enabled) {
     setInterval(refreshSchoolData, 24 * 3600 * 1000);
     // când intri în cont: contul de pe server și abonamentul push (dacă amintirile sunt pornite)
     window.addEventListener("urnotes-cloud", () => setTimeout(() => {
-        if (cloud.user && state.settings.remind?.on) apiPushSubscribe();
+        if (cloud.user && state.settings.remind?.on && api.me?.user?.role === "student") apiPushSubscribe();
     }, 2000));
 }

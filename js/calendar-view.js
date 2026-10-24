@@ -302,6 +302,7 @@ function eventCardHTML({ ev, date }, links) {
                 <span class="cal-ev-top">
                     ${ev.time ? `<span class="cal-ev-time">${escapeHTML(ev.time)}</span>` : ""}
                     <span class="cal-ev-type">${icon(EVENT_TYPE_ICON[ev.type] || "pin")} ${escapeHTML(ev.type)}</span>
+                    ${ev.cls ? `<span class="cal-ev-cls" title="Pus de profesor pentru toată clasa">🏫 ${escapeHTML(ev.cls)}</span>` : ""}
                     ${ev.repeat ? `<span class="cal-ev-rep" title="${ev.repeat.every === 2 ? "Se repetă la 2 săptămâni" : "Se repetă săptămânal"}">↻</span>` : ""}
                 </span>
                 <b class="cal-ev-title">${escapeHTML(ev.title)}</b>

@@ -182,7 +182,7 @@ function openAddGradeModal(presetMat = null, link = null) {
             const values = readGradeForm();
             if (!values) return;
 
-            const grade = { val: values.val, type: values.type };
+            const grade = { id: uid(), val: values.val, type: values.type };
             if (values.date) grade.date = values.date;
             if (link) {
                 grade.eventId = link.eventId;

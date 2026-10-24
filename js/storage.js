@@ -156,7 +156,37 @@ function normalizeGrade(g) {
         grade.eventId = String(g.eventId).slice(0, 100);
         grade.eventDate = g.eventDate;
     }
+    // id-ul stabil al notei (sincronizarea cu serverul lucrează notă cu notă) și de unde vine (ex. importul Adservio)
+    if (typeof g.id === "string" && RECORD_ID_RE.test(g.id)) grade.id = g.id;
+    if (g.source === "adservio") grade.source = "adservio";
     return grade;
+}
+
+const RECORD_ID_RE = /^[\w:.-]{1,100}$/;
+/** Un id care iese la fel pe orice dispozitiv pentru aceeași notă veche (fără id), ca două copii ale aceluiași caiet să se potrivească. */
+function legacyGradeId(mat, index, g) {
+    const text = `${mat}\u0001${index}\u0001${g.val}\u0001${g.type}\u0001${g.date || ""}\u0001${g.eventId || ""}`;
+    let h1 = 0x811c9dc5, h2 = 0x01000193;
+    for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        h1 = Math.imul(h1 ^ c, 16777619) >>> 0;
+        h2 = Math.imul(h2 ^ c, 2246822519) >>> 0;
+    }
+    return `g${h1.toString(36)}${h2.toString(36)}`;
+}
+/** Fiecare notă primește un id (cele noi sau cele vechi care n-aveau), unic în tot caietul. */
+function ensureGradeIds(subjects) {
+    const seen = new Set();
+    for (const [mat, sub] of Object.entries(subjects)) {
+        (sub.grades || []).forEach((g, i) => {
+            if (!g.id || seen.has(g.id)) {
+                let id = legacyGradeId(mat, i, g), n = 1;
+                while (seen.has(id)) id = `${legacyGradeId(mat, i, g)}-${n++}`;
+                g.id = id;
+            }
+            seen.add(g.id);
+        });
+    }
 }
 
 function normalizeEvent(ev, dateKey) {
@@ -168,6 +198,8 @@ function normalizeEvent(ev, dateKey) {
         subject: typeof ev.subject === "string" ? ev.subject : "",
         description: typeof ev.description === "string" ? ev.description.slice(0, 500) : ""
     };
+    // testul pus de profesor pentru toată clasa (vine de pe server): numele clasei
+    if (typeof ev.cls === "string" && ev.cls.trim()) out.cls = ev.cls.trim().slice(0, 80);
 
     if (isPlainObject(ev.repeat)) {
         const until = typeof ev.repeat.until === "string" && DATE_KEY_RE.test(ev.repeat.until) && ev.repeat.until >= dateKey ? ev.repeat.until : "";
@@ -225,6 +257,7 @@ function normalizeState(s) {
             ...(sanitizeSubjectIcon(sub.icon) ? { icon: sanitizeSubjectIcon(sub.icon) } : {})
         };
     }
+    ensureGradeIds(subjects);
     s.subjects = subjects;
 
     // Calendar: fiecare eveniment primește un id stabil; alertele vechi sunt migrate pe noul id.

@@ -15,7 +15,9 @@ Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu med
 Aplicația merge și fără server. Când `api-config.js` are adresa serverului urNotes, ea:
 - ia datele școlare (anii, județele, examenele) de pe server, așa că un ordin nou al ministrului nu mai cere o versiune nouă;
 - trimite serverului amintirea de seară a fiecărei zile, iar serverul o trimite ca notificare push, chiar cu aplicația închisă;
-- lasă elevul să creeze coduri pentru un părinte sau un profesor, care îi vor vedea datele fără să le poată schimba.
+- lasă elevul să creeze coduri pentru un părinte sau un profesor, care îi vor vedea datele fără să le poată schimba;
+- sincronizează caietul notă cu notă (nu ca o copie întreagă), deci două dispozitive nu se mai suprascriu;
+- are conturi de părinte și de profesor: la prima intrare cu un cont nou alegi „elev”, „părinte” sau „profesor”; părintele și profesorul văd caietul elevului doar pentru citire, iar profesorul face clase cu cod și pune teste care apar în calendarul fiecărui elev.
 
 Detalii, API și pornire: `backend/README.md`. Formele datelor comune aplicației și serverului: `shared/types.ts`.
 
@@ -25,13 +27,16 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 - `index.html`: paginile (taburile) și ordinea scripturilor.
 - `style.css`: aspectul componentelor; `ui.css`: stilul colorat „urNotes” (culori, litere, meniul, plăcile post-it); `notion.css`: stilul simplu, ca în Notion (implicit). Stilul se alege din Setări → Aspect → Stil și pune pe `<body>` clasa `style-notion` sau `style-urnotes`.
+- `shared/rules.js`: regulile de calcul (medii, rotunjire, purtare), aceleași în aplicație și pe server; `shared/types.ts`: formele datelor.
 - `js/*.js`: aplicația, împărțită pe domenii. Sunt scripturi clasice care împart același spațiu global și se încarcă în ordinea din `index.html`:
   - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
   - `utils.js`, `model.js`, `storage.js`, `metrics.js`: datele și calculele.
   - Câte un fișier pentru fiecare pagină sau funcție: `azi.js`, `catalog.js`, `calendar-*.js`, `plan.js`, `stats.js`, `simulator.js`, `reminders.js`, `years.js`, `pal.js` etc.
   - `notes.js`: notițele din pagina fiecărei materii (blocuri: text, titlu, listă, de bifat; scurtături „# ”, „- ”, „[] ”, „> ” citat, „---” linie; blocurile se mută trăgând de mânerul ⋮⋮).
   - `pages.js`: pictogramele paginilor și ale materiilor (emoji, alese automat sau din alegătorul de pictograme), proprietățile materiei ca într-o bază de date Notion.
-  - `api.js`: stratul către serverul urNotes (datele școlare, amintirile push, părinți și profesori); oprit cât timp `api-config.js` are `null`.
+  - `api.js`: stratul către serverul urNotes (datele școlare, amintirile push, rolul contului, părinți și profesori); oprit cât timp `api-config.js` are `null`.
+  - `serversync.js`: sincronizarea cu serverul, înregistrare cu înregistrare (înlocuiește copia din Firebase când serverul e pornit).
+  - `viewer.js`: modul „doar citire” pentru părinți și profesori, clasele profesorului și intrarea elevului într-o clasă.
   - `windows.js`: pe ecrane mari, formularele, confirmările și notificările sunt ferestre: le tragi oriunde (fereastră liberă) sau le lipești în stânga, dreapta, jos ori la mijloc; fiecare fel își ține minte locul.
   - `sidetree.js`: meniul lateral ca arbore de pagini (Note → fiecare materie, Mai mult → Plan, Progres…).
   - `state.js` (starea) și `boot.js`/`main.js` (pornirea) se încarcă ultimele.

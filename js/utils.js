@@ -43,10 +43,8 @@ function safeParseJSON(raw, fallback) {
     }
 }
 
-function clampNumber(value, min, max, fallback) {
-    const parsed = parseFloat(String(value).replace(",", "."));
-    return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
-}
+// comune cu serverul (shared/rules.js)
+const clampNumber = (value, min, max, fallback) => URN_RULES.clampNumber(value, min, max, fallback);
 
 function clampInteger(value, min, max, fallback) {
     const parsed = parseInt(value, 10);
@@ -61,12 +59,8 @@ function parseStrictInteger(value, min, max) {
     return n >= min && n <= max ? n : null;
 }
 
-function roundValue(value, decimals = 2) {
-    if (!Number.isFinite(value)) return 0;
-    const factor = 10 ** decimals;
-    // toPrecision taie zgomotul de virgulă mobilă: 8.495 * 100 = 849.4999… trebuie să devină 8.50, ca pe hârtie
-    return Math.round(Number((value * factor).toPrecision(12))) / factor;
-}
+// rotunjirea „ca pe hârtie” (8.495 → 8.50), comună cu serverul (shared/rules.js)
+const roundValue = (value, decimals = 2) => URN_RULES.roundValue(value, decimals);
 
 function getLocalDateKey(date = new Date()) {
     const y = date.getFullYear();
