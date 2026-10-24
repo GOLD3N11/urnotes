@@ -231,7 +231,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "violet", style: "notion" },
+    appearance: { theme: "system", accent: "yellow", style: "notion" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată
@@ -268,13 +268,28 @@ const ACHIEVEMENTS = [
 ];
 
 // Culoarea cernelii: o nuanță pentru caiet (luminos) și una mai deschisă, ca de cretă, pentru tablă (întunecat).
+/* Culorile de accent: cerneala (text, linii, iconițe) și umplutura (butoane, bife, bare, ziua de azi).
+   La „galben” cele două diferă: galbenul nu se citește ca text pe alb, așa că textul de accent e bleumarin. */
 const ACCENTS = {
+    yellow: { light: "#1E2B58", dark: "#FFD25E", fill: "#FFC93C", fillDark: "#FFC93C", on: "#1E2B58", onDark: "#1B1B1B", soft: "#FFF1C7", softDark: "rgba(255, 201, 60, 0.16)" },
     violet: { light: "#5B3CC4", dark: "#C3A6FF" },
     blue: { light: "#2347C5", dark: "#8DB4FF" },
     pink: { light: "#B8336A", dark: "#FF9EC0" },
     green: { light: "#18794E", dark: "#8FDCAF" },
     orange: { light: "#C2410C", dark: "#FFB27A" }
 };
+/** Variabilele CSS ale unei culori de accent (aceeași regulă și în scriptul de la începutul lui index.html). */
+function accentVars(key, dark) {
+    const a = ACCENTS[key] || ACCENTS.yellow;
+    const ink = dark ? a.dark : a.light;
+    const fill = (dark ? a.fillDark : a.fill) || ink;
+    return {
+        "--accent-color": ink,
+        "--accent-fill": fill,
+        "--on-accent-fill": (dark ? a.onDark : a.on) || (dark ? "#16121F" : "#FFFFFF"),
+        "--accent-soft": (dark ? a.softDark : a.soft) || `color-mix(in srgb, ${ink} ${dark ? 14 : 9}%, transparent)`
+    };
+}
 const MONTHS = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
 const GRADE_TYPES = ["Test", "Ascultare", "Temă", "Proiect", "Teză", "Altele"];
 const EVENT_TYPES = ["Test", "Examen", "Temă", "Proiect", "Prezentare", "Personal"];

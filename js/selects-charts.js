@@ -294,7 +294,7 @@ function chartsAvailable() {
 }
 
 function chartTheme() {
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent-color").trim() || ACCENTS.violet.light;
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent-color").trim() || ACCENTS.yellow.light;
     return {
         accent,
         surface: document.body.classList.contains("dark-mode") ? "#111827" : "#ffffff",

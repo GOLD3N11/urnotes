@@ -12,11 +12,11 @@ const TIME_RE = /^\d{2}:\d{2}$/;
 function loadState() {
     applyLoadedData(readStoredData(name => safeParseJSON(localStorage.getItem(KEYS[name]), null)));
 
-    // urNotes: cine avea culoarea implicită de dinainte (albastru) trece o singură dată pe violetul noii mărci.
+    // urNotes: cine avea culoarea implicită de dinainte (albastru, apoi violet) trece o singură dată pe galbenul noii mărci.
     try {
-        if (!localStorage.getItem(KEYS.brand)) {
-            if (state.settings.appearance.accent === "blue") state.settings.appearance.accent = "violet";
-            localStorage.setItem(KEYS.brand, "urnotes");
+        if (localStorage.getItem(KEYS.brand) !== "urnotes-galben") {
+            if (["blue", "violet"].includes(state.settings.appearance.accent)) state.settings.appearance.accent = "yellow";
+            localStorage.setItem(KEYS.brand, "urnotes-galben");
         }
     } catch (_) { /* fără stocare: rămâne culoarea din setări */ }
 
@@ -113,7 +113,7 @@ function sanitizeSettings(raw) {
         },
         appearance: {
             theme: pick(s.appearance.theme, ["system", "light", "dark"], "system"),
-            accent: pick(s.appearance.accent, Object.keys(ACCENTS), "violet"),
+            accent: pick(s.appearance.accent, Object.keys(ACCENTS), "yellow"),
             style: pick(s.appearance.style, APP_STYLES, "notion"),
             // (densitatea și cursoarele personalizate au fost scoase în v9)
         },

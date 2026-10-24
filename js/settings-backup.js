@@ -513,8 +513,8 @@ function applyAppearanceSettings() {
     document.body.classList.toggle("dark-mode", dark);
     document.documentElement.classList.toggle("theme-dark", dark); // bare de derulare și controale native întunecate
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#100E19" : "#F3F1FA"; m.removeAttribute("media"); });
-    document.documentElement.style.setProperty("--accent-color", (ACCENTS[a.accent] || ACCENTS.violet)[dark ? "dark" : "light"]);
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#111319" : "#F6F4EE"; m.removeAttribute("media"); });
+    for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
     const notion = a.style !== "urnotes";
     document.body.classList.toggle("style-notion", notion);
     document.body.classList.toggle("style-urnotes", !notion);

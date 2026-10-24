@@ -204,7 +204,7 @@ body.style-notion .subj-emoji { display: grid; place-items: center; flex: none; 
 body.style-notion .side-brand .brand-logo, body.style-notion .side-brand-text { display: none; }
 body.style-notion .side-brand { padding: 6px 8px 12px; }
 body.style-notion .side-ws { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 6px; border-radius: 6px; font-size: 14px; font-weight: 600; color: var(--ink); }
-body.style-notion .side-ws-av { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 5px; background: var(--ink-2); color: var(--paper); font-size: 12px; font-weight: 600; }
+body.style-notion .side-ws-av { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 5px; background: var(--accent-fill); color: var(--on-accent-fill); font-size: 12px; font-weight: 700; }
 body.style-notion .side-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 body.style-notion .side-sub-dot { display: none; }
 body.style-notion .side-sub-emoji { display: grid; place-items: center; flex: none; width: 20px; font-size: 15px; line-height: 1; }
