@@ -1,0 +1,29 @@
+# Totul local, dintr-o comandă (din folderul backend/): docker compose up --build
+# Serverul: http://localhost:8080 · aplicația: pune adresa în api-config.js
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: urnotes
+      POSTGRES_PASSWORD: urnotes
+      POSTGRES_DB: urnotes
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urnotes"]
+      interval: 3s
+      retries: 20
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://urnotes:urnotes@db:5432/urnotes
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  db:

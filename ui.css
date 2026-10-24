@@ -1009,3 +1009,15 @@ body:not(.style-notion) #cal-title { font-family: var(--font-hand); font-weight:
     body:has(#action-modal.is-win:not(.win-right):not([hidden])) .toast-container { right: 20px; }
 }
 @media (min-width: 901px) and (pointer: fine) { .is-win.win-float .drawer-card { right: auto; bottom: auto; } }
+
+/* --- Contul: părinți și profesori (cu serverul urNotes) --- */
+.account-links { display: grid; gap: 8px; margin: 14px 0 6px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.account-sub { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; }
+.account-sub .ico { width: 17px; height: 17px; }
+.links-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.links-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.links-list li span { display: grid; min-width: 0; }
+.links-list small { font-size: 12.5px; color: var(--ink-2); }
+.link-code { display: grid; gap: 4px; margin: 4px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--input-bg); }
+.link-code b { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
+.link-code small { font-size: 12.5px; color: var(--ink-2); }

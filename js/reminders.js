@@ -95,6 +95,7 @@ async function checkReminder(now = new Date()) {
     markRemindShown(today); // o singură dată pe zi, chiar dacă azi n-a fost nimic de spus
     syncReminderCache();
     const d = reminderDigest(today);
+    if (d && typeof apiReminderShown === "function") apiReminderShown(today);
     return d ? deliverReminder(d) : null;
 }
 
@@ -110,7 +111,21 @@ async function remindShownByWorker(today) {
 }
 
 /** Pentru lucrătorul din fundal: amintirile gata scrise pentru următoarele zile (el nu vede datele aplicației). */
+/** Amintirile din următoarele 7 zile, gata scrise (lucrătorul din fundal și serverul nu văd datele aplicației). */
+function upcomingDigests(today = getLocalDateKey()) {
+    const days = {};
+    if (!state.settings.remind.on || !canEdit()) return days;
+    for (let i = 0; i < 7; i++) {
+        const day = addDays(today, i);
+        const d = reminderDigest(day);
+        if (d) days[day] = { title: d.title, body: d.body };
+    }
+    return days;
+}
+
 async function syncReminderCache() {
+    // serverul urNotes (dacă e configurat): trimite el amintirea, chiar cu aplicația închisă
+    if (typeof apiSyncReminders === "function") apiSyncReminders(upcomingDigests());
     if (typeof caches === "undefined") return;
     try {
         const cache = await caches.open(REMIND_CACHE);
@@ -188,7 +203,9 @@ function renderReminderSetting() {
         </div>
         ${permLine}
         ${r.on ? `<button type="button" class="btn btn-glass btn-sm mt-2" data-action="remind-test">${icon("bell")} Arată-mi acum cum arată</button>` : ""}
-        <p class="subtitle mt-2">Amintirea vine când urNotes e deschis sau rulează în fundal. Când aplicația e închisă de tot, telefonul nu o poate porni singur fără un server; pe Android, cu aplicația instalată, uneori o trezește.</p>`;
+        <p class="subtitle mt-2">${typeof api !== "undefined" && api.enabled && cloud.user
+            ? "Amintirea vine de la serverul urNotes, ca notificare, chiar dacă aplicația e închisă (pe iPhone, după ce pui urNotes pe ecranul principal)."
+            : "Amintirea vine când urNotes e deschis sau rulează în fundal. Când aplicația e închisă de tot, telefonul nu o poate porni singur fără un server; pe Android, cu aplicația instalată, uneori o trezește."}</p>`;
     if (guest.on) box.querySelectorAll("input, select, button").forEach(el => { el.disabled = true; el.setAttribute("data-guest-locked", ""); });
 }
 
@@ -213,6 +230,7 @@ function saveReminderSetting() {
 const REMIND_ACTIONS = {
     "remind-allow": async () => {
         try { await Notification.requestPermission(); } catch (_) { /* refuzat */ }
+        if (typeof apiPushSubscribe === "function") apiPushSubscribe();
         renderReminderSetting();
         renderBadgeSetting();
         renderNotificationBadge();

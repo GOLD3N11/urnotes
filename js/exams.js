@@ -46,6 +46,9 @@ const EXAM_CALENDAR = {
     }
 };
 
+// calendarele examenelor publicate pe serverul urNotes (vezi SCHOOL_CACHE_KEY în config.js)
+if (schoolRemote?.exams) for (const [k, v] of Object.entries(schoolRemote.exams)) if (/^\d{4}$/.test(k) && v && typeof v === "object") EXAM_CALENDAR[k] = v;
+
 /* Probele scrise care intră în medie */
 const EXAM_SUBJECTS = {
     en: [

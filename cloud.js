@@ -59,6 +59,8 @@ async function start(config) {
         },
         resetPassword: email => A.sendPasswordResetEmail(auth, email),
         signOut: () => A.signOut(auth),
+        // jetonul pentru serverul urNotes (backend/): îl verifică el, cu cheile publice Google
+        idToken: () => (auth.currentUser ? auth.currentUser.getIdToken() : Promise.resolve(null)),
         load: async () => toRemote(await F.getDoc(ref())),
         save: (json, device, updatedAt) => F.setDoc(ref(), { backup: json, device, updatedAt, savedAt: F.serverTimestamp(), v: 1 }),
         // Doar schimbările confirmate de server (nu și ecoul propriilor scrieri, încă în curs).

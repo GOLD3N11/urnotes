@@ -10,6 +10,15 @@ Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu med
 - Datele se salvează în browser (localStorage) și merg și offline; din Setări poți exporta și importa un backup.
 - Opțional, conturi (Google sau email + parolă) cu sincronizare între dispozitive, prin Firebase: completează `firebase-config.js` și publică regulile din `firestore.rules`. Fără configurare, aplicația rămâne doar locală.
 
+## Serverul (backend/)
+
+Aplicația merge și fără server. Când `api-config.js` are adresa serverului urNotes, ea:
+- ia datele școlare (anii, județele, examenele) de pe server, așa că un ordin nou al ministrului nu mai cere o versiune nouă;
+- trimite serverului amintirea de seară a fiecărei zile, iar serverul o trimite ca notificare push, chiar cu aplicația închisă;
+- lasă elevul să creeze coduri pentru un părinte sau un profesor, care îi vor vedea datele fără să le poată schimba.
+
+Detalii, API și pornire: `backend/README.md`. Formele datelor comune aplicației și serverului: `shared/types.ts`.
+
 ## Cum e organizat codul
 
 Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
@@ -22,6 +31,7 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
   - Câte un fișier pentru fiecare pagină sau funcție: `azi.js`, `catalog.js`, `calendar-*.js`, `plan.js`, `stats.js`, `simulator.js`, `reminders.js`, `years.js`, `pal.js` etc.
   - `notes.js`: notițele din pagina fiecărei materii (blocuri: text, titlu, listă, de bifat; scurtături „# ”, „- ”, „[] ”, „> ” citat, „---” linie; blocurile se mută trăgând de mânerul ⋮⋮).
   - `pages.js`: pictogramele paginilor și ale materiilor (emoji, alese automat sau din alegătorul de pictograme), proprietățile materiei ca într-o bază de date Notion.
+  - `api.js`: stratul către serverul urNotes (datele școlare, amintirile push, părinți și profesori); oprit cât timp `api-config.js` are `null`.
   - `windows.js`: pe ecrane mari, formularele, confirmările și notificările sunt ferestre: le tragi oriunde (fereastră liberă) sau le lipești în stânga, dreapta, jos ori la mijloc; fiecare fel își ține minte locul.
   - `sidetree.js`: meniul lateral ca arbore de pagini (Note → fiecare materie, Mai mult → Plan, Progres…).
   - `state.js` (starea) și `boot.js`/`main.js` (pornirea) se încarcă ultimele.

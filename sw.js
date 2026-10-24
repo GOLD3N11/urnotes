@@ -1,9 +1,9 @@
 /* urNotes — lucru fără internet.
    Fișierele aplicației: mai întâi rețeaua (ca să primești mereu ultima versiune), copia salvată doar când nu e semnal.
    Fonturile și Chart.js: copia salvată imediat, actualizată în fundal. Firebase nu trece pe aici. */
-const CACHE = "urnotes-v12";
-const APP_JS = ["js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "js/state.js", "js/boot.js", "js/main.js"];
-const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "notion.css", "cloud.js", "firebase-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
+const CACHE = "urnotes-v14";
+const APP_JS = ["js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/api.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "js/state.js", "js/boot.js", "js/main.js"];
+const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "notion.css", "cloud.js", "firebase-config.js", "api-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
 const REMIND_CACHE = "urnotes-remind"; // amintirile scrise de aplicație (vezi checkReminder în js/reminders.js)
 const CDN = ["https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"];
 
@@ -60,6 +60,26 @@ self.addEventListener("periodicsync", event => {
     if (event.tag === "urnotes-remind") event.waitUntil(maybeRemind().catch(() => {}));
 });
 
+/* Amintirea trimisă de serverul urNotes (Web Push), chiar cu aplicația închisă.
+   Dacă aplicația e chiar în față, i-o dăm ei: o arată ca mesaj, nu ca notificare. */
+self.addEventListener("push", event => {
+    let d = {};
+    try { d = event.data ? event.data.json() : {}; } catch (_) { d = { title: "urNotes", body: event.data ? event.data.text() : "" }; }
+    event.waitUntil((async () => {
+        const open = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        const front = open.filter(c => c.visibilityState === "visible");
+        if (front.length) { front.forEach(c => c.postMessage({ type: "urn-push", title: d.title, body: d.body, day: d.day })); return; }
+        // ținem minte că amintirea zilei a fost arătată (ca lucrătorul periodic să n-o mai arate o dată)
+        try {
+            const cache = await caches.open(REMIND_CACHE);
+            const res = await cache.match("remind.json");
+            const data = res ? await res.json() : {};
+            if (d.day) data.shown = d.day;
+            await cache.put("remind.json", new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } }));
+        } catch (_) { /* fără cache */ }
+        await self.registration.showNotification(d.title || "urNotes", { body: d.body || "", tag: d.tag || "urnotes-remind", icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: d.url || "./" } });
+    })());
+});
 self.addEventListener("notificationclick", event => {
     event.notification.close();
     event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {

@@ -1,0 +1,216 @@
+{
+  "$comment": "Generat din js/config.js și js/exams.js de backend/scripts/extract-school-data.mjs. Nu-l edita de mână.",
+  "years": {
+    "2026": {
+      "order": "OM nr. 3194/2026",
+      "m1": [
+        "2026-09-07",
+        "2026-10-23"
+      ],
+      "m2": [
+        "2026-11-02",
+        "2026-12-22"
+      ],
+      "m3Start": "2027-01-11",
+      "m4End": "2027-04-23",
+      "m5Start": "2027-05-05",
+      "end": "2027-06-18",
+      "lastDay": {
+        "8": "2027-06-11",
+        "12": "2027-06-04"
+      },
+      "mobile": {
+        "feb15": "2027-02-15",
+        "feb22": "2027-02-22",
+        "mar01": "2027-03-01"
+      },
+      "holidays": {
+        "2026-11-30": "Sf. Andrei",
+        "2026-12-01": "Ziua Națională",
+        "2026-12-25": "Crăciunul",
+        "2027-01-01": "Anul Nou",
+        "2027-01-06": "Boboteaza",
+        "2027-01-07": "Sf. Ioan",
+        "2027-04-30": "Vinerea Mare",
+        "2027-05-03": "Paștele (a doua zi)",
+        "2027-05-04": "zi liberă după Paște",
+        "2027-06-01": "Ziua Copilului"
+      },
+      "notes": {
+        "2026-10-05": "Ziua Educației",
+        "2027-03-28": "Paștele catolic",
+        "2027-05-02": "Paștele ortodox"
+      }
+    }
+  },
+  "counties": {
+    "2026": {
+      "Alba": "mar01",
+      "Arad": "mar01",
+      "Argeș": "feb22",
+      "Bacău": "feb22",
+      "Bihor": "feb22",
+      "Bistrița-Năsăud": "feb15",
+      "Botoșani": "feb22",
+      "Brăila": "feb22",
+      "Brașov": "feb22",
+      "București": "feb22",
+      "Buzău": "mar01",
+      "Călărași": "feb22",
+      "Caraș-Severin": "mar01",
+      "Cluj": "feb15",
+      "Constanța": "feb22",
+      "Covasna": "feb22",
+      "Dâmbovița": "feb22",
+      "Dolj": "feb15",
+      "Galați": "feb22",
+      "Giurgiu": "feb22",
+      "Gorj": "feb22",
+      "Harghita": "feb22",
+      "Hunedoara": "feb22",
+      "Ialomița": "feb22",
+      "Iași": "feb22",
+      "Ilfov": "feb22",
+      "Maramureș": "feb22",
+      "Mehedinți": "feb22",
+      "Mureș": "feb22",
+      "Neamț": "feb22",
+      "Olt": "feb22",
+      "Prahova": "feb22",
+      "Sălaj": "feb22",
+      "Satu Mare": "feb22",
+      "Sibiu": "feb22",
+      "Suceava": "feb15",
+      "Teleorman": "feb22",
+      "Timiș": "feb22",
+      "Tulcea": "feb22",
+      "Vâlcea": "feb22",
+      "Vaslui": "feb22",
+      "Vrancea": "feb22"
+    }
+  },
+  "exams": {
+    "2026": {
+      "en": {
+        "status": "proiect",
+        "source": "Calendarul Evaluării Naționale 2027 (proiect în consultare, Ministerul Educației)",
+        "dates": [
+          [
+            "2027-03-16",
+            "Simularea Evaluării Naționale (16–18 martie)"
+          ],
+          [
+            "2027-03-30",
+            "Rezultatele simulării"
+          ],
+          [
+            "2027-06-11",
+            "Ultima zi de cursuri"
+          ],
+          [
+            "2027-06-22",
+            "Limba și literatura română",
+            "ro"
+          ],
+          [
+            "2027-06-24",
+            "Matematică",
+            "mate"
+          ],
+          [
+            "2027-06-25",
+            "Limba și literatura maternă",
+            "mat"
+          ],
+          [
+            "2027-06-30",
+            "Rezultatele inițiale"
+          ],
+          [
+            "2027-07-07",
+            "Rezultatele finale"
+          ]
+        ]
+      },
+      "bac": {
+        "status": "oficial",
+        "source": "Calendarul Bacalaureatului 2027 (ordinul ministrului, august 2026)",
+        "dates": [
+          [
+            "2027-03-22",
+            "Simulare: Limba română (E.a)"
+          ],
+          [
+            "2027-03-23",
+            "Simulare: proba obligatorie (E.c)"
+          ],
+          [
+            "2027-03-24",
+            "Simulare: proba la alegere (E.d)"
+          ],
+          [
+            "2027-03-25",
+            "Simulare: limba maternă (E.b)",
+            "",
+            "maternal"
+          ],
+          [
+            "2027-04-09",
+            "Rezultatele simulării"
+          ],
+          [
+            "2027-04-12",
+            "Proba A: română, oral (12–14 aprilie)"
+          ],
+          [
+            "2027-04-14",
+            "Proba B: limba maternă, oral (14–16 aprilie)",
+            "",
+            "maternal"
+          ],
+          [
+            "2027-04-19",
+            "Proba C: limbă străină (19–21 aprilie)"
+          ],
+          [
+            "2027-04-21",
+            "Proba D: competențe digitale (21–23 aprilie)"
+          ],
+          [
+            "2027-06-04",
+            "Ultima zi de cursuri"
+          ],
+          [
+            "2027-06-14",
+            "E.a) Limba și literatura română",
+            "ea"
+          ],
+          [
+            "2027-06-15",
+            "E.c) Proba obligatorie a profilului",
+            "ec"
+          ],
+          [
+            "2027-06-17",
+            "E.d) Proba la alegere",
+            "ed"
+          ],
+          [
+            "2027-06-18",
+            "E.b) Limba și literatura maternă",
+            "eb",
+            "maternal"
+          ],
+          [
+            "2027-06-23",
+            "Rezultatele inițiale"
+          ],
+          [
+            "2027-07-01",
+            "Rezultatele finale"
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -60,6 +60,17 @@ const SCHOOL_YEAR_DATA = {
         notes: { "2026-10-05": "Ziua Educației", "2027-03-28": "Paștele catolic", "2027-05-02": "Paștele ortodox" }
     }
 };
+/* Datele școlare de pe serverul urNotes (când există; vezi js/api.js), păstrate în browser de la ultima vizită:
+   un ordin nou al ministrului ajunge fără o versiune nouă a aplicației. Se aplică înainte de orice calcul de mai jos. */
+const SCHOOL_CACHE_KEY = "urn_school_data_v1";
+const schoolRemote = (() => {
+    try {
+        const d = JSON.parse(localStorage.getItem(SCHOOL_CACHE_KEY) || "null");
+        return d && typeof d === "object" && d.years && typeof d.years === "object" ? d : null;
+    } catch (_) { return null; }
+})();
+const isRemoteYear = v => v && Array.isArray(v.m1) && Array.isArray(v.m2) && v.mobile && v.lastDay && typeof v.end === "string";
+if (schoolRemote) for (const [k, v] of Object.entries(schoolRemote.years)) if (/^\d{4}$/.test(k) && isRemoteYear(v)) SCHOOL_YEAR_DATA[k] = v;
 const MOBILE_WEEKS = { feb15: "15–21 februarie", feb22: "22–28 februarie", mar01: "1–7 martie" };
 
 // Datele aici se calculează la încărcare, înainte de utils.js: folosim propriile mici funcții de dată.
@@ -170,6 +181,14 @@ const COUNTY_WEEK = {
     "Sălaj": "2026-feb22", "Satu Mare": "2026-feb22", "Sibiu": "2026-feb22", "Suceava": "2026-feb15", "Teleorman": "2026-feb22",
     "Timiș": "2026-feb22", "Tulcea": "2026-feb22", "Vâlcea": "2026-feb22", "Vaslui": "2026-feb22", "Vrancea": "2026-feb22"
 };
+/** Săptămânile de schi de pe server: cel mai nou an publicat. */
+function applyRemoteCounties(counties) {
+    const years = Object.keys(counties || {}).filter(y => /^\d{4}$/.test(y)).sort();
+    const last = years.at(-1);
+    if (!last) return;
+    for (const [c, w] of Object.entries(counties[last] || {})) if (["feb15", "feb22", "mar01"].includes(w)) COUNTY_WEEK[c] = `${last}-${w}`;
+}
+if (schoolRemote) applyRemoteCounties(schoolRemote.counties);
 /** Varianta de module a județului într-un an (săptămâna de schi se presupune aceeași de la an la an până la noul ordin). */
 const countyPreset = (county, start = currentSchoolYear()) => COUNTY_WEEK[county] ? `${start}-${COUNTY_WEEK[county].split("-")[1]}` : "";
 const COUNTIES = Object.keys(COUNTY_WEEK).sort((a, b) => a.localeCompare(b, "ro"));

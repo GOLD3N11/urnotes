@@ -613,12 +613,14 @@ function openAccountPanel() {
                 <small>${cloud.lastSyncAt ? `Ultima sincronizare: ${escapeHTML(formatDateTime(new Date(cloud.lastSyncAt)))}` : "Încă nesincronizat"}</small>
                 <small>Notele se salvează în cont la câteva secunde după fiecare modificare și apar singure pe celelalte dispozitive.</small>
             </div>
+            ${typeof api !== "undefined" && api.enabled ? `<div class="account-links" id="account-links"><p class="muted-small">Se încarcă…</p></div>` : ""}
             <div class="account-actions is-col">
                 <button type="button" class="btn btn-glass" data-action="sync-now">${icon("refresh")} Sincronizează acum</button>
                 <button type="button" class="btn btn-glass" data-action="account-signout">${icon("undo")} Ieși din cont</button>
                 <button type="button" class="btn btn-text text-danger" data-action="account-delete">${icon("trash")} Șterge contul</button>
             </div>`
     });
+    if (typeof api !== "undefined" && api.enabled) renderLinksBox();
 }
 
 const ACCOUNT_ACTIONS = {
