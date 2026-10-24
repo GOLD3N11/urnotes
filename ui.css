@@ -946,3 +946,66 @@ body:not(.style-notion) #cal-title { font-family: var(--font-hand); font-weight:
     .cal-month-wd { padding: 6px 0; text-align: center; font-size: 11px; }
     body:not(.style-notion) .cal-shell { padding: 6px 12px 12px; }
 }
+
+/* ==========================================================================
+   FERESTRE (ecrane mari): trase oriunde sau lipite de o margine
+   ========================================================================== */
+.win-bar, .win-edge, .win-zone { display: none; }
+@media (min-width: 901px) and (pointer: fine) {
+    /* bara de sus a ferestrei: mâner de tras + unde stă */
+    .is-win .win-bar { display: flex; align-items: center; gap: 4px; }
+    #action-modal.is-win .win-bar { position: absolute; top: 10px; right: 12px; z-index: 2; }
+    #notif-panel.is-win .win-bar { margin-left: auto; margin-right: 6px; }
+    .win-grip { display: grid; place-items: center; width: 22px; height: 28px; color: var(--ink-2); font-size: 15px; cursor: grab; user-select: none; }
+    .win-modes { display: inline-flex; gap: 1px; padding: 2px; border-radius: 8px; background: var(--input-bg); }
+    .win-btn { display: grid; place-items: center; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--ink-2); cursor: pointer; }
+    .win-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+    .win-btn svg .f { fill: currentColor; stroke: none; opacity: 0.55; }
+    .win-btn:hover { color: var(--ink); background: var(--hover, var(--sheet)); }
+    .win-btn[aria-pressed="true"] { color: var(--accent-color); background: var(--sheet); box-shadow: 0 0 0 1px var(--rule); }
+    .win-btn[aria-pressed="true"] svg .f { opacity: 0.9; }
+    .win-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+    .is-win #action-modal-title, .is-win .drawer-head { cursor: grab; user-select: none; }
+    #action-modal.is-win #action-modal-title { padding-right: 230px; }
+    #action-modal.is-win.is-dialog #action-modal-title { padding-right: 96px; }
+    .is-win.is-dragging, .is-win.is-dragging * { cursor: grabbing !important; user-select: none; }
+
+    /* fără fundal întunecat când fereastra stă singură: pagina rămâne folosibilă */
+    .modal-overlay.is-win.is-modeless, .drawer.is-win.is-modeless { pointer-events: none; background: transparent; animation: none; }
+    .drawer.is-win.is-modeless .drawer-backdrop { display: none; }
+    .is-win.is-modeless .modal-card, .is-win.is-modeless .drawer-card { pointer-events: auto; }
+
+    /* cardul ferestrei: aceeași structură în toate felurile (antet, conținut care derulează, butoane jos) */
+    .is-win:not(.win-center) .modal-card, .is-win:not(.win-center) .drawer-card {
+        position: fixed; display: flex; flex-direction: column; margin: 0; padding: 0; max-height: none; overflow: hidden;
+        background: var(--sheet); border: 1px solid var(--rule); animation: none;
+    }
+    .is-win:not(.win-center) #action-modal-title { padding: 18px 22px 12px; border-bottom: 1px solid var(--rule); font-size: 18px; }
+    .is-win:not(.win-center) #action-modal-body { flex: 1; min-height: 0; margin: 0; padding: 16px 22px 20px; overflow-y: auto; }
+    .is-win:not(.win-center) .modal-footer { margin: 0; padding: 12px 22px; border-top: 1px solid var(--rule); background: var(--sheet); }
+
+    .is-win.win-right .modal-card, .is-win.win-right .drawer-card { top: 0; right: 0; bottom: 0; left: auto; width: var(--win-w, 460px); height: auto; border-width: 0 0 0 1px; border-radius: 0; box-shadow: -18px 0 40px -28px rgba(0, 0, 0, 0.35); }
+    .is-win.win-left .modal-card, .is-win.win-left .drawer-card { top: 0; bottom: 0; left: var(--win-x0, 0px); right: auto; width: var(--win-w, 460px); height: auto; border-width: 0 1px 0 0; border-radius: 0; box-shadow: 18px 0 40px -28px rgba(0, 0, 0, 0.35); }
+    .is-win.win-bottom .modal-card, .is-win.win-bottom .drawer-card { left: var(--win-x0, 0px); right: 0; bottom: 0; top: auto; width: auto; height: var(--win-h, 320px); border-width: 1px 0 0; border-radius: 12px 12px 0 0; box-shadow: 0 -18px 40px -28px rgba(0, 0, 0, 0.35); }
+    .is-win.win-float .modal-card, .is-win.win-float .drawer-card { border-radius: 12px; box-shadow: 0 0 0 1px rgba(15, 15, 15, 0.04), 0 12px 32px rgba(15, 15, 15, 0.18), 0 2px 6px rgba(15, 15, 15, 0.08); resize: both; min-width: 300px; min-height: 200px; }
+    body.dark-mode .is-win.win-float .modal-card, body.dark-mode .is-win.win-float .drawer-card { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 36px rgba(0, 0, 0, 0.55); }
+    .is-win.win-center .modal-card { position: relative; }
+    .is-win.win-center.is-panel .modal-card { width: min(560px, 94vw); height: auto; max-height: 86vh; border: 1px solid var(--rule); border-radius: 14px; }
+    .is-win.win-center.drawer .drawer-card { position: fixed; top: 10vh; left: 50%; right: auto; bottom: auto; width: min(460px, 94vw); max-height: 80vh; transform: translateX(-50%); border: 1px solid var(--rule); border-radius: 14px; }
+
+    /* marginea interioară a ferestrelor lipite: trage ca s-o lățești */
+    .is-win.win-left .win-edge, .is-win.win-right .win-edge, .is-win.win-bottom .win-edge { display: block; position: absolute; z-index: 3; }
+    .is-win.win-right .win-edge { left: -3px; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
+    .is-win.win-left .win-edge { right: -3px; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
+    .is-win.win-bottom .win-edge { top: -3px; left: 0; right: 0; height: 7px; cursor: ns-resize; }
+    .win-edge:hover, .is-resizing .win-edge { background: color-mix(in srgb, var(--accent-color) 45%, transparent); }
+
+    /* unde se va lipi, cât timp tragi */
+    .win-zone { position: fixed; z-index: 1640; display: block; pointer-events: none; border: 2px solid var(--accent-color); border-radius: 10px; background: color-mix(in srgb, var(--accent-color) 12%, transparent); transition: all 0.12s ease; }
+    .win-zone[hidden] { display: none; }
+
+    /* mesajele nu stau sub o fereastră lipită în dreapta */
+    body:has(#action-modal.win-right:not([hidden])) .toast-container { right: calc(var(--toast-r, 480px) + 20px); }
+    body:has(#action-modal.is-win:not(.win-right):not([hidden])) .toast-container { right: 20px; }
+}
+@media (min-width: 901px) and (pointer: fine) { .is-win.win-float .drawer-card { right: auto; bottom: auto; } }

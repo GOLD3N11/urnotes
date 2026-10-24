@@ -343,7 +343,7 @@ function bindShellEvents() {
         }
         if (!$("notif-panel").hidden && !modalOpen) {
             if (k === "Escape") { event.preventDefault(); event.stopPropagation(); closeNotifPanel(); }
-            else trapFocusIn($("notif-panel"), event);
+            else if (!$("notif-panel").classList.contains("is-modeless")) trapFocusIn($("notif-panel"), event);
             return;
         }
         if (modalOpen || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;

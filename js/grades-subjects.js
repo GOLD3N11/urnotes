@@ -62,7 +62,7 @@ function closeActionModal() {
 
 function trapModalFocus(event) {
     const overlay = $("action-modal");
-    if (overlay.hidden || event.key !== "Tab") return;
+    if (overlay.hidden || event.key !== "Tab" || overlay.classList.contains("is-modeless")) return;
 
     const items = [...overlay.querySelectorAll(FOCUSABLE)].filter(el => el.offsetParent !== null);
     if (items.length === 0) return;
