@@ -1,6 +1,6 @@
 /*
- * Zece ↔ Firebase: conturi (Google, email + parolă) și o copie a datelor în cloud.
- * Aplicația (js/*.js) nu vorbește direct cu Firebase, ci doar cu obiectul `window.ZeceCloud` de mai jos:
+ * urNotes ↔ Firebase: conturi (Google, email + parolă) și o copie a datelor în cloud.
+ * Aplicația (js/*.js) nu vorbește direct cu Firebase, ci doar cu obiectul `window.UrNotesCloud` de mai jos:
  *   onUser(cb) · signInGoogle() · signInEmail(email, parolă) · signUpEmail(email, parolă, nume)
  *   resetPassword(email) · signOut() · load() · save(json, device, updatedAt) · watch(cb) · deleteAccount()
  * Datele unui utilizator stau într-un singur document: users/{uid} = { backup: „backup-ul” JSON, updatedAt, device }.
@@ -72,7 +72,7 @@ async function start(config) {
     };
 }
 
-const config = window.ZECE_FIREBASE;
+const config = window.URNOTES_FIREBASE;
 const ready = config && config.apiKey ? start(config) : Promise.resolve(null);
 ready
     .catch(err => {
@@ -80,6 +80,6 @@ ready
         return null;
     })
     .then(api => {
-        window.ZeceCloud = api;
-        window.dispatchEvent(new CustomEvent("zece-cloud", { detail: api }));
+        window.UrNotesCloud = api;
+        window.dispatchEvent(new CustomEvent("urnotes-cloud", { detail: api }));
     });

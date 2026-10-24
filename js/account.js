@@ -16,7 +16,7 @@ const SYNC_KEYS = { meta: "pro_sync_meta_v4", device: "pro_device_id_v4", choice
 const SYNC_DELAY = 1500;
 const SYNC_RETRY = 30000;
 const cloud = {
-    configured: Boolean(window.ZECE_FIREBASE?.apiKey),
+    configured: Boolean(window.URNOTES_FIREBASE?.apiKey),
     api: undefined,      // undefined = încă se încarcă; null = indisponibil
     user: null,
     seenUser: false,     // a venit primul răspuns „cine e conectat”
@@ -76,8 +76,8 @@ function initCloud() {
         }
         cloud.api.onUser(user => { onCloudUser(user); });
     };
-    if (window.ZeceCloud !== undefined) attach(window.ZeceCloud);
-    window.addEventListener("zece-cloud", event => attach(event.detail));
+    if (window.UrNotesCloud !== undefined) attach(window.UrNotesCloud);
+    window.addEventListener("urnotes-cloud", event => attach(event.detail));
     // Plasă de siguranță: dacă modulul de cont nu se încarcă deloc, aplicația pornește local după câteva secunde.
     setTimeout(() => { if (cloud.api === undefined) attach(null); }, 8000);
     window.addEventListener("online", () => {

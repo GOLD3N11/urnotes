@@ -203,7 +203,7 @@ if (api.enabled) {
     setTimeout(refreshSchoolData, 1500);
     setInterval(refreshSchoolData, 24 * 3600 * 1000);
     // când intri în cont: contul de pe server și abonamentul push (dacă amintirile sunt pornite)
-    window.addEventListener("zece-cloud", () => setTimeout(() => {
+    window.addEventListener("urnotes-cloud", () => setTimeout(() => {
         if (cloud.user && state.settings.remind?.on) apiPushSubscribe();
     }, 2000));
 }
