@@ -30,7 +30,7 @@ export async function testApp(env: Record<string, string> = {}) {
     const db = createDb(url);
     await migrate(db, MIGRATIONS_DIR);
     const push = new FakePush();
-    const deps = { config, db, verifier: devVerifier(), push };
+    const deps = { config, db, verifier: devVerifier(), push, today: () => "2026-10-24" };
     const services = createServices(deps);
     await services.school.seed(JSON.parse(readFileSync(SCHOOL_SEED_FILE, "utf8")));
     const app = await buildApp(deps, services);
