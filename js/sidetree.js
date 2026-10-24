@@ -48,6 +48,20 @@ Object.assign(ACTIONS, {
         try { localStorage.setItem(SIDE_OPEN_KEY, JSON.stringify(sideOpen)); } catch (_) { /* fără stocare */ }
         renderSideTree();
     },
-    "side-subject": el => openSubjectInCatalog(el.dataset.mat)
+    "side-subject": el => openSubjectInCatalog(el.dataset.mat),
+    // „Note”: duce la pagină și deschide lista materiilor; apăsat din nou pe pagina Note, o strânge sau o deschide
+    "side-note": () => {
+        const here = ui.activeTab === "tab-catalog" && !ui.catalog.showDetail;
+        sideOpen.grades = here ? !sideOpen.grades : true;
+        try { localStorage.setItem(SIDE_OPEN_KEY, JSON.stringify(sideOpen)); } catch (_) { /* fără stocare */ }
+        if (ui.activeTab === "tab-catalog" && ui.catalog.showDetail) ui.catalog = { ...ui.catalog, showDetail: false };
+        switchTab("tab-catalog");
+        renderSideTree();
+    },
+    // logo-ul urNotes: înapoi la Azi, sus de tot
+    "brand-home": () => {
+        switchTab("tab-dashboard");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 });
-["side-toggle", "side-subject", "db-past", "cal-jump"].forEach(a => GUEST_OK.add(a));
+["side-toggle", "side-subject", "side-note", "brand-home", "db-past", "cal-jump"].forEach(a => GUEST_OK.add(a));

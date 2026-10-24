@@ -5,11 +5,11 @@
 "use strict";
 
 const WIN_KEY = "urn_windows_v1";
-const WIN_MODES = ["left", "right", "bottom", "float", "center"];
+const WIN_MODES = ["left", "right", "float"]; // lipită în stânga, în dreapta sau insulă liberă
 const WIN_DEFS = {
-    form: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "right", w: 480, h: 560 } },
-    dialog: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "center", w: 520, h: 360 } },
-    notif: { root: "notif-panel", card: ".drawer-card", handle: ".drawer-head", def: { mode: "right", w: 420, h: 420 } }
+    form: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "right", w: 560, h: 680 } },
+    dialog: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "float", w: 580, h: 400 } },
+    notif: { root: "notif-panel", card: ".drawer-card", handle: ".drawer-head", def: { mode: "right", w: 480, h: 520 } }
 };
 const WIN_LABEL = { left: "Lipește în stânga", bottom: "Lipește jos", right: "Lipește în dreapta", float: "Fereastră liberă", center: "La mijloc" };
 const WIN_SNAP = 56; // cât de aproape de margine trebuie lăsată ca să se lipească
@@ -36,8 +36,9 @@ function winPref(kind) {
     const num = (v, lo, hi, d) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
     return {
         mode: WIN_MODES.includes(p.mode) ? p.mode : def.mode,
-        w: num(p.w, 300, 1400, def.w),
-        h: num(p.h, 200, 1200, def.h),
+        // mărimea e fixă (nu se mai trage de margine): mereu cea implicită
+        w: def.w,
+        h: def.h,
         x: num(p.x, -2000, 6000, NaN),
         y: num(p.y, -2000, 6000, NaN),
         bw: num(p.bw, 160, 900, 320) // înălțimea când e lipită jos
@@ -60,7 +61,7 @@ const WIN_ICONS = {
     center: `<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2" class="f2"/><rect x="6.5" y="7" width="7" height="6" rx="1.2" class="f"/></svg>`
 };
 function winBarHTML(kind) {
-    const modes = kind === "dialog" ? ["float", "center"] : ["left", "bottom", "right", "float", "center"];
+    const modes = ["left", "right", "float"];
     return `<span class="win-grip" aria-hidden="true" title="Trage ca s-o muți">⠿</span>
         <span class="win-modes" role="group" aria-label="Unde stă fereastra">${modes.map(m => `
             <button type="button" class="win-btn" data-action="win-mode" data-mode="${m}" aria-label="${WIN_LABEL[m]}" title="${WIN_LABEL[m]}">${WIN_ICONS[m]}</button>`).join("")}
@@ -80,12 +81,7 @@ function winEnsureChrome(root, kind) {
         if (kind === "notif") card.querySelector(".drawer-head h2")?.after(bar);
         else card.prepend(bar);
     }
-    if (!card.querySelector(":scope > .win-edge")) {
-        const edge = document.createElement("div");
-        edge.className = "win-edge";
-        edge.setAttribute("aria-hidden", "true");
-        card.append(edge);
-    }
+    card.querySelector(":scope > .win-edge")?.remove(); // fără redimensionare
     return card;
 }
 
@@ -119,16 +115,16 @@ function applyWindow(root, { mode: forced } = {}) {
     if (mode === "bottom") card.style.setProperty("--win-h", `${Math.min(p.bw, Math.round(window.innerHeight * 0.8))}px`);
     if (mode === "float") {
         const w = Math.min(p.w, window.innerWidth - 24), h = Math.min(p.h, window.innerHeight - 24);
-        const x = Number.isFinite(p.x) ? p.x : Math.round((window.innerWidth - w) / 2 + 80);
+        const x = Number.isFinite(p.x) ? p.x : Math.round((window.innerWidth - w) / 2 + (kind === "dialog" ? x0 / 2 : 80));
         const y = Number.isFinite(p.y) ? p.y : Math.round((window.innerHeight - h) / 3);
         card.style.left = `${Math.round(Math.min(Math.max(8, x), window.innerWidth - 120))}px`;
         card.style.top = `${Math.round(Math.min(Math.max(8, y), window.innerHeight - 60))}px`;
         card.style.width = `${w}px`;
-        card.style.height = `${h}px`;
+        if (kind !== "dialog") card.style.height = `${h}px`; // o confirmare are înălțimea textului ei
     }
 
-    // la mijloc rămâne o fereastră care așteaptă un răspuns; lipită sau liberă, pagina de dedesubt rămâne folosibilă
-    const modeless = mode !== "center";
+    // o confirmare așteaptă un răspuns (pagina de dedesubt nu se folosește); formularele și notificările lasă pagina folosibilă
+    const modeless = kind !== "dialog";
     root.classList.toggle("is-modeless", modeless);
     card.setAttribute("aria-modal", String(!modeless));
     if (modeless) {
@@ -185,7 +181,6 @@ function winZoneFor(x, y) {
     const x0 = winLeftEdge();
     if (x <= x0 + WIN_SNAP) return "left";
     if (x >= window.innerWidth - WIN_SNAP) return "right";
-    if (y >= window.innerHeight - WIN_SNAP * 0.7) return "bottom";
     return "float";
 }
 
@@ -294,7 +289,7 @@ document.addEventListener("dblclick", event => {
     const kind = winKindOf(root);
     if (!event.target.closest(`${WIN_DEFS[kind].handle}, .win-bar`)) return;
     const cur = winPref(kind).mode;
-    setWindowMode(root, cur === "float" ? WIN_DEFS[kind].def.mode : "float");
+    setWindowMode(root, cur === "float" ? (WIN_DEFS[kind].def.mode === "float" ? "right" : WIN_DEFS[kind].def.mode) : "float");
 });
 
 /* fereastra liberă se poate redimensiona din colț; ținem minte mărimea */

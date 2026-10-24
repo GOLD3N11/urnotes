@@ -35,7 +35,7 @@ function switchTab(tabId) {
     const group = TABS[tabId]?.group;
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));
-    document.querySelectorAll("[data-action='nav']").forEach(btn => {
+    document.querySelectorAll("[data-action='nav'], [data-action='side-note']").forEach(btn => {
         const active = btn.dataset.group ? btn.dataset.group === group : btn.dataset.tab === tabId;
         const isNav = btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn") || btn.classList.contains("subnav-btn");
         btn.classList.toggle("active", active && isNav);

@@ -57,6 +57,7 @@
     <script src="js/events.js" defer></script>
     <script src="js/reminders.js" defer></script>
     <script src="js/notes.js" defer></script>
+    <script src="js/quickgrade.js" defer></script>
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
@@ -180,15 +181,15 @@
 
     <!-- Meniul lateral (ecrane mari): ca marginea unui caiet -->
     <aside class="sidebar" aria-label="Meniu">
-        <div class="side-brand">
+        <button type="button" class="side-brand brand-home" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi">
             <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-logo"/></svg>
             <span class="side-brand-text"><b class="brand-name"><span class="brand-ur">ur</span>Notes</b><small>notele tale</small></span>
-        </div>
+        </button>
         <nav class="side-nav" aria-label="Navigație principală">
             <button type="button" class="tab-btn side-link active" data-action="nav" data-tab="tab-dashboard" data-group="home" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Azi</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar" data-group="calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
             <div class="side-row side-row-grades">
-                <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
+                <button type="button" class="tab-btn side-link" data-action="side-note" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
             </div>
             <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
             <div class="side-more" id="side-more"></div>
@@ -208,11 +209,11 @@
             <button type="button" class="topbar-back" id="topbar-back" data-action="nav" data-tab="tab-dashboard" hidden><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span id="topbar-back-label">Azi</span></button>
             <!-- Ecrane mari: unde ești („Note › Progresul tău”) -->
             <nav class="topbar-crumb" id="topbar-crumb" aria-label="Unde ești"></nav>
-            <div class="topbar-brand">
+            <button type="button" class="topbar-brand brand-home" data-action="brand-home" title="Înapoi la Azi" aria-label="urNotes: înapoi la Azi">
                 <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-logo"/></svg>
                 <b class="brand-name"><span class="brand-ur">ur</span>Notes</b>
                 <span class="topbar-title" id="topbar-title" aria-hidden="true"></span>
-            </div>
+            </button>
             <div class="topbar-actions">
                 <button type="button" class="btn btn-primary quick-add-btn" id="quick-add-btn" data-action="quick-add" aria-haspopup="menu" aria-expanded="false" aria-controls="quick-add">
                     <svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span>

@@ -288,7 +288,7 @@ function renderCatalogList() {
             `ținta ${fmtTarget(sub.target)}`
         ].filter(Boolean).join(" · ");
         const pct = hasGrades ? Math.min(100, d.exactAvg / Math.max(1, sub.target) * 100) : 0;
-        return `
+        return `<div class="cat-row-wrap">
             <button type="button" class="cat-row subj-tile ${selected ? "selected" : ""} ${risk ? "is-risk" : ""}" data-action="cat-select" data-mat="${escapeHTML(mat)}"
                 style="${subjectStyle(mat)}" ${selected ? 'aria-current="true"' : ""}>
                 <span class="subj-chip" aria-hidden="true">${escapeHTML(subjectInitials(mat))}</span><span class="subj-emoji" aria-hidden="true">${subjectEmoji(mat)}</span>
@@ -302,7 +302,9 @@ function renderCatalogList() {
                     <small>${risk ? `${icon("alert")} risc` : hasGrades ? `→ ${d.roundedAvg}` : "fără note"}</small>
                 </span>
                 <span class="cat-dot ${statusTone(d)}" aria-hidden="true"></span>
-            </button>`;
+            </button>
+            <button type="button" class="cat-quick" data-action="quick-grade" data-mat="${escapeHTML(mat)}" aria-label="${escapeHTML(`Notă nouă la ${mat}`)}" title="Notă nouă">${icon("plus")}</button>
+        </div>`;
     };
     const searching = Boolean(ui.catalog.query.trim());
     // Materie nouă: doar dacă mai e ceva de adăugat (din programă) sau n-ai ales programa

@@ -531,3 +531,4 @@ function toggleExclude(mat) {
     addActivity(sub.excludeFromGPA ? `${mat} a fost exclusă din media generală.` : `${mat} a fost inclusă din nou în media generală.`);
     refresh();
 }
+
