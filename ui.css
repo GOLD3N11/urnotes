@@ -757,3 +757,7 @@ body.dark-mode .week-stat .is-up { color: #7BC59A; }
 }
 /* lista de materii: o pagină, nu o cutie cu derulare proprie */
 .catalog-layout .cat-list-pane { position: static; max-height: none; }
+
+/* --- Colegul fără text: doar fața (și nivelul) --- */
+.azi-buddy { flex: 0 0 auto; }
+.pal-name-tag { align-self: center; }

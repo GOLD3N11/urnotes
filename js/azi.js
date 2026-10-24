@@ -245,7 +245,6 @@ function renderBuddy(days, todo) {
 function paintBuddy(box, { mood, text }) {
     box.innerHTML = `
         <button type="button" class="buddy-poke" data-action="buddy-poke" aria-label="${escapeHTML(`Gâdilă-l pe ${buddyName()}`)}">${buddySVG(mood)}</button>
-        <p class="buddy-bubble" aria-live="polite"><b class="buddy-name">${escapeHTML(buddyName())}</b><span>${escapeHTML(text)}</span></p>
         ${palLevelChipHTML()}`;
 }
 

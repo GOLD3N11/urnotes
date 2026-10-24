@@ -565,7 +565,7 @@ function setupWelcomeHTML() {
 
 function setupBuddyHTML() {
     const who = firstName();
-    return `${buddySVG("happy")}<p class="buddy-bubble is-sm"><b class="buddy-name">${escapeHTML(buddyName())}</b><span>${who ? `Încântat, ${escapeHTML(who)}!` : "Salut! Cum te cheamă?"}</span></p>`;
+    return `${buddySVG("happy")}<b class="buddy-name pal-name-tag">${escapeHTML(buddyName())}</b>`;
 }
 
 function setupProfileHTML() {

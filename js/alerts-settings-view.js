@@ -114,7 +114,7 @@ function renderBuddyPreview() {
     if (!box) return;
     const name = cleanName($("set-buddy")?.value, 20) || DEFAULT_SETTINGS.profile.buddy;
     const who = cleanName($("set-name")?.value, 40).split(" ")[0];
-    box.innerHTML = `${buddySVG("happy")}<p class="buddy-bubble is-sm"><b class="buddy-name">${escapeHTML(name)}</b><span>${who ? `Salut, ${escapeHTML(who)}!` : "Salut!"}</span></p>`;
+    box.innerHTML = `${buddySVG("happy")}<b class="buddy-name pal-name-tag">${escapeHTML(name)}</b>`;
 }
 
 registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Setări", icon: "settings", group: "app", parent: "tab-dashboard" });

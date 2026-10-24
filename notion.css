@@ -246,3 +246,81 @@ body.style-notion .azi-group.is-late { color: #B03A35; }
 body.style-notion.dark-mode .azi-group.is-late { color: #F28B85; }
 body.style-notion .catalog-layout:not(.show-detail) .cat-list-pane { max-width: none; }
 @media (max-width: 600px) { body.style-notion .page-emoji { font-size: 44px; } body.style-notion .subj-emoji-btn { width: 64px; height: 64px; font-size: 50px; } }
+
+/* ==========================================================================
+   AȘEZAREA CA O PAGINĂ NOTION: o coloană liniștită, centrată, fără cutii.
+   Secțiunile sunt despărțite de linii subțiri și au titluri simple.
+   ========================================================================== */
+body.style-notion .content-body { max-width: 900px; margin-inline: auto; }
+body.style-notion[data-page="tab-calendar"] .content-body,
+body.style-notion[data-page="tab-statistici"] .content-body { max-width: 1180px; }
+
+/* cutiile devin secțiuni de pagină */
+body.style-notion .tab-content .glass-card {
+    background: transparent; border: 0; border-top: 1px solid var(--rule); border-radius: 0; box-shadow: none;
+    padding: 22px 0 6px; margin-top: 8px;
+}
+body.style-notion .tab-content .glass-card:hover { box-shadow: none; }
+body.style-notion .tab-content .glass-card .glass-card { border-top: 0; padding-top: 0; }
+body.style-notion .cat-detail-card { border-top: 0 !important; padding-top: 0 !important; }
+body.style-notion .azi-card-head h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+body.style-notion .azi-card-head h3 > .ico { display: none; }
+body.style-notion .azi-card-head .subtitle { padding-left: 0; }
+
+/* Azi: o singură coloană, în ordinea importanței */
+body.style-notion .azi-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 6px 18px; margin: 0 0 14px; }
+body.style-notion .azi-buddy { flex-direction: row; gap: 4px; align-self: end; }
+body.style-notion .azi-buddy .buddy-poke svg { width: 58px; height: 58px; }
+body.style-notion .azi-grid { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+body.style-notion .azi-grid > *, body.style-notion .azi-col > * { width: 100%; max-width: none; align-self: stretch; }
+body.style-notion .azi-col { display: contents; }
+body.style-notion .azi-next-wrap { order: 1; margin: 6px 0 10px; }
+body.style-notion .azi-todo { order: 2; }
+body.style-notion .azi-day { order: 3; }
+body.style-notion .azi-plan { order: 4; }
+body.style-notion .azi-week { order: 5; }
+body.style-notion .azi-install, body.style-notion .azi-year, body.style-notion .azi-start { order: 0; }
+
+/* cifrele zilei: un rând de proprietăți, nu plăci */
+body.style-notion .home-tiles, body.style-notion .cat-summary {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 4px 0 18px;
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+body.style-notion .cat-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body.style-notion .home-tile, body.style-notion .cat-sum,
+body.style-notion .home-tile.is-hero, body.style-notion .cat-sum.is-accent {
+    grid-column: auto; min-height: 0; margin: 0; padding: 12px 14px; border: 0; border-left: 1px solid var(--rule); border-radius: 0;
+    background: transparent; box-shadow: none;
+}
+body.style-notion .home-tile:first-child, body.style-notion .cat-sum:first-child { border-left: 0; padding-left: 2px; }
+body.style-notion .home-tile:hover, body.style-notion .home-tile.is-hero:hover { background: var(--hover); }
+body.style-notion .home-tile-value, body.style-notion .home-tile.is-hero .home-tile-value,
+body.style-notion .cat-sum-value, body.style-notion .cat-sum.is-accent .cat-sum-value { font-size: 26px; color: var(--ink); }
+body.style-notion .home-tile-label, body.style-notion .kpi-title { font-size: 12.5px; }
+
+/* legăturile din Note: o listă de pagini, ca subpaginile din Notion */
+body.style-notion .note-links { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 14px; overflow: visible; }
+body.style-notion .note-link { flex: 0 1 auto; padding: 4px 6px; border: 0; border-radius: 4px; background: transparent; gap: 8px; }
+body.style-notion .note-link .ico { width: 20px; height: 20px; padding: 0; background: transparent; color: var(--ink-2); }
+body.style-notion .note-link b { font-size: 14.5px; font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ink-2) 40%, transparent); text-underline-offset: 3px; }
+body.style-notion .note-link small { display: none; }
+body.style-notion .note-link:hover { background: var(--hover); }
+body.style-notion .cat-list-pane { padding: 0; }
+
+@media (max-width: 600px) {
+    body.style-notion .home-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body.style-notion .home-tile:nth-child(odd) { border-left: 0; padding-left: 2px; }
+    body.style-notion .home-tile:nth-child(n+3) { border-top: 1px solid var(--rule); }
+    body.style-notion .note-links { display: flex; }
+    body.style-notion .note-link:last-child:nth-child(odd) { grid-column: auto; }
+    body.style-notion .azi-buddy .buddy-poke svg { width: 48px; height: 48px; }
+}
+body.style-notion.dark-mode .home-tile, body.style-notion.dark-mode .home-tile.is-hero,
+body.style-notion.dark-mode .cat-sum, body.style-notion.dark-mode .cat-sum.is-accent { background: transparent; border-color: var(--rule); }
+body.style-notion.dark-mode .home-tile:hover { background: var(--hover); }
+body.style-notion .home-tiles, body.style-notion .cat-summary { align-items: stretch; }
+body.style-notion .cat-sum { justify-content: flex-start; }
+body.style-notion .cat-sum, body.style-notion .home-tile { border-top: 0; margin-top: 0 !important; transform: none !important; }
+body.style-notion .tab-content .glass-card.cat-sum { padding: 12px 14px; margin-top: 0; border-top: 0; border-left: 1px solid var(--rule); }
+body.style-notion .tab-content .glass-card.cat-sum:first-child { border-left: 0; padding-left: 2px; }
+body.style-notion .tab-content .glass-card.cat-list-pane { border-top: 0; padding-top: 0; }

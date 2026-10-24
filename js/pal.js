@@ -123,8 +123,7 @@ function renderPagePal(tab = ui.activeTab) {
     if (box.dataset.key === key) return; // nimic nou: nu-l mai redesenăm (ar reporni animația)
     box.dataset.key = key;
     box.innerHTML = `
-        <button type="button" class="pal-face" data-action="pal-next" data-tab="${tab}" aria-label="${escapeHTML(`Alt sfat de la ${buddyName()}`)}" title="Atinge-mă pentru alt sfat">${buddySVG(l.mood, "pal-buddy")}</button>
-        <p class="pal-bubble" aria-live="polite"><b class="buddy-name">${escapeHTML(buddyName())}</b><span>${escapeHTML(l.text)}</span>${lines.length > 1 ? `<small class="pal-count" aria-hidden="true">${i + 1}/${lines.length}</small>` : ""}</p>`;
+        <button type="button" class="pal-face" data-action="pal-next" data-tab="${tab}" aria-label="${escapeHTML(buddyName())}">${buddySVG(l.mood, "pal-buddy")}</button>`;
 }
 
 Object.assign(ACTIONS, {
