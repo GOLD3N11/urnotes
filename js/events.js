@@ -21,7 +21,8 @@ const ACTIONS = {
         renderCalendar();
     },
     "cal-view": el => {
-        ui.cal.view = ["month", "table", "board"].includes(el.dataset.view) ? el.dataset.view : "week";
+        ui.cal.view = ["agenda", "week", "month", "table", "board"].includes(el.dataset.view) ? el.dataset.view : "agenda";
+        try { localStorage.setItem("urn_cal_view_v1", ui.cal.view); } catch (_) { /* fără stocare */ }
         renderCalendar();
     },
     "cal-goto": el => calGoto(el.dataset.date),

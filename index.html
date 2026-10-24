@@ -58,6 +58,7 @@
     <script src="js/reminders.js" defer></script>
     <script src="js/notes.js" defer></script>
     <script src="js/quickgrade.js" defer></script>
+    <script src="js/cal-compose.js" defer></script>
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
@@ -312,10 +313,12 @@
                     </div>
                     <div class="page-pal" hidden></div>
                     <div class="intro-actions">
-                        <button type="button" class="btn btn-primary" data-action="add-event"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Eveniment</button>
                         <button type="button" class="btn btn-glass" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orar</button>
                     </div>
                 </div>
+
+                <!-- Adăugarea rapidă: o bară, fără ferestre (js/cal-compose.js) -->
+                <div id="cal-compose" class="cal-compose"></div>
 
                 <div id="cal-overview" class="cal-overview"></div>
 
@@ -333,14 +336,15 @@
                             </div>
                         </div>
                         <div class="cal-seg" role="group" aria-label="Mod de afișare">
-                            <button type="button" data-action="cal-view" data-view="week" aria-pressed="true">Săptămână</button>
+                            <button type="button" data-action="cal-view" data-view="agenda" aria-pressed="true">Agendă</button>
+                            <button type="button" data-action="cal-view" data-view="week" aria-pressed="false">Săptămână</button>
                             <button type="button" data-action="cal-view" data-view="month" aria-pressed="false">Lună</button>
                             <button type="button" data-action="cal-view" data-view="table" aria-pressed="false">Tabel</button>
                             <button type="button" data-action="cal-view" data-view="board" aria-pressed="false">Panou</button>
                         </div>
                     </div>
                     <div id="cal-body"></div>
-                    <p class="cal-hint">Trage un eveniment pe altă zi ca să-l muți. Atinge o materie din orar ca să adaugi un test sau o temă.</p>
+                    <p class="cal-hint">Apasă pe o zi sau pe „+” ca să adaugi ceva în ziua aceea; atinge o oră din orar pentru un test sau o temă la materia ei. Pe calculator, trage un eveniment pe altă zi ca să-l muți.</p>
                 </div>
             </section>
 

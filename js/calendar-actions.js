@@ -732,14 +732,14 @@ function bindCalendarEvents() {
         dragging = null;
     });
     body.addEventListener("dragover", event => {
-        const col = event.target.closest?.(".cal-col");
+        const col = event.target.closest?.(".cal-col, .ag-day");
         if (!dragging || !col) return;
         event.preventDefault();
         body.querySelectorAll(".drop-target").forEach(el => el !== col && el.classList.remove("drop-target"));
         col.classList.add("drop-target");
     });
     body.addEventListener("drop", event => {
-        const col = event.target.closest?.(".cal-col");
+        const col = event.target.closest?.(".cal-col, .ag-day");
         if (!dragging || !col) return;
         event.preventDefault();
         const { id, date } = dragging;

@@ -11,11 +11,13 @@ function renderCalendar() {
         btn.setAttribute("aria-pressed", String(btn.dataset.view === ui.cal.view));
     });
 
+    if (typeof renderCompose === "function" && !document.activeElement?.closest?.("#cal-compose")) renderCompose();
     renderCalOverview();
     // „Tabel” și „Panou” arată testele și temele ca o bază de date (ca în Notion); săptămâna și luna, ca un calendar
     const dbView = ui.cal.view === "table" || ui.cal.view === "board";
     document.querySelector(".cal-shell")?.classList.toggle("is-db", dbView);
-    if (ui.cal.view === "month") renderMonthView();
+    if (ui.cal.view === "agenda") renderAgendaView();
+    else if (ui.cal.view === "month") renderMonthView();
     else if (ui.cal.view === "table") renderTableView();
     else if (ui.cal.view === "board") renderBoardView();
     else renderWeekView();
@@ -254,7 +256,7 @@ function dayColumnHTML(date, items, links, today) {
                 <span class="cal-col-date">${d.getDate()}</span>
                 <span class="cal-col-month">${MONTH_SHORT[d.getMonth()]}</span>
                 ${date === today ? '<span class="cal-today-tag">Azi</span>' : ""}
-                <button type="button" class="cal-add-mini" data-action="add-event" data-date="${date}" aria-label="Adaugă pe ${escapeHTML(getDateLabel(date))}" title="Adaugă">${icon("plus")}</button>
+                <button type="button" class="cal-add-mini" data-action="cc-day" data-date="${date}" aria-label="Adaugă pe ${escapeHTML(getDateLabel(date))}" title="Adaugă">${icon("plus")}</button>
             </header>
             <div class="cal-col-body">
                 <div class="cal-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>
@@ -262,11 +264,11 @@ function dayColumnHTML(date, items, links, today) {
                 ${lessons.length ? `
                     <div class="cal-lessons" aria-label="Orar">
                         ${lessons.map((m, i) => `
-                            <button type="button" class="cal-lesson" data-action="add-event" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
+                            <button type="button" class="cal-lesson" data-action="cc-pick" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
                                 title="${escapeHTML(`Ora ${i + 1}: ${m} — adaugă un test sau o temă`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
                     </div>` : ""}
                 ${!items.length && !lessons.length && !plan ? `<p class="cal-free">${holiday ? "vacanță" : "liber"}</p>` : ""}
-                <button type="button" class="cal-add" data-action="add-event" data-date="${date}">${icon("plus")} Adaugă</button>
+                <button type="button" class="cal-add" data-action="cc-day" data-date="${date}">${icon("plus")} Adaugă</button>
             </div>
         </section>`;
 }
@@ -312,6 +314,50 @@ function eventCardHTML({ ev, date }, links) {
         </article>`;
 }
 
+
+/* ---------- agenda: zilele una sub alta, cu tot ce ai în fiecare și „+” pe fiecare zi ---------- */
+const AGENDA_DAYS = 14;
+function renderAgendaView() {
+    const today = getLocalDateKey();
+    const start = weekStart(ui.cal.date);
+    const days = Array.from({ length: AGENDA_DAYS }, (_, i) => addDays(start, i));
+    const links = gradeLinks();
+    const occ = occurrencesBetween(days[0], days.at(-1));
+    const a = parseDateKey(days[0]), b = parseDateKey(days.at(-1));
+    setText("cal-title", a.getMonth() === b.getMonth()
+        ? `${a.getDate()} – ${b.getDate()} ${MONTHS[b.getMonth()].toLowerCase()}`
+        : `${shortDayLabel(days[0])} – ${shortDayLabel(days.at(-1))}`);
+    const diff = Math.round(daysBetween(weekStart(today), start) / 7);
+    setText("cal-caption", diff === 0 ? "Săptămâna asta și următoarea" : diff === -2 ? "Acum două săptămâni" : diff === 2 ? "Peste două săptămâni"
+        : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`);
+
+    let html = "";
+    days.forEach((date, i) => {
+        const d = parseDateKey(date), wd = d.getDay();
+        if (i === 7) html += `<p class="ag-week-sep">Săptămâna ${diff + 1 === 1 ? "viitoare" : `din ${shortDayLabel(date)}`}</p>`;
+        const items = occ.filter(o => o.date === date);
+        const lessons = isSchoolDay(date) ? [...new Set(state.timetable[wd] || [])].filter(m => state.subjects[m]) : [];
+        const holiday = !isSchoolDay(date) && wd >= 1 && wd <= 5;
+        const rel = date === today ? "Azi" : date === addDays(today, 1) ? "Mâine" : "";
+        const cls = ["ag-day", date === today && "is-today", date < today && "is-past", (wd === 0 || wd === 6) && "is-weekend", !items.length && "is-empty"].filter(Boolean).join(" ");
+        html += `
+            <section class="${cls}" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[wd]}, ${getDateLabel(date)}`)}">
+                <button type="button" class="ag-date" data-action="cc-day" data-date="${date}" title="Adaugă ceva în ziua asta">
+                    <b>${d.getDate()}</b><span>${escapeHTML(WEEKDAY_SHORT[wd])}${rel ? ` · ${rel}` : ""}</span>
+                </button>
+                <div class="ag-main">
+                    ${items.length ? `<div class="ag-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>` : `<p class="ag-free">${holiday ? "vacanță" : wd === 0 || wd === 6 ? "weekend liber" : "nimic încă"}</p>`}
+                    ${calPlanHTML(date)}
+                    ${lessons.length && date >= today ? `<div class="ag-lessons" aria-label="Orele zilei: atinge una ca să adaugi un test sau o temă">${lessons.map(m => `
+                        <button type="button" class="ag-lesson" data-action="cc-pick" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" title="${escapeHTML(`Adaugă un test sau o temă la ${m}`)}"><i aria-hidden="true"></i>${escapeHTML(shortSubjectName(m))}<span class="ag-lesson-plus" aria-hidden="true">+</span></button>`).join("")}</div>` : ""}
+                </div>
+                <button type="button" class="ag-add" data-action="cc-day" data-date="${date}" aria-label="${escapeHTML(`Adaugă pe ${getDateLabel(date)}`)}" title="Adaugă">${icon("plus")}</button>
+            </section>`;
+    });
+    $("cal-body").innerHTML = `<div class="ag">${html}</div>`;
+    if (typeof cc !== "undefined" && cc.open) document.querySelector(`.ag-day[data-date="${cc.date}"]`)?.classList.add("is-target");
+}
+
 /* ---------- lună ---------- */
 function renderMonthView() {
     const anchor = parseDateKey(ui.cal.date);
@@ -351,18 +397,18 @@ function calNavigate(offset) {
     const d = parseDateKey(ui.cal.date);
     ui.cal.date = ui.cal.view === "month"
         ? getLocalDateKey(new Date(d.getFullYear(), d.getMonth() + offset, 1))
-        : addDays(ui.cal.date, offset * 7);
+        : addDays(ui.cal.date, offset * (ui.cal.view === "agenda" ? 14 : 7));
     renderCalendar();
 }
 
-function calGoto(dateKey, { view = "week" } = {}) {
+function calGoto(dateKey, { view = ui.cal.view === "week" ? "week" : "agenda" } = {}) {
     if (!DATE_KEY_RE.test(String(dateKey))) return;
     ui.cal.date = dateKey;
     ui.cal.view = view;
     if (ui.activeTab !== "tab-calendar") switchTab("tab-calendar");
     else renderCalendar();
 
-    const col = document.querySelector(`.cal-col[data-date="${dateKey}"]`);
+    const col = document.querySelector(`.cal-col[data-date="${dateKey}"], .ag-day[data-date="${dateKey}"]`);
     if (col) {
         col.scrollIntoView({ block: "nearest", behavior: "smooth" });
         col.classList.add("flash");
@@ -373,7 +419,7 @@ function calGoto(dateKey, { view = "week" } = {}) {
 
 /** Telefonul: din banda cu zilele săptămânii, sari la ziua aleasă. */
 function calJump(date) {
-    const col = document.querySelector(`.cal-col[data-date="${date}"]`);
+    const col = document.querySelector(`.cal-col[data-date="${date}"], .ag-day[data-date="${date}"]`);
     if (!col) return;
     const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
     window.scrollTo({ top: col.getBoundingClientRect().top + window.scrollY - bar - 70, behavior: reduceMotion() ? "auto" : "smooth" });

@@ -1071,3 +1071,90 @@ body.viewer-empty .content-body > .tab-content { display: none !important; }
 .qg-val.tone-fail { color: var(--risk); }
 .qg-more { display: block; width: 100%; margin-top: 8px; padding: 6px; border: 0; background: none; color: var(--accent-color); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; border-radius: 8px; }
 .qg-more:hover { background: var(--hover, var(--input-bg)); }
+
+/* ==================== CALENDAR: BARA DE ADĂUGAT (js/cal-compose.js) ==================== */
+.cal-compose { position: sticky; top: calc(var(--appbar-h, 60px) - 48px); z-index: 30; margin: 4px 0 16px; }
+@media (min-width: 901px) { .cal-compose { top: 8px; } }
+.cc { background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--shadow-card); transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+.cal-compose.is-open .cc, .cc:focus-within { border-color: color-mix(in srgb, var(--accent-color) 45%, var(--rule)); box-shadow: var(--shadow-pop, 0 10px 30px rgba(0, 0, 0, 0.12)); }
+.cc-bar { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; }
+.cc-ico { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 11px; background: color-mix(in srgb, var(--ev, var(--accent-fill)) 16%, transparent); color: var(--ev, var(--ink)); }
+.cc-ico .ico { width: 20px; height: 20px; }
+.cc-text { flex: 1; min-width: 0; height: 44px; padding: 0 4px; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 17px; font-weight: 600; }
+.cc-text::placeholder { color: color-mix(in srgb, var(--ink-2) 75%, transparent); font-weight: 500; }
+.cc-add { flex: none; height: 44px; padding: 0 18px; border-radius: 12px; font-size: 15px; }
+.cc-body { padding: 4px 14px 12px; border-top: 1px solid var(--rule); }
+.cc-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0 2px; }
+.cc-lab { flex: none; width: 64px; padding-top: 7px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.cc-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.cc-chip { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 99px; background: var(--sheet);
+    color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color 0.1s ease, border-color 0.1s ease; }
+.cc-chip .ico { width: 15px; height: 15px; }
+.cc-chip:hover { background: var(--input-bg); }
+.cc-chip:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.cc-chip.is-on { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent-fill); }
+.cc-type .ico { color: var(--ev); }
+.cc-type.is-on { background: color-mix(in srgb, var(--ev) 16%, var(--sheet)); border-color: var(--ev); color: var(--ink); }
+.cc-subj i { width: 9px; height: 9px; border-radius: 50%; background: var(--subj, var(--ink-2)); }
+.cc-subj.is-on { background: color-mix(in srgb, var(--subj, var(--accent-fill)) 18%, var(--sheet)); border-color: var(--subj, var(--accent-fill)); color: var(--ink); }
+.cc-ghost { border-style: dashed; color: var(--ink-2); }
+.cc-ghost.is-on { background: var(--input-bg); border-color: var(--ink-2); color: var(--ink); }
+.cc-sub-lab { font-size: 12px; color: var(--ink-2); margin-right: 2px; }
+.cc-sep { width: 1px; height: 22px; margin: 0 4px; background: var(--rule); }
+.cc-pick input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.cc-pick input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+.cc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rule); }
+.cc-preview { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--ink-2); min-width: 0; }
+.cc-preview .ico { width: 16px; height: 16px; color: var(--ok); flex: none; }
+.cc-preview b { color: var(--ink); }
+.cc-foot-btns { display: flex; gap: 4px; }
+@media (max-width: 640px) {
+    .cc-row { flex-direction: column; gap: 4px; }
+    .cc-lab { width: auto; padding-top: 0; }
+    .cc-chips { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; scrollbar-width: none; }
+    .cc-add span { display: none; }
+    .cc-add { padding: 0 14px; }
+}
+
+/* ==================== CALENDAR: AGENDA ==================== */
+.ag { display: flex; flex-direction: column; gap: 6px; }
+.ag-day { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px; border: 1px solid var(--rule); border-radius: 14px; background: var(--sheet); transition: border-color 0.12s ease, background-color 0.12s ease; }
+.ag-day:hover { border-color: color-mix(in srgb, var(--accent-color) 30%, var(--rule)); }
+.ag-day.is-empty { padding-block: 6px; }
+.ag-day.is-weekend.is-empty { background: transparent; }
+.ag-day.is-past { opacity: 0.62; }
+.ag-day.is-today { border-color: var(--accent-fill); box-shadow: 0 0 0 1px var(--accent-fill) inset; }
+.ag-day.drop-target { background: var(--accent-soft); border-color: var(--accent-color); }
+.ag-date { display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 4px 8px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.ag-date:hover { background: var(--input-bg); }
+.ag-date b { font-size: 26px; line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+.ag-date span { font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.ag-day.is-today .ag-date b { display: inline-grid; place-items: center; min-width: 38px; height: 38px; padding: 0 6px; border-radius: 10px; background: var(--accent-fill); color: var(--on-accent-fill); font-size: 22px; }
+.ag-day.is-today .ag-date span { color: var(--ink); }
+.ag-day.is-empty .ag-date b { font-size: 20px; }
+.ag-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-top: 2px; }
+.ag-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.ag-items .cal-ev { margin: 0; }
+.ag-free { margin: 0; padding-top: 6px; font-size: 13.5px; color: var(--ink-2); }
+.ag-lessons { display: flex; flex-wrap: wrap; gap: 6px; }
+.ag-lesson { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 10px; border: 1px solid var(--rule); border-radius: 99px; background: transparent; color: var(--ink-2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.ag-lesson i { width: 8px; height: 8px; border-radius: 50%; background: var(--subj); }
+.ag-lesson-plus { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--input-bg); color: var(--ink); font-size: 13px; line-height: 1; }
+.ag-lesson:hover { border-color: var(--subj); color: var(--ink); background: color-mix(in srgb, var(--subj) 10%, transparent); }
+.ag-lesson:hover .ag-lesson-plus { background: var(--accent-fill); color: var(--on-accent-fill); }
+.ag-add { display: grid; place-items: center; width: 38px; height: 38px; border: 1px dashed var(--rule); border-radius: 11px; background: transparent; color: var(--ink-2); cursor: pointer; }
+.ag-add .ico { width: 18px; height: 18px; }
+.ag-add:hover, .ag-add:focus-visible { border-style: solid; border-color: var(--accent-fill); background: var(--accent-fill); color: var(--on-accent-fill); }
+.ag-week-sep { margin: 14px 0 4px; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+@media (max-width: 640px) {
+    .ag-day { grid-template-columns: 54px minmax(0, 1fr) auto; gap: 8px; padding: 8px; }
+    .ag-date { padding: 2px 4px; }
+    .ag-items { grid-template-columns: 1fr; }
+}
+.ag-day.is-target { border-color: var(--accent-color); background: var(--accent-soft); }
+.ag-day.is-target .ag-add { border-style: solid; border-color: var(--accent-fill); background: var(--accent-fill); color: var(--on-accent-fill); }
+@media (max-width: 640px) {
+    .cal-seg { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+    .cal-seg button { flex: none; }
+}
+@media (max-width: 900px) { .cal-compose { position: static; } }
