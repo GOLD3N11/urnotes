@@ -50,4 +50,4 @@ Object.assign(ACTIONS, {
     },
     "side-subject": el => openSubjectInCatalog(el.dataset.mat)
 });
-["side-toggle", "side-subject", "db-past"].forEach(a => GUEST_OK.add(a));
+["side-toggle", "side-subject", "db-past", "cal-jump"].forEach(a => GUEST_OK.add(a));

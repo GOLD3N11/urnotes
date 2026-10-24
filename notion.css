@@ -148,7 +148,6 @@ body.style-notion .np-icon { border-radius: 8px; }
 
 /* --- diverse --- */
 body.style-notion .page-back { border-radius: 6px; font-weight: 500; }
-body.style-notion .cal-lesson { border-left-width: 3px; }
 body.style-notion .plan-item { border-left-width: 3px !important; }
 body.style-notion .splash-name { font-family: var(--font-hand); font-weight: 700; }
 body.style-notion.dark-mode .home-tile-label, body.style-notion.dark-mode .kpi-title,

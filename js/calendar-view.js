@@ -160,74 +160,50 @@ function renderCalOverview() {
         .filter(o => o.ev.type === "Temă" && !isOccurrenceDone(o.ev, o.date, links));
     // Pentru o serie repetată arătăm doar cea mai recentă apariție ratată (+ câte mai vechi), nu câte un rând pe săptămână.
     const attention = missedOccurrences(links, today);
+    const out = [];
 
-    const cards = [];
-
-    // 1. Ce urmează
-    const [first, ...rest] = upcoming;
-    cards.push(`
-        <section class="glass-card cal-ov-card" aria-labelledby="cal-ov-next">
-            <div class="cal-ov-head">
-                <h3 id="cal-ov-next">${icon("calendar-check")} Urmează</h3>
-                <span class="subtitle">teste și evaluări, următoarele 30 de zile</span>
-            </div>
-            ${first ? `
-                <button type="button" class="cal-next-hero ev-${EVENT_TYPE_CLASS[first.ev.type]}" data-action="cal-goto" data-date="${first.date}">
-                    <span class="cal-countdown">
-                        <b>${daysBetween(today, first.date) === 0 ? "Azi" : daysBetween(today, first.date)}</b>
-                        <small>${daysBetween(today, first.date) === 0 ? "" : daysBetween(today, first.date) === 1 ? "zi" : "zile"}</small>
-                    </span>
-                    <span class="cal-next-main">
-                        <b>${escapeHTML(first.ev.title)}</b>
-                        <small>${icon(EVENT_TYPE_ICON[first.ev.type])} ${escapeHTML([first.ev.type, first.ev.subject, `${weekdayLabel(first.date)}${first.ev.time ? `, ${first.ev.time}` : ""}`].filter(Boolean).join(" · "))}</small>
-                    </span>
-                    <span aria-hidden="true">→</span>
-                </button>
-                ${rest.length ? `<ul class="cal-ov-list">${rest.slice(0, 4).map(o => `
-                    <li><button type="button" class="cal-ov-row" data-action="cal-goto" data-date="${o.date}">
-                        <span class="cal-ov-when">${escapeHTML(relativeDayLabel(o.date))}</span>
-                        <span class="cal-ov-title"><i class="ev-dot ev-${EVENT_TYPE_CLASS[o.ev.type]}" aria-hidden="true"></i>${escapeHTML(o.ev.title)}</span>
-                        <span class="cal-ov-meta">${escapeHTML(weekdayLabel(o.date))}</span>
-                    </button></li>`).join("")}</ul>` : ""}`
-            : `<p class="muted-small cal-ov-empty">${icon("sparkles")} Niciun test sau examen în următoarele 30 de zile.</p>`}
-            <p class="cal-ov-foot">${icon("notebook")} ${homework.length ? `${plural(homework.length, "temă de predat", "teme de predat")} în următoarele 7 zile` : "Nicio temă de predat în următoarele 7 zile"}</p>
-        </section>`);
-
-    // 2. Ce necesită atenție (teste trecute fără notă, teme nebifate)
+    // 1. ce a rămas neterminat: un rând discret pentru fiecare, cu butoanele lui
     if (attention.length) {
-        cards.push(`
-            <section class="glass-card cal-ov-card cal-ov-attention" aria-labelledby="cal-ov-att">
-                <div class="cal-ov-head">
-                    <h3 id="cal-ov-att">${icon("alert")} Necesită atenție <span class="cat-count">${attention.length}</span></h3>
-                    <span class="subtitle">evenimente trecute nefinalizate</span>
-                </div>
-                <ul class="cal-ov-list">
-                    ${attention.slice(0, 5).map(({ ev, date, older }) => `
-                        <li class="cal-att-row">
-                            <span class="cal-att-info">
-                                <b><i class="ev-dot ev-${EVENT_TYPE_CLASS[ev.type]}" aria-hidden="true"></i>${escapeHTML(ev.title)}</b>
-                                <small>${escapeHTML([ev.subject, `${relativeDayLabel(date)} (${shortDayLabel(date)})`, older && `+${older} mai ${older === 1 ? "veche" : "vechi"}`].filter(Boolean).join(" · "))}</small>
-                            </span>
-                            <span class="cal-att-actions">
-                                ${canGradeOccurrence(ev, date, links) && NEEDS_GRADE.has(ev.type) ? `<button type="button" class="btn btn-primary btn-sm" data-action="event-grade" data-id="${escapeHTML(ev.id)}" data-date="${date}">${icon("plus")} Notă</button>` : ""}
-                                <button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${escapeHTML(ev.id)}" data-date="${date}"
-                                    title="${NEEDS_GRADE.has(ev.type) ? "Marchează ca încheiat fără notă" : "Marchează ca făcut"}">${icon("check")} ${NEEDS_GRADE.has(ev.type) ? "Fără notă" : "Făcut"}</button>
-                            </span>
-                        </li>`).join("")}
-                </ul>
-                ${attention.length > 5 ? `<p class="cal-ov-foot">și încă ${attention.length - 5}…</p>` : ""}
-            </section>`);
-    } else if (Object.keys(state.timetable).length === 0 && Object.keys(state.subjects).length) {
-        // Fără orar: îl propunem, pentru că face adăugarea mult mai rapidă.
-        cards.push(`
-            <section class="glass-card cal-ov-card cal-ov-tip">
-                <div class="cal-ov-head"><h3>${icon("calendar-days")} Adaugă-ți orarul</h3></div>
-                <p class="muted-small">Cu orarul, fiecare zi îți arată orele, iar un test sau o temă se adaugă dintr-o atingere pe materie. Poți alege și „următoarea oră” ca dată.</p>
-                <button type="button" class="btn btn-primary mt-3" data-action="timetable">Completează orarul</button>
-            </section>`);
+        out.push(`
+            <div class="cal-attn" role="group" aria-labelledby="cal-attn-title">
+                <p class="cal-attn-title" id="cal-attn-title">${icon("alert")} ${attention.length === 1 ? "Un eveniment trecut așteaptă" : `${attention.length} evenimente trecute așteaptă`}</p>
+                <ul class="cal-attn-list">${attention.slice(0, 3).map(({ ev, date, older }) => `
+                    <li class="cal-att-row">
+                        <button type="button" class="cal-att-info" data-action="cal-goto" data-date="${date}">
+                            <i class="ev-dot ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}" aria-hidden="true"></i>
+                            <b>${escapeHTML(ev.title)}</b>
+                            <small>${escapeHTML([relativeDayLabel(date), older && `+${older} mai ${older === 1 ? "veche" : "vechi"}`].filter(Boolean).join(" · "))}</small>
+                        </button>
+                        <span class="cal-att-actions">
+                            ${canGradeOccurrence(ev, date, links) && NEEDS_GRADE.has(ev.type) ? `<button type="button" class="btn btn-primary btn-sm" data-action="event-grade" data-id="${escapeHTML(ev.id)}" data-date="${date}">${icon("plus")} Notă</button>` : ""}
+                            <button type="button" class="btn btn-glass btn-sm" data-action="event-done" data-id="${escapeHTML(ev.id)}" data-date="${date}"
+                                title="${NEEDS_GRADE.has(ev.type) ? "Marchează ca încheiat fără notă" : "Marchează ca făcut"}">${icon("check")} ${NEEDS_GRADE.has(ev.type) ? "Fără notă" : "Făcut"}</button>
+                        </span>
+                    </li>`).join("")}</ul>
+                ${attention.length > 3 ? `<p class="cal-attn-more">și încă ${attention.length - 3} în săptămânile trecute</p>` : ""}
+            </div>`);
     }
 
-    box.innerHTML = cards.join("");
+    // 2. ce urmează: câteva „etichete” pe un singur rând
+    const chips = upcoming.slice(0, 4).map(o => {
+        const n = daysBetween(today, o.date);
+        return `<button type="button" class="cal-chip ev-${EVENT_TYPE_CLASS[o.ev.type] || "personal"} ${n <= 2 ? "is-near" : ""}" data-action="cal-goto" data-date="${o.date}"
+            title="${escapeHTML(`${o.ev.title} · ${weekdayLabel(o.date)}${o.ev.time ? `, ${o.ev.time}` : ""}`)}">
+            <i class="ev-dot" aria-hidden="true"></i><b>${escapeHTML(o.ev.subject ? shortSubjectName(o.ev.subject) : o.ev.title)}</b><small>${escapeHTML(n === 0 ? "azi" : n === 1 ? "mâine" : `în ${n} zile`)}</small>
+        </button>`;
+    });
+    if (homework.length) chips.push(`<button type="button" class="cal-chip ev-tema" data-action="cal-goto" data-date="${homework[0].date}"><i class="ev-dot" aria-hidden="true"></i><b>${plural(homework.length, "temă", "teme")}</b><small>în 7 zile</small></button>`);
+    out.push(`
+        <div class="cal-upnext" aria-label="Urmează">
+            <span class="cal-upnext-label">${icon("calendar-check")} Urmează</span>
+            ${chips.length ? chips.join("") : `<span class="cal-upnext-empty">nimic în următoarele 30 de zile</span>`}
+        </div>`);
+
+    // 3. fără orar: o sugestie scurtă
+    if (!Object.keys(state.timetable).length && Object.keys(state.subjects).length) {
+        out.push(`<p class="cal-tip">${icon("calendar-days")} Cu orarul, fiecare zi îți arată orele și adaugi un test dintr-o atingere. <button type="button" class="btn btn-text btn-sm" data-action="timetable">Completează orarul</button></p>`);
+    }
+    box.innerHTML = out.join("");
 }
 
 /* ---------- săptămână ---------- */
@@ -247,19 +223,28 @@ function renderWeekView() {
     setText("cal-caption", diff === 0 ? "Săptămâna aceasta" : diff === 1 ? "Săptămâna viitoare" : diff === -1 ? "Săptămâna trecută"
         : diff > 0 ? `Peste ${plural(diff, "săptămână", "săptămâni")}` : `Acum ${plural(-diff, "săptămână", "săptămâni")}`);
 
-    $("cal-body").innerHTML = `<div class="cal-week">${days.map(date => dayColumnHTML(date, occ.filter(o => o.date === date), links, today)).join("")}</div>`;
+    const strip = `<div class="cal-daystrip" role="group" aria-label="Zilele săptămânii">${days.map(date => {
+        const d = parseDateKey(date);
+        const n = occ.filter(o => o.date === date).length;
+        return `<button type="button" class="cal-dsd ${date === today ? "is-today" : ""}" data-action="cal-jump" data-date="${date}" aria-label="${escapeHTML(`${WEEKDAY_LONG[d.getDay()]}, ${getDateLabel(date)}${n ? `, ${plural(n, "eveniment", "evenimente")}` : ""}`)}">
+            <small>${WEEKDAY_SHORT[d.getDay()].slice(0, 1)}</small><b>${d.getDate()}</b><i class="${n ? "has" : ""}" aria-hidden="true"></i></button>`;
+    }).join("")}</div>`;
+    $("cal-body").innerHTML = `${strip}<div class="cal-week">${days.map(date => dayColumnHTML(date, occ.filter(o => o.date === date), links, today)).join("")}</div>`;
 }
 
 function dayColumnHTML(date, items, links, today) {
     const d = parseDateKey(date);
     const wd = d.getDay();
-    const lessons = state.timetable[wd] || [];
+    const lessons = isSchoolDay(date) ? (state.timetable[wd] || []) : [];
+    const plan = calPlanHTML(date);
+    const holiday = !isSchoolDay(date) && wd >= 1 && wd <= 5;
     const classes = [
         "cal-col",
         date === today && "is-today",
         date < today && "is-past",
         (wd === 0 || wd === 6) && "is-weekend",
-        !items.length && !lessons.length && !calPlanHTML(date) && "is-empty"
+        holiday && "is-holiday",
+        !items.length && !lessons.length && !plan && "is-empty"
     ].filter(Boolean).join(" ");
 
     return `
@@ -269,17 +254,20 @@ function dayColumnHTML(date, items, links, today) {
                 <span class="cal-col-date">${d.getDate()}</span>
                 <span class="cal-col-month">${MONTH_SHORT[d.getMonth()]}</span>
                 ${date === today ? '<span class="cal-today-tag">Azi</span>' : ""}
-                <button type="button" class="cal-add-mini" data-action="add-event" data-date="${date}" aria-label="Adaugă pe ${escapeHTML(getDateLabel(date))}">${icon("plus")}</button>
+                <button type="button" class="cal-add-mini" data-action="add-event" data-date="${date}" aria-label="Adaugă pe ${escapeHTML(getDateLabel(date))}" title="Adaugă">${icon("plus")}</button>
             </header>
-            ${lessons.length ? `
-                <div class="cal-lessons" aria-label="Orar">
-                    ${lessons.map((m, i) => `
-                        <button type="button" class="cal-lesson" data-action="add-event" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
-                            title="${escapeHTML(`Ora ${i + 1}: ${m} — adaugă un test sau o temă`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(m)}</span></button>`).join("")}
-                </div>` : ""}
-            <div class="cal-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>
-            ${calPlanHTML(date)}
-            <button type="button" class="cal-add" data-action="add-event" data-date="${date}">${icon("plus")} Adaugă</button>
+            <div class="cal-col-body">
+                <div class="cal-items">${items.map(o => eventCardHTML(o, links)).join("")}</div>
+                ${plan}
+                ${lessons.length ? `
+                    <div class="cal-lessons" aria-label="Orar">
+                        ${lessons.map((m, i) => `
+                            <button type="button" class="cal-lesson" data-action="add-event" data-date="${date}" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}"
+                                title="${escapeHTML(`Ora ${i + 1}: ${m} — adaugă un test sau o temă`)}"><span class="cal-lesson-n">${i + 1}</span><span class="cal-lesson-name">${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
+                    </div>` : ""}
+                ${!items.length && !lessons.length && !plan ? `<p class="cal-free">${holiday ? "vacanță" : "liber"}</p>` : ""}
+                <button type="button" class="cal-add" data-action="add-event" data-date="${date}">${icon("plus")} Adaugă</button>
+            </div>
         </section>`;
 }
 
@@ -343,19 +331,18 @@ function renderMonthView() {
         const items = occ.filter(o => o.date === date);
         const out = date < first || date > last;
         cells.push(`
-            <button type="button" class="cal-mcell ${out ? "is-out" : ""} ${date === today ? "is-today" : ""}" data-action="cal-goto" data-date="${date}"
+            <button type="button" class="cal-mcell ${out ? "is-out" : ""} ${date === today ? "is-today" : ""} ${[0, 6].includes(parseDateKey(date).getDay()) ? "is-weekend" : ""} ${items.length ? "has-items" : ""}" data-action="cal-goto" data-date="${date}" data-date-cell="${date}"
                 aria-label="${escapeHTML(`${getDateLabel(date)}${items.length ? `, ${plural(items.length, "eveniment", "evenimente")}` : ""}`)}">
                 <b>${parseDateKey(date).getDate()}</b>
                 ${items.slice(0, 3).map(({ ev, date: d }) => `<span class="cal-mpill ev-${EVENT_TYPE_CLASS[ev.type] || "personal"} ${isOccurrenceDone(ev, d, links) ? "is-done" : ""}">${escapeHTML(ev.title)}</span>`).join("")}
                 ${items.length > 3 ? `<span class="cal-mmore">+${items.length - 3}</span>` : ""}
+                ${items.length ? `<span class="cal-mdots" aria-hidden="true">${items.slice(0, 4).map(({ ev }) => `<i class="ev-${EVENT_TYPE_CLASS[ev.type] || "personal"}"></i>`).join("")}</span>` : ""}
             </button>`);
     }
 
     $("cal-body").innerHTML = `
-        <div class="cal-month">
-            ${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span class="cal-month-wd" aria-hidden="true">${WEEKDAY_SHORT[wd]}</span>`).join("")}
-            ${cells.join("")}
-        </div>`;
+        <div class="cal-month-head" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map(wd => `<span class="cal-month-wd">${WEEKDAY_SHORT[wd]}</span>`).join("")}</div>
+        <div class="cal-month">${cells.join("")}</div>`;
 }
 
 /* ---------- navigare ---------- */
@@ -380,6 +367,17 @@ function calGoto(dateKey, { view = "week" } = {}) {
         col.classList.add("flash");
         setTimeout(() => col.classList.remove("flash"), 1600);
     }
+}
+
+
+/** Telefonul: din banda cu zilele săptămânii, sari la ziua aleasă. */
+function calJump(date) {
+    const col = document.querySelector(`.cal-col[data-date="${date}"]`);
+    if (!col) return;
+    const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--appbar-h")) || 60;
+    window.scrollTo({ top: col.getBoundingClientRect().top + window.scrollY - bar - 70, behavior: reduceMotion() ? "auto" : "smooth" });
+    col.classList.add("flash");
+    setTimeout(() => col.classList.remove("flash"), 1400);
 }
 
 /** Folosită de Dashboard, Catalog și căutare. */

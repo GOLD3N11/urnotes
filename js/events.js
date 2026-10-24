@@ -26,6 +26,7 @@ const ACTIONS = {
     },
     "cal-goto": el => calGoto(el.dataset.date),
     "occ-status": el => setOccStatus(el.dataset.id, el.dataset.date, el.dataset.status),
+    "cal-jump": el => calJump(el.dataset.date),
     "db-past": el => { ui.cal.dbPast = el.checked; renderCalendar(); },
     "event-open": el => openEventModal({ id: el.dataset.id, date: el.dataset.date }),
     "event-done": el => toggleEventDone(el.dataset.id, el.dataset.date),

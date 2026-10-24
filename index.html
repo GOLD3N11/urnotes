@@ -301,7 +301,6 @@
                 <div class="page-intro">
                     <div>
                         <h2 id="h-calendar">Calendar</h2>
-                        <p>Săptămâna ta: orele, testele și temele. Bifează ce ai făcut și adaugă nota direct din test.</p>
                     </div>
                     <div class="page-pal" hidden></div>
                     <div class="intro-actions">
@@ -312,16 +311,18 @@
 
                 <div id="cal-overview" class="cal-overview"></div>
 
-                <div class="glass-card cal-shell">
+                <div class="cal-shell">
                     <div class="cal-toolbar">
                         <div class="cal-nav">
-                            <button type="button" class="btn btn-glass icon-btn" data-action="cal-nav" data-offset="-1" aria-label="Înapoi">&#9664;</button>
+                            <button type="button" class="btn btn-glass btn-sm cal-today-btn" data-action="cal-today">Azi</button>
+                            <span class="cal-arrows">
+                                <button type="button" class="cal-arrow" data-action="cal-nav" data-offset="-1" aria-label="Înapoi"><svg class="ico is-flip" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                                <button type="button" class="cal-arrow" data-action="cal-nav" data-offset="1" aria-label="Înainte"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                            </span>
                             <div class="cal-title-wrap">
                                 <h3 id="cal-title" aria-live="polite">…</h3>
                                 <span id="cal-caption" class="calendar-caption"></span>
                             </div>
-                            <button type="button" class="btn btn-glass icon-btn" data-action="cal-nav" data-offset="1" aria-label="Înainte">&#9654;</button>
-                            <button type="button" class="btn btn-text cal-today-btn" data-action="cal-today">Azi</button>
                         </div>
                         <div class="cal-seg" role="group" aria-label="Mod de afișare">
                             <button type="button" data-action="cal-view" data-view="week" aria-pressed="true">Săptămână</button>
@@ -331,7 +332,7 @@
                         </div>
                     </div>
                     <div id="cal-body"></div>
-                    <p class="subtitle cal-hint">Trage un eveniment pe altă zi ca să-l muți. Atinge o materie din orar ca să adaugi un test sau o temă.</p>
+                    <p class="cal-hint">Trage un eveniment pe altă zi ca să-l muți. Atinge o materie din orar ca să adaugi un test sau o temă.</p>
                 </div>
             </section>
 

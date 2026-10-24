@@ -752,243 +752,103 @@ body.dark-mode .ev-personal { --ev: #94a3b8; }
 .ev-dot { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--ev); vertical-align: 1px; }
 
 /* Rezumat: Urmează / Necesită atenție */
-.cal-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--gap-grid); margin-bottom: var(--gap-grid); }
-.cal-ov-card { display: flex; flex-direction: column; padding: 16px 18px; }
-.cal-ov-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
-.cal-ov-head h3 { display: flex; align-items: center; gap: 6px; }
-.cal-ov-empty { padding: 14px 0 4px; }
-.cal-ov-foot { margin-top: auto; padding-top: 10px; font-size: 12px; color: var(--text-secondary); }
-.cal-next-hero {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px 14px;
-    background: color-mix(in srgb, var(--ev) 10%, var(--input-bg));
-    border: 1px solid color-mix(in srgb, var(--ev) 25%, transparent);
-    border-left: 4px solid var(--ev);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    text-align: left;
-    cursor: pointer;
-}
-.cal-next-hero:hover { background: color-mix(in srgb, var(--ev) 15%, var(--input-bg)); }
-.cal-countdown { display: flex; flex-direction: column; align-items: center; min-width: 48px; line-height: 1; }
-.cal-countdown b { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: var(--ev); }
-.cal-countdown small { margin-top: 3px; font-size: 11px; font-weight: 600; }
-.cal-next-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.cal-next-main b { font-size: 15px; color: var(--text-primary); overflow-wrap: anywhere; }
-.cal-next-main small { font-size: 12px; }
-.cal-ov-list { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; list-style: none; }
-.cal-ov-row {
-    display: grid;
-    grid-template-columns: 74px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 7px 8px;
-    background: transparent;
-    border: 0;
-    border-radius: 10px;
-    text-align: left;
-    cursor: pointer;
-}
-.cal-ov-row:hover { background: var(--input-bg); }
-.cal-ov-when { font-size: 12px; font-weight: 700; color: var(--accent-color); }
-.cal-ov-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
-.cal-ov-meta { font-size: 12px; color: var(--text-secondary); }
-.cal-att-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--glass-border); }
-.cal-att-row:last-child { border-bottom: none; }
-.cal-att-info { display: flex; flex-direction: column; min-width: 0; }
-.cal-att-info b { font-size: 13px; }
-.cal-att-info small { padding-left: 14px; font-size: 12px; color: var(--text-secondary); }
-.cal-att-actions { display: flex; gap: 6px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .btn-sm { min-height: 32px; padding: 5px 11px; font-size: 12px; }
-.cal-ov-tip p { margin-top: 8px; }
-.cal-ov-tip .btn { align-self: flex-start; }
+
+
 
 /* Bara de navigare */
-.cal-shell { padding: 16px; }
-.cal-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.cal-nav { display: flex; align-items: center; gap: 8px; }
-.cal-title-wrap { min-width: 200px; text-align: center; }
-.cal-title-wrap h3 { font-size: 18px; letter-spacing: -0.02em; }
-.calendar-caption { display: block; margin-top: 2px; font-size: 11px; color: var(--text-secondary); }
-.cal-today-btn { color: var(--accent-color); }
-.cal-seg { display: inline-flex; padding: 3px; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 99px; }
-.cal-seg button {
-    min-height: 32px;
-    padding: 4px 14px;
-    background: transparent;
-    border: 0;
-    border-radius: 99px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-.cal-seg button[aria-pressed="true"] { background: var(--card-hover); color: var(--accent-color); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); }
-.cal-hint { margin-top: 12px; text-align: center; }
+
+
+
+
+
+
+
+
+
+
+
 
 /* Săptămâna */
-.cal-week { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.75fr)); gap: 8px; }
-.cal-col {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-    min-height: 360px;
-    padding: 10px 8px;
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    transition: background-color 0.15s ease, outline-color 0.15s ease;
-}
-.cal-col.is-weekend { background: color-mix(in srgb, var(--input-bg) 55%, transparent); }
-.cal-col.is-today { border: 2px solid var(--accent-color); background: color-mix(in srgb, var(--accent-color) 6%, var(--input-bg)); }
-.cal-col.drop-target { outline: 2px dashed var(--accent-color); outline-offset: 2px; background: var(--accent-soft); }
-.cal-col-head { display: flex; align-items: baseline; gap: 5px; padding: 0 2px; }
-.cal-col.is-past .cal-col-date { color: var(--ink-2); }
-.cal-col-wd { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
-.cal-col-date { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
-.cal-col-month { font-size: 11px; color: var(--text-secondary); }
-.cal-col.is-today .cal-col-date, .cal-col.is-today .cal-col-wd { color: var(--accent-color); }
-.cal-today-tag { padding: 1px 7px; border-radius: 99px; background: var(--accent-color); color: #fff; font-size: 10px; font-weight: 700; }
-.cal-add-mini { display: none; }
 
-.cal-lessons { display: flex; flex-direction: column; gap: 2px; padding-bottom: 8px; border-bottom: 1px dashed var(--glass-border); }
-.cal-lesson {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-    padding: 3px 4px;
-    background: transparent;
-    border: 0;
-    border-radius: 6px;
-    font-size: 11.5px;
-    color: var(--text-secondary);
-    text-align: left;
-    cursor: pointer;
-}
-.cal-lesson:hover { background: var(--accent-soft); color: var(--accent-color); }
-.cal-lesson-n {
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--text-secondary) 14%, transparent);
-    font-size: 9.5px;
-    font-weight: 700;
-}
-.cal-lesson-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.cal-items { display: flex; flex-direction: column; gap: 6px; }
-.cal-ev {
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr);
-    align-items: start;
-    gap: 4px 7px;
-    padding: 7px 8px;
-    background: color-mix(in srgb, var(--ev) 9%, var(--input-bg));
-    border: 1px solid color-mix(in srgb, var(--ev) 22%, transparent);
-    border-left: 3px solid var(--ev);
-    border-radius: 10px;
-    cursor: grab;
-    transition: opacity 0.15s ease;
-}
-.cal-ev.dragging { opacity: 0.4; }
-.cal-ev.is-done { opacity: 0.62; }
-.cal-ev.is-done .cal-ev-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, currentColor 50%, transparent); }
-.cal-ev-check {
-    display: grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
-    margin-top: 1px;
-    padding: 0;
-    background: transparent;
-    border: 1.5px solid var(--ev);
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 800;
-    color: #fff;
-    cursor: pointer;
-}
-.cal-ev-check[aria-pressed="true"] { background: var(--ev); }
-.cal-ev-check:disabled { cursor: default; }
-.cal-ev-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 0; background: none; border: 0; text-align: left; cursor: pointer; }
-.cal-ev-top { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 10.5px; font-weight: 700; color: var(--ev); }
-.cal-ev-time { font-variant-numeric: tabular-nums; color: var(--text-primary); }
-.cal-ev-rep { font-size: 12px; }
-.cal-ev-title { font-size: 12.5px; line-height: 1.25; overflow-wrap: anywhere; }
-.cal-ev-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--text-secondary); }
-.cal-ev-addgrade, .cal-ev-grade { grid-column: 2; justify-self: start; }
-.cal-ev-addgrade {
-    padding: 2px 9px;
-    background: transparent;
-    border: 1px dashed var(--ev);
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--ev);
-    cursor: pointer;
-}
-.cal-ev-addgrade:hover { background: color-mix(in srgb, var(--ev) 14%, transparent); }
-.cal-ev-grade.cat-grade-val { height: 22px; min-width: 0; padding: 0 8px; border: 0; border-radius: 99px; font-size: 11.5px; cursor: pointer; }
-.cal-add {
-    margin-top: auto;
-    padding: 6px;
-    background: transparent;
-    border: 1px dashed var(--glass-border);
-    border-radius: 8px;
-    font-size: 12px;
-    color: var(--ink-2);
-    cursor: pointer;
-    transition: color 0.15s ease, border-color 0.15s ease;
-}
-.cal-add:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Luna */
-.cal-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.cal-month-wd { padding-bottom: 4px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
-.cal-mcell {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-    min-height: 96px;
-    padding: 6px;
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-.cal-mcell:hover { background: var(--card-hover); }
-.cal-mcell.is-out { opacity: 0.4; }
-.cal-mcell.is-today { border: 2px solid var(--accent-color); }
-.cal-mcell.is-today > b { color: var(--accent-color); }
-.cal-mcell > b { font-size: 13px; }
-.cal-mpill {
-    display: block;
-    padding: 2px 5px;
-    overflow: hidden;
-    background: color-mix(in srgb, var(--ev) 15%, transparent);
-    border-left: 2px solid var(--ev);
-    border-radius: 4px;
-    font-size: 10.5px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-.cal-mpill.is-done { opacity: 0.55; text-decoration: line-through; }
-.cal-mmore { font-size: 10.5px; font-weight: 600; color: var(--text-secondary); }
+
+
+
+
+
+
+
+
+
+
+
 
 /* Formularul de eveniment */
 .ev-type-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -1050,57 +910,9 @@ input:disabled { opacity: 0.5; }
 .tt-add { width: auto; padding: 5px 10px; font-size: 13px; border-radius: 99px; }
 
 /* Telefon/tabletă: săptămâna devine o listă de zile */
-@media (max-width: 900px) {
-    .cal-shell { padding: 12px; }
-    .cal-toolbar { justify-content: center; }
-    .cal-title-wrap { min-width: 150px; }
-    .cal-title-wrap h3 { font-size: 16px; }
-    .cal-week { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-    .cal-col { min-height: 0; padding: 12px; }
-    .cal-col-head { align-items: center; }
-    .cal-col-date { font-size: 17px; }
-    .cal-add-mini {
-        display: grid;
-        place-items: center;
-        width: 34px;
-        height: 34px;
-        margin-left: auto;
-        padding: 0;
-        background: var(--accent-soft);
-        border: 0;
-        border-radius: 50%;
-        font-size: 16px;
-        color: var(--accent-color);
-        cursor: pointer;
-    }
-    .cal-add { display: none; }
-    .cal-col.is-empty { flex-direction: row; align-items: center; padding: 8px 12px; }
-    .cal-col.is-empty .cal-col-head { flex: 1; }
-    .cal-col.is-empty .cal-col-head::after { content: "liber"; margin-left: 6px; font-size: 12px; color: var(--text-secondary); }
-    .cal-col.is-empty .cal-items { display: none; }
-    .cal-lessons { flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
-    .cal-lesson { flex: none; width: auto; padding: 5px 10px 5px 5px; border: 1px solid var(--glass-border); border-radius: 99px; font-size: 12.5px; }
-    .cal-ev { grid-template-columns: 24px minmax(0, 1fr) auto; padding: 10px; gap: 4px 10px; cursor: default; }
-    .cal-ev-check { width: 24px; height: 24px; border-radius: 7px; font-size: 14px; }
-    .cal-ev-title { font-size: 14px; }
-    .cal-ev-top { font-size: 11.5px; }
-    .cal-ev-addgrade, .cal-ev-grade { grid-column: 3; grid-row: 1; align-self: center; }
-    .cal-ev-addgrade { padding: 6px 12px; font-size: 12px; }
-    .cal-ev-grade.cat-grade-val { height: 30px; padding: 0 10px; font-size: 13px; }
-    .cal-hint { display: none; }
-    .cal-mcell { min-height: 72px; }
-}
 
-@media (max-width: 560px) {
-    .cal-ov-row { grid-template-columns: 64px minmax(0, 1fr); }
-    .cal-ov-meta { display: none; }
-    .cal-month { gap: 3px; }
-    .cal-month-wd { font-size: 10px; letter-spacing: 0; }
-    .cal-mcell { flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 3px; min-height: 54px; padding: 5px; border-radius: 8px; }
-    .cal-mcell > b { width: 100%; font-size: 12px; }
-    .cal-mpill { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: var(--ev); font-size: 0; }
-    .cal-mmore { font-size: 9px; line-height: 7px; }
-}
+
+
 
 /* ==================== TITLURI DE SECȚIUNE ==================== */
 .section-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -2218,7 +2030,7 @@ h2 .ico, h3 .ico, h4 .ico { margin-right: 0.15em; color: var(--accent-color); }
 .backup-option-icon .ico { width: 20px; height: 20px; }
 .app-icon { color: var(--accent-color); background: var(--sheet); border-color: var(--rule); box-shadow: none; }
 .app-icon .ico { width: 22px; height: 22px; }
-.reset-option-title .ico, .cal-ev-type .ico { width: 1em; height: 1em; }
+.reset-option-title .ico { width: 1em; height: 1em; }
 
 /* Tipografie: Recursive drept pentru interfață */
 h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.015em; }
@@ -2243,12 +2055,10 @@ h3 { font-size: 15.5px; }
 .sim-stat-value,
 .sim-big,
 .stats-kpi > b,
-.cal-countdown b,
 .mod-val,
 .type-avg,
 .sim-grade-btn,
 .whatif-slider output,
-.cal-col-date,
 .trend-row-avg,
 .goal-pct {
     font-family: var(--font-ui);
@@ -2260,7 +2070,11 @@ h3 { font-size: 15.5px; }
 .stats-hero-value { font-weight: 750; letter-spacing: -0.02em; }
 
 /* Etichete în litere obișnuite, nu MAJUSCULE */
-.kpi-title, .cal-col-wd, .sim-row-label, .sim-table thead th, .purtare-mod-status, .cal-month-wd, .stats-period span {
+.kpi-title,
+.sim-row-label,
+.sim-table thead th,
+.purtare-mod-status,
+.stats-period span {
     text-transform: none;
     letter-spacing: 0;
     font-size: 12.5px;
@@ -2312,7 +2126,8 @@ h3 { font-size: 15.5px; }
 .toast.is-warn .toast-ico { color: var(--accent-yellow); }
 
 /* Elemente pe fundal de accent: text în contrast (alb pe caiet, ardezie pe tablă) */
-.cal-today-tag, .sim-grade-btn:hover, .stats-nav-link.active .count { color: var(--on-accent); }
+.sim-grade-btn:hover,
+.stats-nav-link.active .count { color: var(--on-accent); }
 
 /* Cursorul personalizat apare doar dacă e pornit din Setări */
 
@@ -3040,7 +2855,8 @@ kbd {
 /* Textul colorat după tipul evenimentului: aceeași nuanță, dar mai închisă pe caiet și mai deschisă pe tablă */
 :root { --ev-mix: #000; --ev-amt: 66%; }
 body.dark-mode { --ev-mix: #fff; --ev-amt: 52%; }
-.cal-ev-type, .azi-tag, .cal-ev-addgrade, .ev-type-opt input:checked + span { color: color-mix(in srgb, var(--ev) var(--ev-amt), var(--ev-mix)); }
+.azi-tag,
+.ev-type-opt input:checked + span { color: color-mix(in srgb, var(--ev) var(--ev-amt), var(--ev-mix)); }
 .cat-star, .btn-star.active, .goal-star { color: var(--star); }
 .badge-pill.unlocked { background: var(--success-soft); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
 
@@ -3507,15 +3323,11 @@ body:not(.has-cloud) .cloud-only, body:not(.has-cloud) .account-chip { display: 
 .plan-move-days { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .plan-move-days .btn { justify-content: center; }
 /* în Calendar: sesiunile din plan, discrete */
-.cal-plan { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-.cal-plan-item {
-    display: flex; align-items: center; gap: 5px; width: 100%; min-width: 0; padding: 4px 6px;
-    border: 1px dashed color-mix(in srgb, var(--note-fold) 70%, var(--rule)); border-radius: 7px;
-    background: color-mix(in srgb, var(--note) 16%, transparent); color: var(--ink); font-size: 12px; font-weight: 600; text-align: left; cursor: pointer;
-}
-.cal-plan-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cal-plan-item .ico { flex: none; width: 13px; height: 13px; }
-.cal-plan-item.is-done { opacity: 0.55; text-decoration: line-through; }
+
+
+
+
+
 @media (max-width: 900px) {
     .plan-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -3690,11 +3502,7 @@ body:not(.has-cloud) .cloud-only, body:not(.has-cloud) .account-chip { display: 
 .sim-compare-invite .muted-small { margin: 0; }
 
 /* Calendar pe telefon: zilele trecute ale săptămânii, strânse — azi ajunge mai repede la vedere */
-@media (max-width: 900px) {
-    .cal-col.is-past .cal-lessons { display: none; }
-    .cal-col.is-past.is-empty, .cal-col.is-past:not(:has(.cal-items > *)) { padding-top: 8px; padding-bottom: 8px; }
-    .cal-col.is-past .cal-add { display: none; }
-}
+
 
 /* ==================== TELEFON & IPHONE ==================== */
 /* Textul nu se mărește singur la rotire; atingerile răspund imediat (fără întârzierea de „dublu-tap pentru zoom”). */
@@ -3709,15 +3517,27 @@ button, a, label, summary, select, [role="button"], [role="tab"], .cat-row { -we
 .auth-card,
 .cat-menu,
 .tour-card,
-.cat-strip,
-.cal-lessons { overscroll-behavior: contain; }
+.cat-strip { overscroll-behavior: contain; }
 
 /* Butoane care se simt apăsate pe ecran tactil (pe iPhone :active merge datorită unui ascultător de atingeri) */
 @media (hover: none) {
-    .btn:active, .mobile-nav-btn:active, .azi-icon-btn:active, .cat-row:active, .cat-chip:active, .cal-add-mini:active,
-    .qa-item:active, .cat-strip-chip:active, .grade-pick-btn:active { transform: scale(0.97); }
+    .btn:active,
+.mobile-nav-btn:active,
+.azi-icon-btn:active,
+.cat-row:active,
+.cat-chip:active,
+.qa-item:active,
+.cat-strip-chip:active,
+.grade-pick-btn:active { transform: scale(0.97); }
     .mobile-add:active { transform: scale(0.92); }
-    .btn, .mobile-nav-btn, .mobile-add, .azi-icon-btn, .cat-chip, .cal-add-mini, .qa-item, .cat-strip-chip, .grade-pick-btn { transition-property: transform, background-color, color, border-color, opacity; transition-duration: 0.12s; }
+    .btn,
+.mobile-nav-btn,
+.mobile-add,
+.azi-icon-btn,
+.cat-chip,
+.qa-item,
+.cat-strip-chip,
+.grade-pick-btn { transition-property: transform, background-color, color, border-color, opacity; transition-duration: 0.12s; }
 }
 
 @media (pointer: coarse) {
@@ -3727,10 +3547,10 @@ button, a, label, summary, select, [role="button"], [role="tab"], .cat-row { -we
     .btn-sm { min-height: 38px; }
     .cat-chip, .azi-seg button { min-height: 36px; }
     .azi-icon-btn { width: 38px; height: 38px; }
-    .cal-ev-check, .azi-check { position: relative; }
-    .cal-ev-check::after, .azi-check::after { content: ""; position: absolute; inset: -9px; }
+    .azi-check { position: relative; }
+    .azi-check::after { content: ""; position: absolute; inset: -9px; }
     .azi-inline-link, .brief-link { padding-block: 6px; margin-block: -6px; }
-    .cal-plan-item { min-height: 34px; }
+    
     /* Rândurile din catalog: apăsarea lungă deschide meniul nostru, nu meniul de text al telefonului */
     .cat-row, .cat-strip-chip, .mobile-nav-btn, .mobile-add, .buddy, .grade-pick-btn { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 }
@@ -3753,7 +3573,7 @@ button, a, label, summary, select, [role="button"], [role="tab"], .cat-row { -we
 
     /* Ecrane înguste (iPhone SE, Android mic): nimic nu iese în lateral */
     .flex-center { flex-wrap: wrap; }
-    .cal-plan-item { max-width: 100%; min-width: 0; }
+    
 }
 
 /* Foile de jos (formularele) urmăresc fereastra vizibilă: cu tastatura deschisă stau deasupra ei */
@@ -4041,7 +3861,6 @@ h2 .help-dot { width: 24px; height: 24px; font-size: 14px; vertical-align: 6px; 
     .start-step:active,
 .plan-strip-day:active,
 .plan-chip:active span,
-.cal-col-head button:active,
 .setup-choice:active,
 .setup-profile:active,
 .qa-item:active,

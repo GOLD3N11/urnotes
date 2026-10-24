@@ -316,9 +316,7 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
 /* ==========================================================================
    CALENDAR ȘI PLAN: culoarea materiei
    ========================================================================== */
-.cal-lesson { border-left: 4px solid var(--subj, var(--rule)); }
 .plan-item { border-left: 5px solid var(--subj, var(--rule)) !important; }
-.cal-shell, .cal-overview > * { border-radius: var(--radius-lg); }
 
 /* ==========================================================================
    RESPONSIVE
@@ -434,7 +432,6 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
 .np input.np-title:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]) { font-size: clamp(26px, 7vw, 32px) !important; }
 .np textarea.np-notes { font-size: 16px !important; }
 /* numărătoarea din „Urmează”: cifra în culoarea evenimentului, dar destul de închisă ca să se citească */
-.cal-countdown b { color: color-mix(in srgb, var(--ev) 62%, var(--ink)); }
 
 /* ==========================================================================
    MARCA urNotes: post-it-ul și colegul
@@ -636,9 +633,6 @@ body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, 
 .nb-hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
 
 /* --- Calendar ca bază de date: Tabel și Panou --- */
-.cal-shell.is-db .cal-nav [data-action="cal-nav"], .cal-shell.is-db .cal-today-btn, .cal-shell.is-db .cal-hint { display: none; }
-.cal-shell.is-db .cal-nav { flex: 1 1 auto; }
-.cal-shell.is-db .cal-title-wrap { min-width: 0; text-align: left; }
 .db-tools { display: flex; justify-content: flex-end; margin: 0 0 8px; }
 .db-past { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
 .db-table-wrap { overflow-x: auto; margin: 0 -4px; }
@@ -761,3 +755,194 @@ body.dark-mode .week-stat .is-up { color: #7BC59A; }
 /* --- Colegul fără text: doar fața (și nivelul) --- */
 .azi-buddy { flex: 0 0 auto; }
 .pal-name-tag { align-self: center; }
+
+/* ==========================================================================
+   CALENDARUL (redesenat): bara de unelte simplă, „Urmează” pe un rând,
+   săptămâna ca o grilă cu linii fine (pe telefon, o agendă pe zile), luna ca o grilă curată.
+   ========================================================================== */
+.cal-overview { display: grid; gap: 10px; margin: 2px 0 14px; }
+.cal-overview:empty { display: none; }
+.cal-attn { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--risk) 7%, var(--paper)); border: 1px solid color-mix(in srgb, var(--risk) 22%, var(--rule)); }
+.cal-attn-title { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--risk); }
+.cal-attn-title .ico { width: 15px; height: 15px; }
+.cal-attn-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.cal-att-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.cal-att-info { display: flex; align-items: baseline; gap: 6px; min-width: 0; padding: 4px 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--ink); text-align: left; cursor: pointer; }
+.cal-att-info .ev-dot { margin: 0; align-self: center; }
+.cal-att-info small { font-size: 12.5px; color: var(--ink-2); }
+.cal-att-actions { display: flex; gap: 6px; }
+.cal-attn-more { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-2); }
+.cal-upnext { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cal-upnext-label { display: inline-flex; align-items: center; gap: 6px; margin-right: 4px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.cal-upnext-label .ico { width: 15px; height: 15px; }
+.cal-upnext-empty { font-size: 13px; color: var(--ink-2); }
+.cal-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 99px;
+    background: var(--sheet); font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+}
+.cal-chip .ev-dot { margin: 0; }
+.cal-chip b { font-weight: 600; }
+.cal-chip small { font-size: 12.5px; color: var(--ink-2); }
+.cal-chip:hover { background: var(--hover, var(--input-bg)); }
+.cal-chip.is-near { border-color: color-mix(in srgb, var(--ev) 45%, var(--rule)); background: color-mix(in srgb, var(--ev) 8%, var(--sheet)); }
+.cal-tip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.cal-tip .ico { width: 16px; height: 16px; }
+
+/* bara de unelte */
+.cal-shell { min-width: 0; }
+.cal-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; padding: 4px 0 12px; }
+.cal-nav { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cal-arrows { display: inline-flex; }
+.cal-arrow { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); cursor: pointer; }
+.cal-arrow:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+.cal-arrow .ico { width: 18px; height: 18px; }
+.ico.is-flip { transform: rotate(180deg); }
+.cal-title-wrap { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+#cal-title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+.calendar-caption { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.cal-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--input-bg); }
+.cal-seg button { padding: 5px 12px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
+.cal-seg button:hover { color: var(--ink); }
+.cal-seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--rule), 0 1px 2px rgba(15, 15, 15, 0.08); }
+.cal-seg button:focus-visible, .cal-arrow:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.cal-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-2); }
+.cal-shell.is-db .cal-arrows, .cal-shell.is-db .cal-today-btn, .cal-shell.is-db .calendar-caption, .cal-shell.is-db .cal-hint { display: none; }
+@keyframes calFlash { 0%, 100% { box-shadow: none; } 30% { box-shadow: inset 0 0 0 2px var(--accent-color); } }
+.cal-col.flash { animation: calFlash 1.4s ease; }
+
+/* săptămâna: o grilă cu linii fine */
+.cal-daystrip { display: none; }
+.cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.cal-col { display: flex; flex-direction: column; min-width: 0; min-height: 420px; }
+.cal-col + .cal-col { border-left: 1px solid var(--rule); }
+.cal-col.is-weekend, .cal-col.is-holiday { background: color-mix(in srgb, var(--input-bg) 55%, transparent); }
+.cal-col.is-today { background: color-mix(in srgb, var(--accent-color) 4%, transparent); }
+.cal-col.drop-target { background: color-mix(in srgb, var(--accent-color) 10%, transparent); box-shadow: inset 0 0 0 2px var(--accent-color); }
+.cal-col-head { display: flex; align-items: center; gap: 6px; min-height: 46px; padding: 8px 8px 8px 10px; border-bottom: 1px solid var(--rule); }
+.cal-col-wd { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
+.cal-col-date { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 5px; border-radius: 99px; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cal-col.is-past .cal-col-date { color: var(--ink-2); }
+.cal-col.is-today .cal-col-wd { color: var(--accent-color); }
+.cal-col.is-today .cal-col-date { background: var(--accent-color); color: var(--on-accent); }
+.cal-col-month, .cal-today-tag { display: none; }
+.cal-add-mini { display: grid; place-items: center; width: 26px; height: 26px; margin-left: auto; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--ink-2); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
+.cal-add-mini .ico { width: 15px; height: 15px; }
+.cal-col:hover .cal-add-mini, .cal-add-mini:focus-visible { opacity: 1; }
+.cal-add-mini:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+.cal-col-body { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 8px 6px 8px; }
+.cal-items { display: flex; flex-direction: column; gap: 4px; }
+.cal-items:empty { display: none; }
+
+/* evenimentul: o etichetă colorată, ca în Notion Calendar */
+.cal-ev {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 2px 7px; padding: 6px 7px 6px 10px;
+    border-radius: 6px; background: color-mix(in srgb, var(--ev) 12%, var(--sheet)); box-shadow: inset 3px 0 0 var(--ev); cursor: grab;
+}
+.cal-ev:hover { background: color-mix(in srgb, var(--ev) 18%, var(--sheet)); }
+.cal-ev.dragging { opacity: 0.4; }
+.cal-ev.is-done { background: transparent; box-shadow: inset 3px 0 0 color-mix(in srgb, var(--ev) 40%, transparent); }
+.cal-ev.is-done .cal-ev-title { color: var(--ink-2); text-decoration: line-through; }
+.cal-ev-check {
+    display: grid; place-items: center; width: 15px; height: 15px; margin-top: 2px; padding: 0;
+    border: 1.5px solid color-mix(in srgb, var(--ev) 70%, var(--ink)); border-radius: 4px; background: var(--sheet);
+    font-size: 10px; line-height: 1; color: #FFFFFF; cursor: pointer;
+}
+.cal-ev-check[aria-pressed="true"] { background: var(--ev); border-color: var(--ev); }
+.cal-ev-check:disabled { cursor: default; }
+.cal-ev-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.cal-ev-top { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--ev) 72%, var(--ink)); }
+.cal-ev-top .ico { width: 12px; height: 12px; vertical-align: -2px; }
+.cal-ev-time { color: var(--ink); font-variant-numeric: tabular-nums; }
+.cal-ev-rep { font-size: 12px; }
+.cal-ev-title { font-size: 13px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.cal-ev-sub { overflow: hidden; font-size: 11.5px; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.cal-ev-addgrade, .cal-ev-grade { grid-column: 2; justify-self: start; margin-top: 3px; }
+.cal-ev-addgrade { padding: 2px 8px; border: 1px dashed color-mix(in srgb, var(--ev) 60%, var(--rule)); border-radius: 99px; background: transparent; font: inherit; font-size: 11.5px; font-weight: 600; color: color-mix(in srgb, var(--ev) 72%, var(--ink)); cursor: pointer; }
+.cal-ev-addgrade:hover { background: color-mix(in srgb, var(--ev) 12%, transparent); }
+.cal-ev-grade.cat-grade-val { height: 20px; min-width: 0; padding: 0 7px; border: 0; border-radius: 99px; font-size: 11.5px; cursor: pointer; }
+
+/* orele: discrete, sub evenimente */
+.cal-lessons { display: flex; flex-direction: column; gap: 1px; }
+.cal-items:not(:empty) ~ .cal-lessons, .cal-plan ~ .cal-lessons { padding-top: 6px; border-top: 1px dashed var(--rule); }
+.cal-lesson {
+    display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; padding: 3px 4px; border: 0; border-radius: 5px;
+    background: transparent; font: inherit; font-size: 12px; color: var(--ink-2); text-align: left; cursor: pointer;
+}
+.cal-lesson:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+.cal-lesson-n { flex: none; width: 12px; font-size: 10.5px; font-weight: 600; color: color-mix(in srgb, var(--ink-2) 70%, transparent); font-variant-numeric: tabular-nums; text-align: right; }
+.cal-lesson-name { min-width: 0; overflow: hidden; padding-left: 6px; border-left: 2px solid var(--subj, var(--rule)); text-overflow: ellipsis; white-space: nowrap; }
+.cal-plan { display: flex; flex-direction: column; gap: 2px; }
+.cal-plan-item { display: flex; align-items: center; gap: 5px; padding: 3px 6px; border: 1px dashed var(--rule); border-radius: 5px; background: transparent; font: inherit; font-size: 11.5px; color: var(--ink-2); text-align: left; cursor: pointer; }
+.cal-plan-item .ico { width: 12px; height: 12px; }
+.cal-plan-item.is-done { opacity: 0.7; text-decoration: line-through; }
+.cal-free { margin: 2px 4px; font-size: 12px; color: var(--ink-2); }
+.cal-add { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: auto; padding: 5px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 12px; color: var(--ink-2); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
+.cal-add .ico { width: 14px; height: 14px; }
+.cal-col:hover .cal-add, .cal-add:focus-visible { opacity: 1; }
+.cal-add:hover { background: var(--hover, var(--input-bg)); color: var(--ink); }
+@media (hover: none) { .cal-add-mini { opacity: 1; } .cal-add { display: none; } }
+
+/* luna: o grilă curată */
+.cal-month-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
+.cal-month-wd { padding: 8px 8px 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
+.cal-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
+.cal-mcell {
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-width: 0; min-height: 104px; padding: 6px;
+    border: 0; border-top: 1px solid var(--rule); background: transparent; font: inherit; color: var(--ink); text-align: left; cursor: pointer;
+}
+.cal-mcell:nth-child(-n+7) { border-top: 0; }
+.cal-mcell:not(:nth-child(7n + 1)) { border-left: 1px solid var(--rule); }
+.cal-mcell.is-weekend { background: color-mix(in srgb, var(--input-bg) 55%, transparent); }
+.cal-mcell:hover { background: var(--hover, var(--input-bg)); }
+.cal-mcell > b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; font-weight: 600; }
+.cal-mcell.is-out > b, .cal-mcell.is-out .cal-mpill { opacity: 0.45; }
+.cal-mcell.is-today > b { background: var(--accent-color); color: var(--on-accent); }
+.cal-mpill { display: block; overflow: hidden; padding: 1px 6px; border-radius: 4px; background: color-mix(in srgb, var(--ev) 13%, var(--sheet)); box-shadow: inset 2px 0 0 var(--ev); font-size: 11.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.cal-mpill.is-done { background: transparent; color: var(--ink-2); text-decoration: line-through; }
+.cal-mmore { padding-left: 4px; font-size: 11px; color: var(--ink-2); }
+.cal-mdots { display: none; }
+
+/* urNotes (colorat): calendarul stă pe o foaie albă */
+body:not(.style-notion) .cal-shell { padding: 8px 16px 16px; background: var(--sheet); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
+body:not(.style-notion) .cal-attn, body:not(.style-notion) .cal-chip { border-radius: 14px; }
+body:not(.style-notion) #cal-title { font-family: var(--font-hand); font-weight: 800; }
+
+/* telefon: săptămâna devine o agendă pe zile */
+@media (max-width: 760px) {
+    .cal-toolbar { gap: 8px; padding-bottom: 8px; }
+    .cal-nav { width: 100%; }
+    .cal-title-wrap { flex-direction: column; gap: 0; align-items: flex-start; }
+    #cal-title { font-size: 18px; }
+    .cal-seg { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; }
+    .cal-seg button { padding: 6px 4px; }
+    .cal-daystrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin: 0 0 8px; }
+    .cal-dsd { display: grid; justify-items: center; gap: 2px; padding: 4px 0; border: 0; border-radius: 10px; background: transparent; font: inherit; color: var(--ink); cursor: pointer; }
+    .cal-dsd small { font-size: 11px; font-weight: 600; color: var(--ink-2); }
+    .cal-dsd b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; font-weight: 600; }
+    .cal-dsd.is-today b { background: var(--accent-color); color: var(--on-accent); }
+    .cal-dsd i { width: 5px; height: 5px; border-radius: 50%; }
+    .cal-dsd i.has { background: var(--ink-2); }
+    .cal-week { grid-template-columns: minmax(0, 1fr); border-bottom: 0; }
+    .cal-col { display: grid; grid-template-columns: 50px minmax(0, 1fr); min-height: 0; background: transparent !important; border-bottom: 1px solid var(--rule); }
+    .cal-col + .cal-col { border-left: 0; }
+    .cal-col-head { flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; min-height: 0; padding: 10px 0; border-bottom: 0; }
+    .cal-col-date { font-size: 17px; }
+    .cal-add-mini { margin: 2px 0 0; opacity: 1; }
+    .cal-col-body { justify-content: center; padding: 10px 0 12px 4px; }
+    .cal-col.is-empty .cal-col-body { padding: 0; }
+    .cal-col.is-empty .cal-col-head { flex-direction: row; padding: 8px 0; }
+    .cal-col.is-empty .cal-add-mini { display: none; }
+    .cal-lessons { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+    .cal-items:not(:empty) ~ .cal-lessons, .cal-plan ~ .cal-lessons { padding-top: 0; border-top: 0; }
+    .cal-lesson { width: auto; padding: 3px 9px 3px 4px; border-radius: 99px; background: var(--input-bg); font-size: 12px; }
+    .cal-ev { padding: 8px 10px 8px 12px; }
+    .cal-ev-title { font-size: 14px; }
+    .cal-add { display: none; }
+    .cal-hint { display: none; }
+    .cal-mcell { align-items: center; min-height: 54px; padding: 4px 2px; }
+    .cal-mpill, .cal-mmore { display: none; }
+    .cal-mdots { display: flex; gap: 2px; }
+    .cal-mdots i { width: 5px; height: 5px; border-radius: 50%; background: var(--ev); }
+    .cal-month-wd { padding: 6px 0; text-align: center; font-size: 11px; }
+    body:not(.style-notion) .cal-shell { padding: 6px 12px 12px; }
+}
