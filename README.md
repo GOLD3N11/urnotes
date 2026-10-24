@@ -4,7 +4,7 @@ Aplicație web pentru evidența notelor școlare, personalizată pentru fiecare 
 
 Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu media, notele și notițele tale), meniul lateral arată toate paginile, iar testele și temele le vezi ca săptămână, lună, tabel sau panou.
 
-**Deschide aplicația:** https://gold3n11.github.io/zece/ (numele proiectului Firebase rămâne `zece-2f182`: Google nu permite redenumirea lui)
+**Deschide aplicația:** https://gold3n11.github.io/urnotes/ (numele proiectului Firebase rămâne `zece-2f182`: Google nu permite redenumirea lui)
 
 - Funcționează direct în browser (HTML, CSS și JavaScript, fără instalare).
 - Datele se salvează în browser (localStorage) și merg și offline; din Setări poți exporta și importa un backup.
