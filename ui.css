@@ -251,8 +251,8 @@ body.dark-mode .buddy-bubble { border: 1px solid var(--rule); }
 .home-tile.is-hero::after { background: #fff; opacity: 0.16; }
 .home-tile.is-hero .home-tile-label, .home-tile.is-hero small, .home-tile.is-hero small span { color: color-mix(in srgb, var(--on-accent-fill) 85%, transparent); }
 .home-tile.is-hero .home-tile-value { font-size: 52px; }
-body.dark-mode .home-tile:not(.is-hero) { background: color-mix(in srgb, var(--tile) 18%, var(--sheet)); }
-body.dark-mode .home-tile-label { color: color-mix(in srgb, var(--tile) 70%, var(--ink)); }
+
+body.dark-mode .home-tile:not(.is-hero) .home-tile-label { color: var(--ink-2); }
 
 .azi-grid { grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); }
 .azi-card h3 { font-size: 18px; }
@@ -481,7 +481,7 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
 .home-tile-wrap { position: relative; }
 .home-tiles { padding-top: 6px; }
 .home-tile.is-hero { margin-top: 4px; }
-body.dark-mode .home-tile:not(.is-hero), body.dark-mode .cat-sum:not(.is-accent) { background: color-mix(in srgb, var(--tile) 26%, var(--sheet)); filter: none; }
+body.dark-mode .home-tile:not(.is-hero), body.dark-mode .cat-sum:not(.is-accent) { background: color-mix(in srgb, var(--yellow) 14%, var(--sheet)); filter: none; }
 body.dark-mode .home-tile.is-hero, body.dark-mode .cat-sum.is-accent { filter: none; }
 
 /* --- „+” e un post-it --- */
@@ -1158,3 +1158,15 @@ body.viewer-empty .content-body > .tab-content { display: none !important; }
     .cal-seg button { flex: none; }
 }
 @media (max-width: 900px) { .cal-compose { position: static; } }
+
+/* ==================== MARCA (faza 2): un singur stil ==================== */
+/* Bilețelele: doar cel principal e galben; celelalte, galben-pal (sistemul de design: StickyNote). */
+.home-tile:not(.is-hero), .cat-sum:not(.is-accent) { background: var(--yellow-soft); color: var(--ink); }
+.home-tile:not(.is-hero) .home-tile-label, .cat-sum:not(.is-accent) .kpi-title { color: var(--ink-2); }
+.home-tile:not(.is-hero)::before, .cat-sum:not(.is-accent)::before { background: linear-gradient(135deg, var(--rule) 50%, transparent 50%); opacity: 1; }
+.home-tile.is-risk .home-tile-value, .cat-sum.is-danger .cat-sum-value { color: var(--risk); }
+/* Următorul pas: iconiță de linie pe pătrățel galben-pal, nu emoji */
+.azi-next-emoji { display: grid; place-items: center; flex: none; width: 48px; height: 48px; padding: 0; border-radius: var(--radius-md); background: var(--yellow-soft); color: var(--accent-ink); font-size: 0; }
+.azi-next-emoji .ico { width: 24px; height: 24px; }
+.azi-next.is-warm .azi-next-emoji, .azi-next.is-hot .azi-next-emoji { background: var(--risk-soft); color: var(--risk); }
+@media (max-width: 900px) { .azi-next-emoji { width: 40px; height: 40px; font-size: 0; } }

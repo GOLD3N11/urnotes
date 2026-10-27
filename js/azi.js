@@ -581,10 +581,10 @@ function homeNextHTML(step, today) {
     const b = (action, label, ic, cls = "btn-glass", data = "") => `<button type="button" class="btn ${cls} btn-sm" data-action="${action}" ${data}>${icon(ic)} ${label}</button>`;
     const dataOcc = o => `data-id="${escapeHTML(o.ev.id)}" data-date="${o.date}"`;
     const subjBtn = mat => state.subjects[mat] ? b("open-subject", `Notițele de ${escapeHTML(shortSubjectName(mat))}`, "pen", "btn-glass", `data-mat="${escapeHTML(mat)}"`) : "";
-    let emoji = "✨", kicker = "", title = "", text = "", actions = "", tone = "";
+    let emoji = "sparkles", kicker = "", title = "", text = "", actions = "", tone = "";
     if (step.kind === "grade") {
         const { ev, date } = step.occ;
-        emoji = "📝"; tone = "is-warm"; kicker = `${ev.type === "Examen" ? "Examenul" : ev.type === "Test" ? "Testul" : "Evaluarea"} de ${dayWord(date, today)}`;
+        emoji = "note"; tone = "is-warm"; kicker = `${ev.type === "Examen" ? "Examenul" : ev.type === "Test" ? "Testul" : "Evaluarea"} de ${dayWord(date, today)}`;
         title = `Ce ai luat la „${escapeHTML(ev.title)}”?`;
         text = "Scrie nota și îți refac media pe loc.";
         actions = `<div class="azi-quick-grade is-big" role="group" aria-label="${escapeHTML(`Nota la ${ev.title}`)}">${[4, 5, 6, 7, 8, 9, 10].map(v => `<button type="button" class="qg-btn tone-${gradeTone(v)}" data-action="event-quick-grade" ${dataOcc(step.occ)} data-val="${v}" aria-label="Nota ${v}">${v}</button>`).join("")}</div>
@@ -592,7 +592,7 @@ function homeNextHTML(step, today) {
     } else if (step.kind === "test" || step.kind === "upcoming") {
         const { ev, date } = step.occ;
         const n = daysBetween(today, date);
-        emoji = n <= 1 ? "🎯" : "🗓️"; tone = n <= 1 ? "is-hot" : "";
+        emoji = n <= 1 ? "target" : "calendar"; tone = n <= 1 ? "is-hot" : "";
         kicker = n === 0 ? "Azi" : n === 1 ? "Mâine" : `În ${n} zile`;
         title = `${escapeHTML(ev.type)}${ev.subject ? ` la ${escapeHTML(ev.subject)}` : `: ${escapeHTML(ev.title)}`}${ev.time ? ` · ${escapeHTML(ev.time)}` : ""}`;
         const d = metrics.subjects[ev.subject];
@@ -606,31 +606,31 @@ function homeNextHTML(step, today) {
         </div>`;
     } else if (step.kind === "plan") {
         const it = step.item, k = PLAN_KINDS[it.kind] || {};
-        emoji = "⏱️"; kicker = "Din planul de azi";
+        emoji = "timer"; kicker = "Din planul de azi";
         title = `${escapeHTML(it.mat)} · ${escapeHTML((k.label || "sesiune").toLocaleLowerCase("ro"))} ${it.min} min`;
         text = it.reason ? `De ce acum: ${escapeHTML(it.reason)}.` : (step.left > 1 ? `Mai ai ${plural(step.left, "sesiune", "sesiuni")} azi.` : "Ultima sesiune de azi.");
         actions = `<div class="azi-next-actions">${b("focus-start", "Începe acum", "timer", "btn-primary", `data-id="${escapeHTML(it.id)}"`)}${subjBtn(it.mat)}</div>`;
     } else if (step.kind === "homework") {
         const { ev, date } = step.occ;
-        emoji = "📚"; kicker = date === today ? "De predat azi" : "De predat mâine";
+        emoji = "book"; kicker = date === today ? "De predat azi" : "De predat mâine";
         title = escapeHTML(ev.title);
         text = ev.description ? escapeHTML(ev.description.slice(0, 140)) : (ev.subject ? escapeHTML(ev.subject) : "");
         actions = `<div class="azi-next-actions">${b("event-done", "Am făcut-o", "check", "btn-primary", dataOcc(step.occ))}${subjBtn(ev.subject)}</div>`;
     } else if (step.kind === "risk") {
         const d = metrics.subjects[step.mat];
-        emoji = "🛟"; tone = "is-warm"; kicker = "Are nevoie de tine";
+        emoji = "alert"; tone = "is-warm"; kicker = "Are nevoie de tine";
         title = `${escapeHTML(step.mat)} e la ${d.exactAvg.toFixed(2)}`;
         text = `Sub pragul tău de ${state.settings.calc.riskThreshold.toFixed(2)}. Vezi ce note te scot din risc.`;
         actions = `<div class="azi-next-actions">${b("open-in-sim", "Ce notă îmi trebuie", "target", "btn-primary", `data-mat="${escapeHTML(step.mat)}"`)}${subjBtn(step.mat)}</div>`;
     } else {
-        emoji = "🌤️"; kicker = "Ești la zi";
+        emoji = "check-circle"; kicker = "Ești la zi";
         title = "Nimic urgent acum";
         text = "Nicio notă de scris, niciun test în următoarele două săptămâni. Bun moment să-ți recitești notițele.";
         actions = `<div class="azi-next-actions">${b("nav", "Vezi materiile", "notebook", "btn-glass", `data-tab="tab-catalog"`)}</div>`;
     }
     return `
         <div class="azi-next ${tone}">
-            <span class="azi-next-emoji" aria-hidden="true">${emoji}</span>
+            <span class="azi-next-emoji" aria-hidden="true">${icon(emoji)}</span>
             <div class="azi-next-body">
                 <p class="azi-next-kicker">Următorul pas · ${escapeHTML(kicker)}</p>
                 <h3 id="azi-next-title" class="azi-next-title">${title}</h3>

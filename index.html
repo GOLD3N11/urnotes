@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..800&family=Shantell+Sans:wght@400..700&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ui.css">
-    <link rel="stylesheet" href="notion.css">
+    <link rel="stylesheet" href="tokens.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>
     <script src="firebase-config.js" defer></script>
     <script src="api-config.js" defer></script>
@@ -165,15 +165,10 @@
                 document.body.classList.add("dark-mode");
                 document.documentElement.classList.add("theme-dark");
             }
-            document.body.classList.add(s.style === "urnotes" ? "style-urnotes" : "style-notion");
+            document.body.classList.add("style-urnotes"); // un singur stil: urNotes
             var dark = document.body.classList.contains("dark-mode");
-            // aceeași regulă ca accentVars() din js/config.js: [cerneală, umplutură, text pe umplutură, fundal moale]
-            var Y = ["#1E2B58", "#FFC93C", "#1E2B58", "#FFF1C7"], YD = ["#FFD25E", "#FFC93C", "#1B1B1B", "rgba(255, 201, 60, 0.16)"];
-            var inks = { violet: ["#5B3CC4", "#C3A6FF"], blue: ["#2347C5", "#8DB4FF"], pink: ["#B8336A", "#FF9EC0"], green: ["#18794E", "#8FDCAF"], orange: ["#C2410C", "#FFB27A"] };
-            var key = s.accent || "yellow";
-            if (localStorage.getItem("pro_brand_v4") !== "urnotes-galben" && (key === "violet" || key === "blue")) key = "yellow"; // ca loadState()
-            var i = inks[key] ? inks[key][dark ? 1 : 0] : null;
-            var v = i ? [i, i, dark ? "#16121F" : "#FFFFFF", "color-mix(in srgb, " + i + " " + (dark ? 14 : 9) + "%, transparent)"] : (dark ? YD : Y);
+            // culoarea mărcii, aceeași ca accentVars() din js/config.js: [cerneală, umplutură, text pe umplutură, fundal moale]
+            var v = dark ? ["#FFD25E", "#FFC93C", "#171C2E", "rgba(255, 201, 60, 0.16)"] : ["#1E2B58", "#FFC93C", "#1E2B58", "#FFF1C7"];
             ["--accent-color", "--accent-fill", "--on-accent-fill", "--accent-soft"].forEach(function (k, n) { document.documentElement.style.setProperty(k, v[n]); });
         } catch (e) {}
     </script>
@@ -673,30 +668,12 @@
                     <div class="glass-card">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</h3>
                         <div id="badge-setting" class="mt-3" hidden></div>
-                        <div class="form-group mt-3">
-                            <label for="set-style">Stil</label>
-                            <select id="set-style" class="glass-select">
-                                <option value="notion">Simplu (ca Notion)</option>
-                                <option value="urnotes">urNotes (colorat, cu post-it-uri)</option>
-                            </select>
-                        </div>
                         <div class="form-group">
                             <label for="set-theme">Temă</label>
                             <select id="set-theme" class="glass-select">
                                 <option value="system">Ca sistemul</option>
                                 <option value="light">Luminos (foaie)</option>
                                 <option value="dark">Întunecat (caiet noaptea)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="set-accent">Culoarea cernelii</label>
-                            <select id="set-accent" class="glass-select">
-                                <option value="yellow">Galben urNotes</option>
-                                <option value="violet">Violet</option>
-                                <option value="blue">Albastru pix</option>
-                                <option value="pink">Roz marker</option>
-                                <option value="green">Verde</option>
-                                <option value="orange">Portocaliu</option>
                             </select>
                         </div>
                         

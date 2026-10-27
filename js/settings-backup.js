@@ -144,8 +144,8 @@ function saveSettings({ quiet = false } = {}) {
     s.calc.riskThreshold = clampNumber(field("set-risk-gpa"), 1, 10, 8);
     s.calc.riskDrop = clampNumber(field("set-risk-drop"), 0.1, 5, 0.5);
     s.appearance.theme = field("set-theme") || "system";
-    s.appearance.accent = ACCENTS[field("set-accent")] ? field("set-accent") : "violet";
-    s.appearance.style = APP_STYLES.includes(field("set-style")) ? field("set-style") : s.appearance.style;
+    s.appearance.accent = "yellow";
+    s.appearance.style = "urnotes";
     s.profile.name = cleanName(field("set-name"), 40);
     s.school.county = COUNTY_WEEK[field("set-county")] ? field("set-county") : s.school.county;
     s.profile.buddy = cleanName(field("set-buddy"), 20) || DEFAULT_SETTINGS.profile.buddy;
@@ -515,9 +515,7 @@ function applyAppearanceSettings() {
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#111319" : "#F6F4EE"; m.removeAttribute("media"); });
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
-    const notion = a.style !== "urnotes";
-    document.body.classList.toggle("style-notion", notion);
-    document.body.classList.toggle("style-urnotes", !notion);
-    if (notion) document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#191919" : "#FFFFFF"; });
+    document.body.classList.remove("style-notion");
+    document.body.classList.add("style-urnotes");
 
 }

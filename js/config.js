@@ -221,7 +221,7 @@ const subjectStyle = mat => {
 const subjectInitials = mat => { const s = shortSubjectName(mat).replace(/[^\p{L}\p{N} ]/gu, "").trim(); const w = s.split(/\s+/); return (w.length > 1 && w[1] ? w[0][0] + w[1][0] : s.slice(0, 2)).replace(/^./, c => c.toUpperCase()); };
 
 /* Stilul aplicației: „notion” (simplu, ca o pagină albă) sau „urnotes” (colorat, cu post-it-uri) */
-const APP_STYLES = ["notion", "urnotes"];
+const APP_STYLES = ["urnotes"]; // un singur stil (faza 2 din planul de design); „notion” a fost scos
 
 const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:30", "21:00", "22:00"];
 
@@ -231,7 +231,7 @@ const DEFAULT_SETTINGS = {
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },
-    appearance: { theme: "system", accent: "yellow", style: "notion" },
+    appearance: { theme: "system", accent: "yellow", style: "urnotes" },
     // Modulele anului școlar (pentru purtare): [{ start, end }] × 5
     modules: presetModules(),
     // Raportul pentru printare: datele de pe antet, perioada și secțiunile alese ultima dată
@@ -268,15 +268,11 @@ const ACHIEVEMENTS = [
 ];
 
 // Culoarea cernelii: o nuanță pentru caiet (luminos) și una mai deschisă, ca de cretă, pentru tablă (întunecat).
-/* Culorile de accent: cerneala (text, linii, iconițe) și umplutura (butoane, bife, bare, ziua de azi).
-   La „galben” cele două diferă: galbenul nu se citește ca text pe alb, așa că textul de accent e bleumarin. */
+/* Culoarea mărcii: cerneala (text, linii, iconițe) și umplutura (butoane, bife, bare, ziua de azi).
+   Galbenul nu se citește ca text pe alb, așa că textul de accent e bleumarin (în modul întunecat, galben).
+   Alte culori de accent nu mai există: marca e galben + bleumarin pentru toți. */
 const ACCENTS = {
     yellow: { light: "#1E2B58", dark: "#FFD25E", fill: "#FFC93C", fillDark: "#FFC93C", on: "#1E2B58", onDark: "#1B1B1B", soft: "#FFF1C7", softDark: "rgba(255, 201, 60, 0.16)" },
-    violet: { light: "#5B3CC4", dark: "#C3A6FF" },
-    blue: { light: "#2347C5", dark: "#8DB4FF" },
-    pink: { light: "#B8336A", dark: "#FF9EC0" },
-    green: { light: "#18794E", dark: "#8FDCAF" },
-    orange: { light: "#C2410C", dark: "#FFB27A" }
 };
 /** Variabilele CSS ale unei culori de accent (aceeași regulă și în scriptul de la începutul lui index.html). */
 function accentVars(key, dark) {

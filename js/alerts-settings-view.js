@@ -49,8 +49,6 @@ const SETTINGS_FIELDS = {
     "set-risk-gpa": ["calc", "riskThreshold"],
     "set-risk-drop": ["calc", "riskDrop"],
     "set-theme": ["appearance", "theme"],
-    "set-accent": ["appearance", "accent"],
-    "set-style": ["appearance", "style"],
     "set-name": ["profile", "name"],
     "set-county": ["school", "county"],
     "set-buddy": ["profile", "buddy"]
