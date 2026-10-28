@@ -1488,3 +1488,7 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
     body.dark-mode .tt-daytab[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--sheet)); }
 }
 .tt-card:focus { outline: none; }
+/* orarul: derularea rămâne în listă, fără zoom la dublă atingere */
+.tt-week, .tt-taps { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.tt-card button { touch-action: manipulation; }
+@media (max-width: 760px) { .tt-overlay { height: 100dvh; } .tt-card { height: 100dvh; } }

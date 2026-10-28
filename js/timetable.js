@@ -68,9 +68,16 @@ function closeTimetable({ save = true } = {}) {
 }
 
 /* ---------- desenul ---------- */
-function renderTimetable(focus = "") {
+function renderTimetable(focus = "", { reveal = "" } = {}) {
     const box = $("tt-card");
     if (!box || !tt.draft) return;
+    // Redesenăm tot, dar păstrăm unde ai derulat (altfel fiecare atingere te-ar arunca sus)
+    const keep = {
+        week: box.querySelector(".tt-week")?.scrollTop || 0,
+        weekLeft: box.querySelector(".tt-week")?.scrollLeft || 0,
+        taps: box.querySelector(".tt-taps")?.scrollTop || 0,
+        day: box.dataset.day
+    };
     const subjects = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
     const day = tt.day;
     const list = ttList(day);
@@ -148,7 +155,22 @@ function renderTimetable(focus = "") {
                     <i aria-hidden="true">${escapeHTML(subjectInitials(m))}</i><span>${escapeHTML(shortSubjectName(m))}</span></button>`).join("")}
             </div>
         </div>`;
+    box.dataset.day = String(day);
+    const week = box.querySelector(".tt-week"), taps = box.querySelector(".tt-taps");
+    // pe telefon se vede o singură zi: la altă zi pornim de sus; pe calculator toată săptămâna rămâne pe loc
+    const oneDay = window.matchMedia?.("(max-width: 760px)")?.matches;
+    if (week) { week.scrollTop = oneDay && keep.day !== String(day) ? 0 : keep.week; week.scrollLeft = keep.weekLeft; }
+    if (taps) taps.scrollTop = keep.taps;
+    if (reveal && week) ttReveal(week, box.querySelector(reveal));
     if (focus) box.querySelector(focus)?.focus({ preventScroll: true });
+}
+
+/** Derulează doar lista zilei (nu pagina) cât să se vadă elementul. */
+function ttReveal(container, el) {
+    if (!el) return;
+    const c = container.getBoundingClientRect(), r = el.getBoundingClientRect();
+    if (r.bottom > c.bottom - 8) container.scrollTop += r.bottom - c.bottom + 8;
+    else if (r.top < c.top + 8) container.scrollTop -= c.top + 8 - r.top;
 }
 
 /* ---------- ce face fiecare atingere ---------- */
@@ -161,7 +183,7 @@ function ttTap(mat) {
     } else if (list.length < TIMETABLE_MAX) {
         list.push(mat);              // următoarea oră din zi
     } else return;
-    renderTimetable(`.tt-tap[data-mat="${CSS.escape(mat)}"]`);
+    renderTimetable(`.tt-tap[data-mat="${CSS.escape(mat)}"]`, { reveal: `.tt-col[data-day="${tt.day}"] .tt-slot, .tt-col[data-day="${tt.day}"] .tt-row:last-child` });
 }
 
 function ttInsert(day, index, mat) {
@@ -190,7 +212,7 @@ Object.assign(ACTIONS, {
         const same = tt.day === day && tt.sel === i;
         tt.day = day;
         tt.sel = same ? null : i;
-        renderTimetable(`.tt-cell[data-day="${day}"][data-i="${i}"]`);
+        renderTimetable(`.tt-cell[data-day="${day}"][data-i="${i}"]`, { reveal: ".tt-row.is-sel" });
     },
     "tt-tap": el => ttTap(el.dataset.mat),
     "tt-move": el => {
@@ -199,7 +221,7 @@ Object.assign(ACTIONS, {
         if (j < 0 || j >= list.length) return;
         [list[i], list[j]] = [list[j], list[i]];
         tt.sel = j;
-        renderTimetable(`.tt-row.is-sel [data-action="tt-move"][data-by="${el.dataset.by}"]:not([disabled])`);
+        renderTimetable(`.tt-row.is-sel [data-action="tt-move"][data-by="${el.dataset.by}"]:not([disabled])`, { reveal: ".tt-row.is-sel" });
     },
     "tt-remove": el => {
         const day = Number(el.dataset.day);
