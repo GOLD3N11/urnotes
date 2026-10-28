@@ -1070,4 +1070,4 @@ function setStatsPeriod(id) {
 
 /* ---------- raport pentru printare ---------- */
 
-registerTab("tab-statistici", { render: renderStatistics, title: "Progresul tău", icon: "chart", group: "grades", parent: "tab-catalog" });
+registerTab("tab-statistici", { render: renderStatistics, title: "Progresul tău", icon: "chart", group: "stats" });

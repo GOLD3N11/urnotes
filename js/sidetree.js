@@ -4,15 +4,14 @@
 
 const SIDE_OPEN_KEY = "urn_side_open_v1";
 const sideOpen = (() => { try { return { grades: true, more: false, ...JSON.parse(localStorage.getItem(SIDE_OPEN_KEY) || "{}") }; } catch (_) { return { grades: true, more: false }; } })();
-const SIDE_MORE = ["tab-plan", "tab-statistici", "tab-simulator", "tab-examene"];
 
 function renderSideTree() {
-    const subs = $("side-subjects"), more = $("side-more");
-    if (!subs || !more) return;
+    const subs = $("side-subjects");
+    if (!subs) return;
     const openMat = ui.activeTab === "tab-catalog" && ui.catalog.showDetail ? ui.catalog.selected : "";
     const names = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
     const wsName = (state.settings.profile?.name || "").trim();
-    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass), names.map(m => state.subjects[m]?.icon), wsName]);
+    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass), names.map(m => state.subjects[m]?.icon), names.map(m => state.subjects[m]?.priority), wsName]);
     if (renderSideTree.key === key) return;
     renderSideTree.key = key;
 
@@ -28,17 +27,18 @@ function renderSideTree() {
         brand.insertAdjacentHTML("beforeend", `<span class="side-ws"><span class="side-ws-av" aria-hidden="true">${escapeHTML((wsName || "u").slice(0, 1).toUpperCase())}</span><span class="side-ws-name">${escapeHTML(wsName ? `urNotes-ul lui ${wsName}` : "urNotes")}</span></span>`);
     }
     subs.hidden = !sideOpen.grades;
-    subs.innerHTML = names.map(m => `
+    // Sub „Note”: doar materiile prioritare (★) și cele la risc; restul la „Toate materiile”, ca meniul să rămână scurt.
+    const risk = m => metrics.subjects[m]?.statusClass === "badge-danger";
+    const featured = names.filter(m => state.subjects[m].priority || risk(m) || m === openMat);
+    const shortList = featured.length > 0 && featured.length < names.length;
+    const shown = shortList && !sideOpen.all ? featured : names;
+    const row = m => `
         <button type="button" class="side-sub ${m === openMat ? "is-active" : ""}" data-action="side-subject" data-mat="${escapeHTML(m)}" style="${subjectStyle(m)}" ${m === openMat ? 'aria-current="page"' : ""}>
-            <span class="side-sub-dot" aria-hidden="true"></span><span class="side-sub-emoji" aria-hidden="true">${subjectEmoji(m)}</span><span class="side-sub-name">${escapeHTML(m)}</span>${metrics.subjects[m]?.statusClass === "badge-danger" ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
-        </button>`).join("") || `<p class="side-empty">Nicio materie încă</p>`;
-    more.innerHTML = `
-        <div class="side-row">
-            <button type="button" class="side-group-head" data-action="side-toggle" data-key="more" aria-expanded="${sideOpen.more}">${icon("chevron", `side-chev ${sideOpen.more ? "is-open" : ""}`)}<span>Mai mult</span></button>
-        </div>
-        <div class="side-children" ${sideOpen.more ? "" : "hidden"}>
-            ${SIDE_MORE.map(t => `<button type="button" class="side-sub side-page ${ui.activeTab === t ? "is-active" : ""}" data-action="nav" data-tab="${t}" ${ui.activeTab === t ? 'aria-current="page"' : ""}>${icon(TABS[t]?.icon || "note")}<span class="side-sub-emoji" aria-hidden="true">${PAGE_EMOJI[t] || ""}</span><span class="side-sub-name">${escapeHTML(TABS[t]?.title || t)}</span></button>`).join("")}
-        </div>`;
+            <span class="side-sub-dot" aria-hidden="true"></span><span class="side-sub-emoji" aria-hidden="true">${subjectEmoji(m)}</span><span class="side-sub-name">${escapeHTML(m)}</span>${state.subjects[m].priority ? `<span class="side-sub-star" title="prioritară" aria-label="prioritară">★</span>` : ""}${risk(m) ? `<span class="side-sub-risk" title="la risc">!</span>` : ""}
+        </button>`;
+    subs.innerHTML = names.length
+        ? shown.map(row).join("") + (shortList ? `<button type="button" class="side-sub side-all" data-action="side-toggle" data-key="all" aria-expanded="${Boolean(sideOpen.all)}">${sideOpen.all ? "Doar prioritare și la risc" : `Toate materiile (${names.length})`}</button>` : "")
+        : `<p class="side-empty">Nicio materie încă</p>`;
 }
 
 Object.assign(ACTIONS, {

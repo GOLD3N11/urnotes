@@ -59,6 +59,7 @@
     <script src="js/notes.js" defer></script>
     <script src="js/quickgrade.js" defer></script>
     <script src="js/cal-compose.js" defer></script>
+    <script src="js/palette.js" defer></script>
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
@@ -188,8 +189,10 @@
                 <button type="button" class="tab-btn side-link" data-action="side-note" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
             </div>
             <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
-            <div class="side-more" id="side-more"></div>
-            <button type="button" class="side-add" data-action="quick-add" aria-haspopup="menu"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span></button>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-plan" data-group="plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Plan</span></button>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici" data-group="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button>
+            <button type="button" class="side-add" data-action="quick-add" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span><kbd>N</kbd></button>
+            <button type="button" class="side-search" data-action="palette-open"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>Caută</span><kbd>Ctrl K</kbd></button>
         </nav>
         <div class="side-pal" id="side-pal"></div>
         <div class="side-foot">
@@ -785,6 +788,21 @@
             <button type="button" role="menuitem" class="qa-item" data-action="qa" data-kind="event"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span><b>Alt eveniment</b><small>proiect, prezentare, personal</small></span><kbd>E</kbd></button>
             <button type="button" role="menuitem" class="qa-item" data-action="qa" data-kind="subject"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span><b>Materie</b><small>o materie nouă în catalog</small></span><kbd>M</kbd></button>
             <button type="button" role="menuitem" class="qa-item" data-action="qa" data-kind="hypo"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span><b>Notă ipotetică</b><small>încearcă „ce-ar fi dacă” în Simulator</small></span><kbd>S</kbd></button>
+        </div>
+    </div>
+
+    <!-- Bara de adăugat, deschisă peste pagină (js/cal-compose.js); în Calendar stă deasupra calendarului -->
+    <div id="cc-overlay" class="cc-overlay" role="dialog" aria-modal="true" aria-label="Adaugă" hidden>
+        <div class="cc-overlay-backdrop" data-action="cc-overlay-close"></div>
+        <div class="cc-overlay-host cal-compose is-open" id="cc-overlay-host"></div>
+    </div>
+
+    <!-- Căutare (Ctrl+K): materii, pagini, evenimente, comenzi (js/palette.js) -->
+    <div id="palette" class="palette" role="dialog" aria-modal="true" aria-label="Caută" hidden>
+        <div class="palette-backdrop" data-action="palette-close"></div>
+        <div class="palette-card">
+            <div class="palette-bar"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="palette-input" placeholder="Caută o materie, o pagină, un test…" autocomplete="off" spellcheck="false" aria-label="Caută" aria-controls="palette-list" aria-activedescendant=""><kbd>Esc</kbd></div>
+            <ul id="palette-list" class="palette-list" role="listbox" aria-label="Rezultate"></ul>
         </div>
     </div>
 

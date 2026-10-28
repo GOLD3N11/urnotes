@@ -38,12 +38,13 @@ function updateHistoryPoint() {
 function checkAchievements() {
     if (metrics.totalGrades === 0) return;
 
-    ACHIEVEMENTS.forEach(a => {
-        if (!state.achievements[a.key] && a.test(metrics)) {
-            state.achievements[a.key] = true;
-            showToast(a.toast);
-        }
-    });
+    const fresh = ACHIEVEMENTS.filter(a => !state.achievements[a.key] && a.test(metrics));
+    if (!fresh.length) return;
+    fresh.forEach(a => { state.achievements[a.key] = true; });
+    // un singur mesaj, chiar dacă s-au deblocat mai multe deodată (ex. după un import), și puțin după acțiune
+    const msg = fresh.length === 1 ? fresh[0].toast : `🏆 ${fresh.length} realizări noi: ${fresh.map(a => a.label).join(", ")}.`;
+    clearTimeout(checkAchievements.timer);
+    checkAchievements.timer = setTimeout(() => showToast(msg, { duration: 4500 }), 700);
 }
 
 const NONOTE_GROUP_ID = "nonote:group";

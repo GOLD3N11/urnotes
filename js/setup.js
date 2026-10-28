@@ -397,6 +397,7 @@ function openSetup(step = 0) {
     closeMoreMenu({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     closeActionModal();
+    if (typeof ccCloseOverlay === "function") ccCloseOverlay();
     $("setup").hidden = false;
     document.body.classList.add("modal-open");
     renderSetup();

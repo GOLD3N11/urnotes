@@ -741,4 +741,4 @@ const PLAN_ACTIONS = {
     }
 };
 
-registerTab("tab-plan", { render: renderPlan, title: "Plan", icon: "calendar-check", group: "home", parent: "tab-dashboard" });
+registerTab("tab-plan", { render: renderPlan, title: "Plan", icon: "timer", group: "plan" });

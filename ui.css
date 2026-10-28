@@ -1170,3 +1170,46 @@ body.viewer-empty .content-body > .tab-content { display: none !important; }
 .azi-next-emoji .ico { width: 24px; height: 24px; }
 .azi-next.is-warm .azi-next-emoji, .azi-next.is-hot .azi-next-emoji { background: var(--risk-soft); color: var(--risk); }
 @media (max-width: 900px) { .azi-next-emoji { width: 40px; height: 40px; font-size: 0; } }
+
+/* ==================== FAZA 3: BARA DE ADĂUGAT PESTE PAGINĂ, CĂUTAREA, MENIUL ==================== */
+.cc-overlay, .palette { position: fixed; inset: 0; z-index: 1300; display: flex; justify-content: center; align-items: flex-start; padding: max(10vh, 24px) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.cc-overlay[hidden], .palette[hidden] { display: none; }
+.cc-overlay-backdrop, .palette-backdrop { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 28%, transparent); animation: qgIn .12s ease; }
+.cc-overlay-host { position: relative; width: min(760px, 100%); margin: 0; }
+.cc-overlay-host .cc { box-shadow: var(--shadow-pop); }
+body.cc-overlay-open, body.palette-open { overflow: hidden; }
+@media (max-width: 640px) { .cc-overlay, .palette { padding-top: 12px; align-items: flex-start; } }
+
+.cc-type.is-grade .ico { color: var(--accent-ink); }
+.cc-type.is-grade.is-on { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
+.cc-type.is-grade.is-on .ico { color: var(--on-yellow); }
+.cc-ico.is-grade { background: var(--yellow-soft); color: var(--accent-ink); }
+.cc-vals { gap: 5px; }
+.cc-val { width: 40px; justify-content: center; padding: 0; font-size: 15px; font-weight: 800; }
+.cc-val.tone-fail:not(.is-on) { color: var(--risk); }
+.cc-preview.is-missing .ico { color: var(--ink-2); }
+
+.palette-card { position: relative; width: min(640px, 100%); max-height: min(70vh, 560px); display: flex; flex-direction: column; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius-lg); box-shadow: var(--shadow-pop); overflow: hidden; animation: qgIn .12s ease; }
+.palette-bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+.palette-bar .ico { width: 20px; height: 20px; color: var(--ink-2); }
+.palette-bar input { flex: 1; min-width: 0; height: 36px; border: 0; outline: 0; background: transparent; color: var(--ink); font: 600 17px/24px var(--font-ui); }
+.palette-bar kbd, .side-add kbd, .side-search kbd { padding: 1px 6px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sunken); color: var(--ink-2); font: 600 11px/16px var(--font-ui); }
+.palette-list { flex: 1; margin: 0; padding: 6px; overflow-y: auto; list-style: none; }
+.palette-group { padding: 10px 10px 4px; font: 700 11.5px/16px var(--font-ui); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.palette-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; }
+.palette-item .ico { width: 18px; height: 18px; color: var(--ink-2); flex: none; }
+.palette-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.palette-item small { flex: none; color: var(--ink-2); font-size: 12.5px; }
+.palette-item.is-on, .palette-item:hover { background: var(--yellow-soft); }
+.palette-item.is-on .ico { color: var(--accent-ink); }
+.palette-empty { padding: 18px 10px; color: var(--ink-2); }
+
+.side-add kbd, .side-search kbd { margin-left: auto; }
+.side-search { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 4px; padding: 8px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-2); font: 600 14px/20px var(--font-ui); cursor: pointer; }
+.side-search:hover { background: var(--hover, var(--sunken)); color: var(--ink); }
+.side-search .ico { width: 18px; height: 18px; }
+.side-sub-star { margin-left: auto; color: var(--star, #C58A12); font-size: 12px; }
+.side-sub-star + .side-sub-risk { margin-left: 4px; }
+.side-all { color: var(--ink-2); font-size: 13px; font-weight: 600; padding-left: 28px !important; }
+.side-all:hover { color: var(--ink); }
+@media (min-width: 901px) and (max-width: 1199px) { .side-add kbd, .side-search kbd, .side-search span { display: none; } }

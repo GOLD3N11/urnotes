@@ -165,6 +165,8 @@ let quickAddReturn = null;
 
 function openQuickAdd(anchor) {
     if (!requireAccount()) return;
+    // „Adaugă” deschide bara de adăugat (faza 3: un singur fel de a adăuga); meniul vechi rămâne doar ca rezervă
+    if (typeof ccOpenGlobal === "function") { ccOpenGlobal(); return; }
     const box = $("quick-add");
     if (!box) return;
     if (!box.hidden) {
@@ -346,8 +348,13 @@ function bindShellEvents() {
             else if (!$("notif-panel").classList.contains("is-modeless")) trapFocusIn($("notif-panel"), event);
             return;
         }
-        if (modalOpen || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
-        if (k.toLowerCase() === "n") { event.preventDefault(); openQuickAdd(); }
+        // Ctrl/⌘+K: caută (materii, pagini, evenimente, comenzi), de oriunde
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && k.toLowerCase() === "k" && typeof openPalette === "function") { event.preventDefault(); openPalette(); return; }
+        if (modalOpen || cc?.overlay || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+        // tastele scurte deschid bara de adăugat: N = notă, T = test, H = temă
+        const quick = { n: "Notă", t: "Test", h: "Temă" }[k.toLowerCase()];
+        if (quick) { event.preventDefault(); ccOpenGlobal({ type: quick }); }
+        if (k === "/") { event.preventDefault(); openPalette?.(); }
     }, true);
 
     // Închide meniul „Adaugă” la redimensionare (poziția lui depinde de buton).
@@ -377,6 +384,8 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
     const palMood = !warn && !action && !document.body.classList.contains("style-notion") && PAL_TOAST[toastIcon];
     toast.innerHTML = `${palMood ? `<span class="toast-pal" aria-hidden="true">${buddySVG(palMood, "toast-buddy")}</span>` : icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
         ? `<button type="button" class="toast-action" title="${escapeHTML(actionIcon === "undo" ? `${action} (Ctrl+Z)` : action)}">${icon(actionIcon)} ${escapeHTML(action)}</button>` : ""}`;
+    // câte un mesaj pe rând: cele vechi fără buton pleacă; unul cu „Anulează” rămâne până expiră
+    container.querySelectorAll(".toast:not(.leaving):not(.has-action)").forEach(t => t.leave?.());
     container.appendChild(toast);
 
     let timer = 0;
