@@ -393,6 +393,8 @@ function runStatsAnimations(root) {
 function renderStatistics() {
     const body = $("stats-body");
     if (!body) return;
+    const examSub = $("note-exam-sub");
+    if (examSub) examSub.textContent = examKind() === "en" ? "Evaluarea Națională" : "Bacalaureatul";
     const year = statsEntries();
     const hasSubjects = year.length > 0;
     $("stats-empty").hidden = hasSubjects;

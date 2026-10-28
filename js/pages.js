@@ -38,13 +38,13 @@ function sanitizeSubjectIcon(v) {
     return s && s.length <= 12 && !/[<>"'&]/.test(s) ? s : "";
 }
 
-/* ---------- pictograma mare deasupra titlului fiecărei pagini (doar în stilul Notion se vede) ---------- */
+/* ---------- pictograma din titlul fiecărei pagini: o iconiță din setul de linii, în culoarea mărcii (fără emoji 3D) ---------- */
 function renderPageIcons() {
-    for (const [tab, emoji] of Object.entries(PAGE_EMOJI)) {
-        const sec = $(tab);
-        const h = sec?.querySelector(":scope > .page-intro h2, :scope > .azi-head h2, :scope > .settings-intro h2");
-        if (!h || h.previousElementSibling?.classList.contains("page-emoji")) continue;
-        h.insertAdjacentHTML("beforebegin", `<div class="page-emoji" aria-hidden="true">${emoji}</div>`);
+    for (const [tab, def] of Object.entries(TABS)) {
+        if (!def.icon || tab === "tab-dashboard") continue; // pe Azi titlul e salutul
+        const h = $(tab)?.querySelector(":scope > .page-intro h2");
+        if (!h || h.querySelector(".page-ico")) continue;
+        h.insertAdjacentHTML("afterbegin", icon(def.icon, "page-ico"));
     }
 }
 

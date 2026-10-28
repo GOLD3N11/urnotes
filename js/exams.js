@@ -457,7 +457,7 @@ Object.assign(ACTIONS, {
 });
 ["exam-step", "exam-sim-reset"].forEach(a => GUEST_OK.add(a));
 
-registerTab("tab-examene", { render: renderExams, title: "Examene", icon: "graduation", group: "grades", parent: "tab-catalog" });
+registerTab("tab-examene", { render: renderExams, title: "Examene", icon: "graduation", group: "stats", parent: "tab-statistici" });
 
 PAL_LINES["tab-examene"] = () => {
     const kind = examKind();

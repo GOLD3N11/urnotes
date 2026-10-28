@@ -239,8 +239,6 @@ function renderCatalogSummary(entries) {
         tile("Note", metrics.totalGrades, missing > 0 ? `încă ${plural(missing, "notă necesară", "note necesare")}` : "minimul e atins peste tot"),
         tile("La risc", metrics.riskCount, metrics.riskCount ? `sub ${state.settings.calc.riskThreshold.toFixed(2)}` : "nicio materie", metrics.riskCount > 0 ? "is-danger" : "is-ok")
     ].join("");
-    const sub = $("note-exam-sub");
-    if (sub) sub.textContent = examKind() === "en" ? "Evaluarea Națională" : "Bacalaureatul";
 }
 
 function renderCatalogFilters(entries) {
@@ -395,8 +393,6 @@ function renderCatalogDetail() {
                     last ? escapeHTML(`${last.g.type || "Altele"}${last.g.date ? ` · ${getShortDateLabel(last.g.date)}` : ""}`) : "nimic încă")}
             </div>
 
-            ${notesEditorHTML(mat)}
-
             <div class="cat-detail-grid">
                 ${targetHelperHTML(mat, sub)}
                 <section class="cat-block" aria-labelledby="cat-trend-title">
@@ -417,6 +413,8 @@ function renderCatalogDetail() {
                 <h4 id="cat-upcoming-title">${icon("calendar")} Următoarele evaluări</h4>
                 ${upcomingHTML(mat)}
             </section>
+
+            ${notesEditorHTML(mat)}
 
             <footer class="cat-detail-foot">
                 <button type="button" class="btn btn-text text-danger" data-action="delete-subject" data-mat="${safeMat}">${icon("trash")} Șterge materia</button>

@@ -208,6 +208,11 @@ body.dark-mode .app-bar.is-scrolled { box-shadow: 0 6px 18px -12px rgba(0, 0, 0,
     font-family: var(--font-hand); font-weight: 800; font-size: clamp(32px, 4.6vw, 46px);
     line-height: 1.02; letter-spacing: -0.03em;
 }
+/* șablonul paginii: iconiță de linie + titlu, un rând de explicație, acțiunea principală, apoi conținutul */
+.page-intro h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 0 0.32em; font-size: clamp(28px, 3.4vw, 36px); }
+.page-intro h2 .page-ico { flex: none; width: 0.78em; height: 0.78em; color: var(--accent-ink); stroke-width: 2.1; }
+.page-intro h2 .help-dot { margin-left: 0.1em; }
+.page-intro p { margin-top: 6px; max-width: 62ch; }
 .page-intro p { color: var(--ink-2); font-size: 15px; }
 .page-back {
     display: inline-flex; align-items: center; gap: 4px; margin: 0 0 10px -6px; padding: 6px 12px 6px 6px;
@@ -335,7 +340,8 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
 }
 @media (max-width: 600px) {
     :root { --page-pad: 14px; --gap-grid: 12px; }
-    .page-intro h2, .azi-head h2 { font-size: 34px; }
+    .azi-head h2 { font-size: 34px; }
+    .page-intro h2 { font-size: 28px; }
     .home-tile.is-hero .home-tile-value { font-size: 46px; }
     .cat-row.subj-tile { min-height: 70px; padding: 10px 12px; }
     .subj-chip { width: 42px; height: 42px; font-size: 15px; }
@@ -505,8 +511,8 @@ body.dark-mode .home-tile.is-hero, body.dark-mode .cat-sum.is-accent { filter: n
 .brand-logo { transition: transform 0.25s ease; }
 .side-brand:hover .brand-logo { transform: rotate(-8deg) scale(1.06); }
 /* sublinierea de pix de sub titluri (ca valul din logo) */
-.page-intro h2, .azi-head h2 { position: relative; padding-bottom: 6px; }
-.page-intro h2::after, .azi-head h2::after {
+.azi-head h2 { position: relative; padding-bottom: 6px; }
+.azi-head h2::after {
     content: ""; position: absolute; left: 2px; bottom: -4px; width: 74px; height: 10px; background: var(--accent-fill);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M2 6 Q11 0 20 6 T38 6 T56 6 T72 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 74 10'%3E%3Cpath d='M2 6 Q11 0 20 6 T38 6 T56 6 T72 6' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
@@ -1213,3 +1219,50 @@ body.cc-overlay-open, body.palette-open { overflow: hidden; }
 .side-all { color: var(--ink-2); font-size: 13px; font-weight: 600; padding-left: 28px !important; }
 .side-all:hover { color: var(--ink); }
 @media (min-width: 901px) and (max-width: 1199px) { .side-add kbd, .side-search kbd, .side-search span { display: none; } }
+
+/* ==========================================================================
+   AZI · FAZA 4: „Acum” primul, „Primii pași” mic, în coloana din dreapta
+   ========================================================================== */
+.azi-start .start-steps { gap: 4px; margin: 8px 0 4px; }
+.azi-start .start-step { padding: 8px 10px; gap: 10px; }
+.azi-start .start-steps li:not(.is-next) .start-text small { display: none; }
+.azi-start .start-text b { font-size: 13.5px; }
+.start-steps li.is-done .start-dot { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent-fill); }
+.start-steps li.is-done .start-text b { color: var(--ink-2); }
+/* „Acum”: cardul alb obișnuit, ridicat puțin; doar riscul și nota de scris îl colorează */
+.azi-next:not(.is-hot):not(.is-warm) { background: var(--sheet); border: 1px solid var(--rule); box-shadow: var(--shadow-card); }
+.azi-next-kicker { color: var(--accent-ink); }
+
+/* ==========================================================================
+   SETĂRI · pe secțiuni (o secțiune pe ecran)
+   ========================================================================== */
+.set-sec-nav {
+    position: sticky; top: var(--topbar-h, 64px); z-index: 5; display: flex; gap: 6px; margin: 0 0 18px; padding: 8px 0;
+    background: var(--paper); overflow-x: auto; scrollbar-width: none;
+}
+.set-sec-nav::-webkit-scrollbar { display: none; }
+.set-sec {
+    display: inline-flex; align-items: center; gap: 7px; flex: none; min-height: 40px; padding: 0 16px;
+    background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--radius-pill, 99px);
+    font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+}
+.set-sec .ico { width: 16px; height: 16px; color: var(--ink-2); }
+.set-sec:hover { background: var(--sunken); }
+.set-sec[aria-pressed="true"] { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent-fill); }
+.set-sec[aria-pressed="true"] .ico { color: inherit; }
+.set-sec:focus-visible { outline: 2px solid var(--focus, var(--accent-ink)); outline-offset: 2px; }
+.settings-grid[data-sec] > [data-sec] { display: none; }
+.settings-grid[data-sec="profil"] > [data-sec="profil"],
+.settings-grid[data-sec="scoala"] > [data-sec="scoala"],
+.settings-grid[data-sec="calcul"] > [data-sec="calcul"],
+.settings-grid[data-sec="amintiri"] > [data-sec="amintiri"],
+.settings-grid[data-sec="cont"] > [data-sec="cont"],
+.settings-grid[data-sec="date"] > [data-sec="date"] { display: block; }
+body:not(.has-cloud) .settings-grid[data-sec="cont"] > [data-sec="cont"] { display: none !important; }
+.settings-grid[data-sec] > .me-card { grid-column: 1 / -1; }
+.backup-danger { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+@media (max-width: 760px) { .set-sec-nav { top: 60px; margin-inline: -16px; padding-inline: 16px; } .set-sec { min-height: 44px; } }
+/* o secțiune = o coloană de formulare, ușor de citit */
+.settings-grid[data-sec] { grid-template-columns: minmax(0, 1fr); max-width: 780px; }
+#tab-setari .glass-card > h3 + .form-group { margin-top: 12px; }
+#tab-setari .glass-card > h3 + [hidden] + .form-group { margin-top: 12px; }

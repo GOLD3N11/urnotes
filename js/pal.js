@@ -109,10 +109,14 @@ function palLines(tab) {
     }
 }
 
-/** Colegul din antetul paginii active. */
+const PAL_IN_HEADER = false;
+
+/** Colegul din antetul paginii active (oprit: vezi PAL_IN_HEADER). */
 function renderPagePal(tab = ui.activeTab) {
     const box = document.querySelector(`#${tab} .page-pal`);
     if (!box) return;
+    // Marca: colegul apare doar în salutul de pe Azi, în stările goale și la vești bune, nu în antetul fiecărei pagini
+    if (!PAL_IN_HEADER) { box.hidden = true; box.innerHTML = ""; delete box.dataset.key; return; }
     const lines = palLines(tab);
     if (!lines.length) { box.hidden = true; return; }
     ui.pal ||= {};

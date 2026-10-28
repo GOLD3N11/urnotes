@@ -141,10 +141,6 @@ const ACTIONS = {
         addActivity(state.purtare.excludeFromGPA ? "Purtarea a fost exclusă din media generală." : "Purtarea a fost inclusă din nou în media generală.");
         refresh();
     },
-    "purtare-settings": () => {
-        switchTab("tab-setari");
-        $("modules-card")?.scrollIntoView({ block: "start", behavior: "smooth" });
-    },
     "edit-grade": el => openEditGradeModal(el.dataset.mat, Number(el.dataset.index)),
     "toggle-priority": el => togglePriority(el.dataset.mat),
     "toggle-exclude": el => toggleExclude(el.dataset.mat),

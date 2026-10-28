@@ -405,6 +405,7 @@ function homeInstallHTML() {
 
 /* ---------- „Primii pași”: ce face aplicația utilă, bifat singur pe măsură ce elevul le face ---------- */
 const START_HIDE_KEY = "pro_start_hidden_v4";
+const START_SETTLED_GRADES = 5;
 function startSteps() {
     const hasGrade = Object.values(state.subjects).some(sub => sub.grades.length);
     const hasEvent = Object.keys(state.calendar).length > 0;
@@ -422,11 +423,13 @@ function homeStartHTML() {
     try { hidden = localStorage.getItem(START_HIDE_KEY) === "1"; } catch (_) { /* fără stocare */ }
     const steps = startSteps();
     const done = steps.filter(st => st.done).length;
-    if (hidden || done === steps.length || (typeof guest !== "undefined" && guest.on)) return "";
+    // Doar pentru conturile noi: cine are deja câteva note s-a descurcat și fără listă
+    const settled = metrics.totalGrades >= START_SETTLED_GRADES;
+    if (hidden || settled || done === steps.length || (typeof guest !== "undefined" && guest.on)) return "";
     const next = steps.find(st => !st.done);
     return `
         ${homeCardHead("azi-start-title", "rocket", "Primii pași", `<span class="cat-count">${done} din ${steps.length}</span>`)}
-        <p class="azi-more-line">Cinci lucruri scurte și aplicația lucrează pentru tine. Apasă pe un pas ca să-l faci acum.</p>
+        <p class="azi-more-line">Cinci pași scurți și aplicația lucrează pentru tine.</p>
         <ol class="start-steps">
             ${steps.map(st => `
                 <li class="${st.done ? "is-done" : ""} ${st === next ? "is-next" : ""}">
@@ -632,7 +635,7 @@ function homeNextHTML(step, today) {
         <div class="azi-next ${tone}">
             <span class="azi-next-emoji" aria-hidden="true">${icon(emoji)}</span>
             <div class="azi-next-body">
-                <p class="azi-next-kicker">Următorul pas · ${escapeHTML(kicker)}</p>
+                <p class="azi-next-kicker">Acum · ${escapeHTML(kicker)}</p>
                 <h3 id="azi-next-title" class="azi-next-title">${title}</h3>
                 ${text ? `<p class="azi-next-text">${text}</p>` : ""}
                 ${actions}
@@ -721,7 +724,8 @@ function homeWeekHTML(today, links = gradeLinks()) {
     const nextFrom = recap ? weekStart(today) : addDays(weekStart(today), 7);
     const nextTests = occurrencesBetween(nextFrom, addDays(nextFrom, 6)).filter(o => NEEDS_GRADE.has(o.ev.type) && !isOccurrenceDone(o.ev, o.date, links));
     const stat = (value, label, sub = "") => `<div class="week-stat"><b>${value}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ""}</div>`;
-    const deltaHTML = delta === null ? "–" : `<span class="${delta > 0.004 ? "is-up" : delta < -0.004 ? "is-down" : ""}">${delta > 0.004 ? "▲" : delta < -0.004 ? "▼" : "="} ${Math.abs(delta).toFixed(2)}</span>`;
+    const flat = delta !== null && Math.abs(delta) <= 0.004;
+    const deltaHTML = delta === null ? "–" : flat ? "la fel" : `<span class="${delta > 0 ? "is-up" : "is-down"}">${delta > 0 ? "▲" : "▼"} ${Math.abs(delta).toFixed(2)}</span>`;
     const line = grades.length
         ? `${plural(grades.length, "notă nouă", "note noi")}, media lor ${avg.toFixed(2)}${best ? `; cea mai bună: ${best.val} la ${shortSubjectName(best.mat)}` : ""}.`
         : recap ? "Nicio notă nouă săptămâna trecută." : "Nicio notă nouă săptămâna asta, deocamdată.";

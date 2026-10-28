@@ -46,6 +46,7 @@ function renderActiveTab({ keepSettingsForm = false } = {}) {
     } catch (err) {
         console.error(`Eroare la afișarea ${ui.activeTab}.`, err);
     }
+    renderPageIcons(); // unele pagini își rescriu titlul (ex. Examene → „Bacalaureatul”)
 }
 
 function emptyNote(text) {
