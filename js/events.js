@@ -43,39 +43,6 @@ const ACTIONS = {
         $("modal-grade-mat").value = el.dataset.mat;
         syncGradeSubjectChips();
     },
-    "timetable": () => openTimetableModal(),
-    "tt-tap": el => {
-        if (!ui.ttDraft || !state.subjects[el.dataset.mat]) return;
-        const day = TIMETABLE_DAYS.includes(Number(ui.ttDay)) ? Number(ui.ttDay) : 1;
-        const list = (ui.ttDraft[day] ||= []);
-        if (list.length >= TIMETABLE_MAX) return;
-        list.push(el.dataset.mat);
-        rerenderTimetableEditor(day, `.tt-tap[data-mat="${CSS.escape(el.dataset.mat)}"]`);
-    },
-    "tt-day": el => {
-        ui.ttDay = Number(el.dataset.day);
-        rerenderTimetableEditor(ui.ttDay, ".tt-tap:not([disabled])");
-        $("tt-editor")?.querySelector(".tt-day.is-active")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    },
-    "tt-copy": el => {
-        const day = Number(el.dataset.day);
-        const prev = TIMETABLE_DAYS[TIMETABLE_DAYS.indexOf(day) - 1];
-        if (!ui.ttDraft || !prev) return;
-        ui.ttDraft[day] = [...(ui.ttDraft[prev] || [])];
-        rerenderTimetableEditor(day);
-    },
-    "tt-clear": el => {
-        if (!ui.ttDraft) return;
-        delete ui.ttDraft[el.dataset.day];
-        ui.ttDay = Number(el.dataset.day);
-        rerenderTimetableEditor(el.dataset.day);
-    },
-    "tt-remove": el => {
-        const list = ui.ttDraft?.[el.dataset.day];
-        if (!list) return;
-        list.splice(Number(el.dataset.index), 1);
-        rerenderTimetableEditor(el.dataset.day);
-    },
     "cat-select": el => selectCatalogSubject(el.dataset.mat),
     "grade-pick": el => {
         const input = $("modal-grade-val");

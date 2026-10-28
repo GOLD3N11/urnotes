@@ -49,7 +49,6 @@ function closeActionModal() {
     if (focusRun.it) stopFocus(); // „Renunț” / Escape / fundal: cronometrul se oprește, sesiunea rămâne nebifată
     $("action-modal-confirm").onclick = null;
     $("action-modal-body").innerHTML = "";
-    ui.ttDraft = null;
 
     const back = ui.modalReturnFocus;
     ui.modalReturnFocus = null;

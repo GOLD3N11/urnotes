@@ -350,7 +350,7 @@ function bindShellEvents() {
         }
         // Ctrl/⌘+K: caută (materii, pagini, evenimente, comenzi), de oriunde
         if ((event.ctrlKey || event.metaKey) && !event.altKey && k.toLowerCase() === "k" && typeof openPalette === "function") { event.preventDefault(); openPalette(); return; }
-        if (modalOpen || cc?.overlay || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (modalOpen || cc?.overlay || document.body.classList.contains("tt-open") || isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
         // tastele scurte deschid bara de adăugat: N = notă, T = test, H = temă
         const quick = { n: "Notă", t: "Test", h: "Temă" }[k.toLowerCase()];
         if (quick) { event.preventDefault(); ccOpenGlobal({ type: quick }); }

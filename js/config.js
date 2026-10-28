@@ -198,7 +198,7 @@ const countyOptions = selected => `<option value="">Alege județul…</option>${
    restul primesc una stabilă, după nume. */
 const SUBJECT_COLORS = ["tomato", "tangerine", "sun", "lime", "mint", "teal", "sky", "blue", "grape", "pink"];
 const SUBJECT_COLOR_FIXED = {
-    "Limba și literatura română": "tomato", "Matematică": "blue", "Limba engleză": "sky", "Fizică": "grape", "Chimie": "teal",
+    "Limba și literatura română": "tomato", "Limba română": "tomato", "Limba și literatura română (maternă)": "tomato", "Matematică": "blue", "Limba engleză": "sky", "Fizică": "grape", "Chimie": "teal",
     "Biologie": "lime", "Istorie": "tangerine", "Geografie": "mint", "Informatică": "pink", "TIC": "pink",
     "Educație fizică și sport": "sun", "Educație fizică": "sun", "Religie": "sun", "Limba franceză": "sky", "Limba germană": "sky",
     "Logică, argumentare și comunicare": "grape", "Psihologie": "pink", "Economie": "mint", "Filosofie": "grape", "Dirigenție": "teal"

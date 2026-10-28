@@ -61,6 +61,7 @@
     <script src="js/cal-compose.js" defer></script>
     <script src="js/palette.js" defer></script>
     <script src="js/settings-sections.js" defer></script>
+    <script src="js/timetable.js" defer></script>
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
@@ -144,6 +145,8 @@
         <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h3"/></symbol>
         <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M7 21h13"/><path d="M3.9 15.1l9.2-9.2a2 2 0 012.8 0l3.2 3.2a2 2 0 010 2.8L12 19H7.8z"/><path d="M9 10l5 5"/></symbol>
         <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></symbol>
+        <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+        <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
         <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
         <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 01-4 4H4"/></symbol>
@@ -310,7 +313,7 @@
                     </div>
                     <div class="page-pal" hidden></div>
                     <div class="intro-actions">
-                        <button type="button" class="btn btn-glass" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orar</button>
+                        <button type="button" class="btn btn-glass" data-action="timetable"><svg class="ico" aria-hidden="true"><use href="#i-calendar-days"/></svg> Orarul meu</button>
                     </div>
                 </div>
 
@@ -811,6 +814,12 @@
     </div>
 
     <!-- Căutare (Ctrl+K): materii, pagini, evenimente, comenzi (js/palette.js) -->
+    <!-- Orarul (js/timetable.js): săptămâna colorată; se salvează la închidere -->
+    <div id="tt-overlay" class="tt-overlay" role="dialog" aria-modal="true" aria-labelledby="tt-title" hidden>
+        <div class="tt-backdrop" data-action="tt-close"></div>
+        <div class="tt-card" id="tt-card"></div>
+    </div>
+
     <div id="palette" class="palette" role="dialog" aria-modal="true" aria-label="Caută" hidden>
         <div class="palette-backdrop" data-action="palette-close"></div>
         <div class="palette-card">

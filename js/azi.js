@@ -507,7 +507,7 @@ function homeDayHTML({ today, next, pick, date }, links) {
             ].filter(Boolean);
             const avg = d && sub.grades.length ? d.exactAvg.toFixed(2) : "–";
             return `
-                <li class="azi-lesson ${exam ? "has-exam" : ""}">
+                <li class="azi-lesson ${exam ? "has-exam" : ""}" style="${subjectStyle(mat)}">
                     <span class="azi-lesson-n" aria-hidden="true">${i + 1}</span>
                     <button type="button" class="azi-lesson-main" data-action="open-subject" data-mat="${escapeHTML(mat)}"
                         aria-label="${escapeHTML(`Ora ${i + 1}: ${mat}${exam ? ", are evaluare" : ""}. Deschide în Catalog`)}">

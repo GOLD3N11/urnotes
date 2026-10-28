@@ -5,6 +5,7 @@
 const SIDE_OPEN_KEY = "urn_side_open_v1";
 const sideOpen = (() => { try { return { grades: true, more: false, ...JSON.parse(localStorage.getItem(SIDE_OPEN_KEY) || "{}") }; } catch (_) { return { grades: true, more: false }; } })();
 
+const SIDE_SHORT_MAX = 5;
 function renderSideTree() {
     const subs = $("side-subjects");
     if (!subs) return;
@@ -29,7 +30,13 @@ function renderSideTree() {
     subs.hidden = !sideOpen.grades;
     // Sub „Note”: doar materiile prioritare (★) și cele la risc; restul la „Toate materiile”, ca meniul să rămână scurt.
     const risk = m => metrics.subjects[m]?.statusClass === "badge-danger";
-    const featured = names.filter(m => state.subjects[m].priority || risk(m) || m === openMat);
+    let featured = names.filter(m => state.subjects[m].priority || risk(m) || m === openMat);
+    // Nimic prioritar sau la risc: arătăm orele de azi (sau primele materii), nu toată lista
+    if (!featured.length && names.length > SIDE_SHORT_MAX) {
+        const todays = new Set(state.timetable[new Date().getDay()] || []);
+        featured = names.filter(m => todays.has(m)).slice(0, SIDE_SHORT_MAX);
+        if (!featured.length) featured = names.slice(0, 3);
+    }
     const shortList = featured.length > 0 && featured.length < names.length;
     const shown = shortList && !sideOpen.all ? featured : names;
     const row = m => `
