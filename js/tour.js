@@ -219,7 +219,30 @@ const SETUP_ACTIONS = {
     "setup-target": el => { ui.setup.target = clampNumber(el.dataset.v, 5, 10, 10); rerenderSetupKeepFocus(el); },
     "setup-risk": el => { ui.setup.risk = clampNumber(el.dataset.v, 1, 10, 8); rerenderSetupKeepFocus(el); },
     "setup-method": el => { ui.setup.method = el.dataset.v === "weighted" ? "weighted" : "arithmetic"; rerenderSetupKeepFocus(el); },
-    "setup-finish": el => finishSetup(el.dataset.timetable === "1")
+    "setup-finish": el => finishSetup(el.dataset.timetable === "1"),
+    // pornirea rapidă (cont nou): clasa → prima notă → gata
+    "setup-quick": () => { ui.setup.quick = true; ui.setup.step = 1; renderSetup(); },
+    "setup-quick-next": () => {
+        if (!ui.setup.profile || !setupQuickApply()) return;
+        ui.setup.step = 2;
+        renderSetup();
+    },
+    "setup-qmat": el => { ui.setup.qMat = state.subjects[el.dataset.mat] ? el.dataset.mat : ""; renderSetup(); $("setup-body").querySelector(`[data-action="setup-qmat"][data-mat="${CSS.escape(el.dataset.mat)}"]`)?.focus({ preventScroll: true }); },
+    "setup-qval": el => { ui.setup.qVal = clampNumber(el.dataset.v, 1, 10, 0); renderSetup(); $("setup-body").querySelector(`[data-action="setup-qval"][data-v="${el.dataset.v}"]`)?.focus({ preventScroll: true }); },
+    "setup-quick-grade": () => {
+        const st = ui.setup;
+        if (!state.subjects[st.qMat] || !st.qVal) return;
+        const grade = { id: uid(), val: st.qVal, type: "Test", date: getLocalDateKey() };
+        state.subjects[st.qMat].grades.push(grade);
+        addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${st.qMat}.`);
+        refresh();
+        st.qAdded = { mat: st.qMat, val: st.qVal };
+        celebrateGrade(st.qVal);
+        st.step = 3;
+        renderSetup();
+    },
+    "setup-quick-skip": () => { ui.setup.step = 3; renderSetup(); },
+    "setup-quick-finish": el => finishQuickSetup(el.dataset.timetable === "1")
 };
 
 /** Redesenează pasul curent și pune focusul înapoi pe butonul echivalent (pentru tastatură). */

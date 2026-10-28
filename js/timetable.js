@@ -65,6 +65,10 @@ function closeTimetable({ save = true } = {}) {
     const back = tt.returnFocus;
     tt.returnFocus = null;
     if (back && document.contains(back)) back.focus({ preventScroll: true });
+    if (ui.tourAfterModal) {
+        ui.tourAfterModal = false;
+        setTimeout(maybeStartTour, 300);
+    }
 }
 
 /* ---------- desenul ---------- */

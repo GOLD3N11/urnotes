@@ -93,7 +93,7 @@ function renderCompose() {
                 <span class="cc-ico" aria-hidden="true"></span>
                 <input type="text" id="cc-text" class="cc-text" maxlength="100" spellcheck="false" enterkeyhint="done"
                     placeholder="${phone ? "Adaugă o notă, un test…" : "Adaugă ceva… ex: 9 la mate azi · test la fizică vineri"}" aria-label="Ce adaugi" value="${escapeHTML(text)}">
-                <button type="submit" class="btn btn-primary cc-add">${icon("plus")} <span>Adaugă</span></button>
+                <button type="submit" class="btn btn-primary cc-add" aria-label="Adaugă">${icon("plus")} <span>Adaugă</span></button>
             </div>
             <div class="cc-body" ${cc.open ? "" : "hidden"}>
                 <div class="cc-row" role="group" aria-label="Ce este">
@@ -285,6 +285,7 @@ function ccSubmitGrade() {
         addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${mat}.`);
     });
     ccAfterAdd(grade.date, () => {});
+    celebrateGrade(grade.val);
 }
 
 /** După adăugare: peste pagină se închide; în Calendar rămâne deschisă, goală, pentru următorul. */

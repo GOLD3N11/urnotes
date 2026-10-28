@@ -10,6 +10,8 @@
  */
 const SETUP_DONE_KEY = "pro_setup_done_v4";
 const SETUP_STEPS = ["Profil", "Materii", "Ținte", "Orar"];
+// Pornirea rapidă (cont nou): trei pași, sub un minut. Restul (ținte, an școlar) are valori bune și se schimbă din Setări.
+const SETUP_QUICK_STEPS = ["Clasa ta", "Prima notă", "Gata"];
 /*
  * Materiile propuse urmează planurile-cadru oficiale, după profil ȘI clasă (verificate în octombrie 2026):
  *   – clasa a IX-a: planul-cadru nou, OMEC 4350/2025 (modificat prin OMEC 4152/2026; intensiv informatică: OMEC 6873/2025),
@@ -405,6 +407,10 @@ function openSetup(step = 0) {
 
 function closeSetup() {
     $("setup").hidden = true;
+    // veștile bune ținute cât a fost deschisă configurarea, una după alta
+    const later = showToast.later || [];
+    showToast.later = [];
+    later.forEach(([msg, opts], i) => setTimeout(() => showToast(msg, opts), 700 + i * 900));
     if ($("action-modal").hidden) document.body.classList.remove("modal-open");
     const back = ui.setup?.returnFocus;
     ui.setup = null;
@@ -503,15 +509,20 @@ function renderSetup() {
     const st = ui.setup;
     if (!st) return;
     const steps = $("setup-steps");
-    steps.innerHTML = SETUP_STEPS.map((label, i) => {
+    steps.innerHTML = (st.quick ? SETUP_QUICK_STEPS : SETUP_STEPS).map((label, i) => {
         const n = i + 1;
         const state_ = st.step === n ? "is-current" : st.step > n ? "is-done" : "";
         return `<li class="${state_}" ${st.step === n ? 'aria-current="step"' : ""}><span>${st.step > n ? icon("check") : n}</span>${label}</li>`;
     }).join("");
     steps.classList.toggle("is-hidden", st.step === 0);
+    // pornirea rapidă: după clasă, „Sari peste” e chiar în pas (sau nu mai e nevoie de el)
+    const skip = document.querySelector("#setup .setup-skip");
+    if (skip) skip.hidden = Boolean(st.quick && st.step >= 2);
     steps.setAttribute("aria-hidden", String(st.step === 0));
     const keep = st.renderedStep === st.step ? $("setup-body").scrollTop : 0;
-    $("setup-body").innerHTML = [setupWelcomeHTML, setupProfileHTML, setupSubjectsHTML, setupTargetsHTML, setupTimetableHTML][st.step]();
+    $("setup-body").innerHTML = (st.quick
+        ? [setupWelcomeHTML, setupProfileHTML, setupQuickGradeHTML, setupQuickDoneHTML]
+        : [setupWelcomeHTML, setupProfileHTML, setupSubjectsHTML, setupTargetsHTML, setupTimetableHTML])[st.step]();
     $("setup-foot").innerHTML = setupFootHTML();
     $("setup-body").scrollTop = keep;
     // Pas nou: de sus, cu focus pe titlu. Același pas (ex. ai ales un profil): rămâne unde erai.
@@ -524,8 +535,13 @@ function renderSetup() {
 }
 
 function setupFootHTML() {
-    const { step, profile } = ui.setup;
+    const { step, profile, quick } = ui.setup;
     if (step === 0) return "";
+    if (quick) {
+        if (step === 1) return `<button type="button" class="btn btn-text" data-action="setup-back">${icon("undo")} Înapoi</button><button type="button" class="btn btn-primary" data-action="setup-quick-next" ${profile ? "" : "disabled"}>Continuă</button>`;
+        if (step === 2) return `<button type="button" class="btn btn-text" data-action="setup-quick-skip">Sari peste</button><button type="button" class="btn btn-primary" data-action="setup-quick-grade" ${ui.setup.qMat && ui.setup.qVal ? "" : "disabled"}>${icon("check")} Adaug nota</button>`;
+        return "";
+    }
     const back = `<button type="button" class="btn btn-text" data-action="setup-back">${icon("undo")} Înapoi</button>`;
     if (step === 1) return `${back}<button type="button" class="btn btn-primary" data-action="setup-next" ${profile ? "" : "disabled"}>Continuă</button>`;
     if (step === 2 || step === 3) return `${back}<button type="button" class="btn btn-primary" data-action="setup-next">Continuă</button>`;
@@ -539,7 +555,7 @@ function setupWelcomeHTML() {
             <h2 id="setup-title" tabindex="-1">${has ? "Configurare rapidă" : "Bun venit în urNotes!"}</h2>
             <p>${has
                 ? "Adaugă dintr-o dată materiile unui profil și stabilește ținta și anul școlar. Materiile și notele pe care le ai rămân neatinse."
-                : "În patru pași scurți îți pregătesc materiile, ținta și anul școlar. Poți schimba orice mai târziu, din Catalog și Setări."}</p>
+                : "Trei pași scurți: clasa ta, prima notă și ești gata. Durează mai puțin de un minut."}</p>
         </div>
         <div class="setup-me">
             <div class="setup-me-buddy" id="setup-buddy" aria-hidden="true">${setupBuddyHTML()}</div>
@@ -555,8 +571,11 @@ function setupWelcomeHTML() {
             </div>
         </div>
         <div class="setup-choices">
-            <button type="button" class="setup-choice" data-action="setup-next" data-autofocus>
-                ${icon("sparkles")}<span><b>${has ? "Alege un profil" : "Încep de la zero"}</b><small>Aleg profilul, iar materiile se completează singure.</small></span>${icon("chevron", "setup-arrow")}
+            ${has ? "" : `<button type="button" class="setup-choice is-primary" data-action="setup-quick" data-autofocus>
+                ${icon("sparkles")}<span><b>Începem</b><small>Îmi alegi clasa și materiile se completează singure.</small></span>${icon("chevron", "setup-arrow")}
+            </button>`}
+            <button type="button" class="setup-choice" data-action="setup-next" ${has ? "data-autofocus" : ""}>
+                ${icon(has ? "sparkles" : "notebook")}<span><b>${has ? "Alege un profil" : "Aleg eu fiecare materie"}</b><small>${has ? "Aleg profilul, iar materiile se completează singure." : "Văd lista cu ore, ținta și anul școlar, pas cu pas."}</small></span>${icon("chevron", "setup-arrow")}
             </button>
             <button type="button" class="setup-choice" data-action="setup-import">
                 ${icon("upload")}<span><b>Am deja un backup</b><small>Încarc fișierul .json exportat din această aplicație.</small></span>${icon("chevron", "setup-arrow")}
@@ -695,6 +714,81 @@ function setupTimetableHTML() {
                 ${icon("clock")}<span><b>Mai târziu</b><small>îl găsești pe pagina Azi și în Calendar</small></span>${icon("chevron", "setup-arrow")}
             </button>
         </div>`;
+}
+
+/* ---------- pornirea rapidă: pasul 2 (prima notă) și pasul 3 (gata) ---------- */
+function setupQuickGradeHTML() {
+    const { qMat, qVal } = ui.setup;
+    const mats = Object.keys(state.subjects).filter(m => !state.subjects[m].excludeFromGPA).sort((a, b) => a.localeCompare(b, "ro"));
+    return `
+        <h2 id="setup-title" tabindex="-1">Ai deja o notă?</h2>
+        <p class="setup-lead">Alege materia și nota. Media se calculează singură. Dacă n-ai încă note, sari peste.</p>
+        <div class="setup-field">
+            <span class="setup-label" id="setup-qm-l">Materia</span>
+            <div class="setup-qchips" role="group" aria-labelledby="setup-qm-l">
+                ${mats.map(m => `<button type="button" class="setup-qchip" data-action="setup-qmat" data-mat="${escapeHTML(m)}" aria-pressed="${qMat === m}" style="${subjectStyle(m)}"><i aria-hidden="true"></i>${escapeHTML(shortSubjectName(m))}</button>`).join("")}
+            </div>
+        </div>
+        <div class="setup-field">
+            <span class="setup-label" id="setup-qv-l">Nota</span>
+            <div class="setup-qvals" role="group" aria-labelledby="setup-qv-l">
+                ${Array.from({ length: 10 }, (_, i) => 10 - i).map(v => `<button type="button" class="setup-qval tone-${gradeTone(v)}" data-action="setup-qval" data-v="${v}" aria-pressed="${qVal === v}">${v}</button>`).join("")}
+            </div>
+        </div>`;
+}
+
+function setupQuickDoneHTML() {
+    const n = Object.keys(state.subjects).length;
+    const first = firstName();
+    const g = ui.setup.qAdded;
+    return `
+        <div class="setup-hero setup-done">
+            <div class="setup-done-pal" aria-hidden="true">${buddySVG(g && g.val >= 9 ? "love" : "happy", "setup-done-buddy")}</div>
+            <h2 id="setup-title" tabindex="-1">${first ? `Gata, ${escapeHTML(first)}!` : "Gata!"}</h2>
+            <p class="pal-say">${g ? `Am pus ${g.val} la ${escapeHTML(shortSubjectName(g.mat))}. ` : ""}Ai ${plural(n, "materie", "materii")} în catalog. Eu sunt ${escapeHTML(buddyName())} și te anunț când ai un test sau o materie are nevoie de tine.</p>
+        </div>
+        <div class="setup-choices">
+            <button type="button" class="setup-choice is-primary" data-action="setup-quick-finish" data-autofocus>
+                ${icon("home")}<span><b>Hai la pagina Azi</b><small>ce ai de făcut azi și cum stai</small></span>${icon("chevron", "setup-arrow")}
+            </button>
+            <button type="button" class="setup-choice" data-action="setup-quick-finish" data-timetable="1">
+                ${icon("calendar-days")}<span><b>Completez și orarul</b><small>atingi materiile în ordinea orelor, cam un minut</small></span>${icon("chevron", "setup-arrow")}
+            </button>
+        </div>
+        <p class="setup-note">${icon("info")} Ținta (${state.settings.goals.targetGPA.toFixed(2)}), pragul de risc și anul școlar au valori obișnuite; le schimbi oricând din Setări.</p>`;
+}
+
+/** Pasul 1 → 2: pune materiile clasei alese, cu valorile obișnuite. */
+function setupQuickApply() {
+    const st = ui.setup;
+    if (!SETUP_PROFILES[st.profile]) return false;
+    const added = [];
+    st.rows.forEach(r => {
+        const name = (r.kind === "opt" ? optionalName(r.topic) : r.name).trim().replace(/\s+/g, " ");
+        if (!r.on || r.exists || r.kind === "opt" || !name || findSubjectName(name)) return;
+        state.subjects[name] = { ore: r.ore, target: st.target, grades: [], priority: false, excludeFromGPA: r.kind === "dirig" && st.cls >= 9 };
+        added.push(name);
+    });
+    const s = state.settings;
+    s.school = { profile: st.profile, cls: SETUP_PROFILES[st.profile].classes ? st.cls : 0, variant: st.variant || "", lm2: st.lm2 || LM2_CHOICES[0], county: st.county || s.school.county || "" };
+    if (MODULE_PRESETS[st.preset]) s.modules = presetModules(st.preset, SETUP_PROFILES[st.profile].classes ? st.cls : 0);
+    if (SETUP_PROFILES[st.profile].classes && !s.report.cls) s.report.cls = `a ${ROMAN[st.cls]}-a`;
+    addActivity(`Configurare: ai adăugat ${plural(added.length, "materie", "materii")}.`);
+    markSetupDone();
+    refresh();
+    return true;
+}
+
+function finishQuickSetup(withTimetable) {
+    const g = ui.setup?.qAdded;
+    closeSetup();
+    ui.home.day = null;
+    switchTab("tab-dashboard");
+    refresh();
+    if (withTimetable && Object.keys(state.subjects).length) {
+        ui.tourAfterModal = true; // turul vine după ce închide orarul
+        openTimetable();
+    } else setTimeout(maybeStartTour, 400);
 }
 
 function validSetupPreset(value, fallback) {

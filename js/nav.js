@@ -29,6 +29,12 @@ function switchTab(tabId) {
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
     document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
+    // pagina intră o dată, scurt, când o deschizi (vezi .just-opened în ui.css)
+    if (changed) {
+        const sec = $(tabId);
+        sec.classList.remove("just-opened"); void sec.offsetWidth; sec.classList.add("just-opened");
+        clearTimeout(switchTab.t); switchTab.t = setTimeout(() => sec.classList.remove("just-opened"), 400);
+    }
     $("more-btn")?.classList.toggle("is-active", tabId === "tab-setari");
     $("more-btn")?.classList.toggle("active", tabId === "tab-setari"); // pastila din bara de jos stă pe „Eu”
     // Trei pagini principale (Azi, Note, Calendar); celelalte sunt sub-pagini ale lor și le aprind butonul
@@ -371,6 +377,11 @@ const TOAST_ICONS = { "🏆": "trophy", "🔥": "flame", "📈": "trend-up", "�
 function showToast(msg, { action = "", onAction = null, duration = 3000, actionIcon = "undo" } = {}) {
     const container = $("toast-container");
     if (!container) return null;
+    // Veștile bune (realizări, nivel nou) așteaptă până se termină configurarea: nu acoperă pașii
+    if ($("setup") && !$("setup").hidden && /^\s*(🏆|🎉)/u.test(msg)) {
+        (showToast.later ||= []).push([msg, { action, onAction, duration, actionIcon }]);
+        return null;
+    }
 
     // Un emoji la începutul mesajului alege iconița și tonul; textul afișat rămâne curat.
     const lead = /^\s*([\u2190-\u21FF\u2600-\u27BF\u{1F300}-\u{1FAFF}])\uFE0F?\s*/u.exec(msg);

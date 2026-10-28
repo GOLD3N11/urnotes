@@ -194,6 +194,7 @@ function openAddGradeModal(presetMat = null, link = null) {
             closeActionModal();
             refresh();
             showToast(`Ai adăugat nota ${values.val} la ${mat}.`);
+            celebrateGrade(values.val);
         }
     });
     document.querySelector('.grade-pick-btn[aria-pressed="true"]')?.focus();

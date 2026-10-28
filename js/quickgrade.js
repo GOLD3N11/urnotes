@@ -72,6 +72,7 @@ Object.assign(ACTIONS, {
             state.subjects[mat].grades.push({ id: uid(), val, type, date: getLocalDateKey() });
             addActivity(`Ai adăugat nota ${val} (${type}) la ${mat}.`);
         });
+        celebrateGrade(val);
     },
     "quick-grade-more": () => {
         const mat = quickGrade.mat;

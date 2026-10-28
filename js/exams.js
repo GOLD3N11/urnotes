@@ -199,7 +199,7 @@ function examHeroHTML(kind, cal) {
                 </div>`}
         </div>
         ${dates.length ? `
-            <ol class="exam-timeline">
+            <ol class="exam-timeline" tabindex="0" aria-label="Probele, în ordine">
                 ${dates.map(([d, label, key]) => `
                     <li class="${d < today ? "is-past" : ""} ${key ? "is-main" : ""} ${first && d === first[0] ? "is-next" : ""}">
                         <time datetime="${d}">${escapeHTML(shortDayLabel(d))}</time><span>${escapeHTML(label)}</span>

@@ -1492,3 +1492,104 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
 .tt-week, .tt-taps { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .tt-card button { touch-action: manipulation; }
 @media (max-width: 760px) { .tt-overlay { height: 100dvh; } .tt-card { height: 100dvh; } }
+
+/* ==========================================================================
+   MIȘCARE (js/motion.js): scurtă, o singură dată; nimic cu „reducere mișcare”
+   ========================================================================== */
+.confetti { position: fixed; inset: 0; z-index: 2000; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; top: -16px; border-radius: 2px; animation: confFall 1.25s cubic-bezier(.2, .6, .4, 1) forwards; }
+@keyframes confFall {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--dx), 70vh) rotate(var(--rot)); opacity: 0; }
+}
+.tick-pop {
+    position: fixed; z-index: 2000; display: grid; place-items: center; width: 34px; height: 34px; margin: -17px 0 0 -17px;
+    border-radius: 50%; background: var(--accent-fill); color: var(--on-accent-fill); pointer-events: none;
+    animation: tickPop .55s cubic-bezier(.2, .9, .3, 1.3) forwards;
+}
+.tick-pop .ico { width: 18px; height: 18px; stroke-width: 3; }
+@keyframes tickPop {
+    0% { transform: scale(.4); opacity: 0; }
+    35% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+/* cardurile intră o dată, când se deschide pagina (nu la fiecare redesenare) */
+@media (prefers-reduced-motion: no-preference) {
+    .tab-content.active.just-opened > .page-intro,
+    .tab-content.active.just-opened .azi-grid,
+    .tab-content.active.just-opened .home-tiles { animation: pageIn .2s ease-out both; }
+    .tab-content.active.just-opened .azi-grid { animation-delay: .04s; }
+}
+@keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .confetti, .tick-pop { display: none !important; } }
+
+/* ==========================================================================
+   PORNIREA RAPIDĂ: pasul „Prima notă”
+   ========================================================================== */
+.setup-qchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.setup-qchip {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 10px;
+    background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 99px;
+    font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer;
+}
+.setup-qchip i { width: 10px; height: 10px; border-radius: 50%; background: var(--subj); }
+.setup-qchip:hover { background: var(--sunken); }
+.setup-qchip[aria-pressed="true"] { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent-fill); }
+.setup-qvals { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.setup-qval {
+    min-height: 48px; padding: 0; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px;
+    font: inherit; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.setup-qval:hover { background: var(--sunken); }
+.setup-qval[aria-pressed="true"] { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent-fill); }
+.setup-qchip:focus-visible, .setup-qval:focus-visible { outline: 2px solid var(--focus, var(--accent-ink)); outline-offset: 2px; }
+.setup-done .setup-done-pal .buddy { width: 96px; height: 96px; }
+.setup-done .pal-say { max-width: 52ch; }
+@media (max-width: 560px) { .setup-qvals { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* ==========================================================================
+   ACCESIBILITATE · contrast de cel puțin 4.5:1 în ambele teme
+   ========================================================================== */
+/* zilele trecute din agendă: mai liniștite, dar citibile (fără transparență peste text) */
+.ag-day.is-past { opacity: 1; }
+.ag-day.is-past .ag-main > *:not(.ag-free) { opacity: 0.72; }
+.ag-day.is-past .ag-date b { color: var(--ink-2); }
+/* text alb pe culorile închise ale materiilor: nuanța mai închisă (--subj-chip) */
+.tt-tap i, .azi-lesson-n, .cal-lesson-n { background-color: var(--subj-chip, var(--subj)); }
+@media (min-width: 761px) { .tt-cell { background-color: var(--subj-chip, var(--subj)); } }
+@media (max-width: 760px) { .tt-n { background-color: var(--subj-chip, var(--subj)); } }
+.ag-day.is-today .cal-ev-type { color: color-mix(in srgb, currentColor 78%, var(--ink)); }
+/* textul din cardul „Acum” colorat (risc, notă de scris) */
+.azi-next.is-warm .azi-next-text, .azi-next.is-hot .azi-next-text { color: var(--ink); }
+
+/* ==========================================================================
+   TELEFON · zona de atins de cel puțin 44×44 px, fără să mărim desenul
+   ========================================================================== */
+@media (max-width: 760px), (pointer: coarse) {
+    .ag-add, .ag-lesson, .cal-chip, .cal-arrow, .cal-ev-check, .stats-nav-link, .impact-row, .trend-row, .brief-link,
+    .nogrades-chip, .sim-chip, .cat-strip-chip, .btn-star, .topbar-brand, .toast-action, .btn-sm { position: relative; }
+    .ag-add::before, .ag-lesson::before, .cal-chip::before, .cal-arrow::before, .cal-ev-check::before, .cat-quick::before,
+    .stats-nav-link::before, .impact-row::before, .trend-row::before, .brief-link::before, .nogrades-chip::before, .sim-chip::before,
+    .cat-strip-chip::before, .help-dot::before, .btn-star::before, .azi-check::before, .topbar-brand::before, .toast-action::before, .btn-sm::before {
+        content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+    }
+    .btn { min-height: 44px; }
+}
+@media (max-width: 760px) {
+    /* felurile calendarului: un rând, cinci părți egale */
+    .cal-seg { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; }
+    .cal-seg button { min-height: 40px; padding: 0 2px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* sfatul despre orar: iconița lângă text, legătura pe același rând */
+    .cal-tip { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 4px 8px; }
+    .cal-tip .ico { margin-top: 2px; }
+    .cal-tip .btn { grid-column: 2; justify-self: start; padding-left: 0; }
+}
+/* Azi pe telefon: colegul lângă salut (nu pe un rând separat), ca „Acum” să încapă pe primul ecran */
+@media (max-width: 760px) {
+    .azi-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; margin-bottom: 12px; }
+    .azi-buddy { flex-direction: column; align-items: center; gap: 2px; flex-basis: auto; }
+    .azi-buddy .buddy { width: 56px; height: 56px; }
+    .azi-buddy .pal-level, .azi-buddy [class*="level"] { transform: scale(.82); }
+    .azi-head h2 { font-size: 30px; }
+    .home-tile.is-hero { min-height: 0; }
+}

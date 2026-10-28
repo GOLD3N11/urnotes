@@ -598,6 +598,7 @@ function quickGradeForEvent(id, date, val) {
         state.subjects[ev.subject].grades.push({ id: uid(), val: v, type: GRADE_TYPE_FOR_EVENT[ev.type] || "Test", date, eventId: ev.id, eventDate: date });
         addActivity(`Ai adăugat nota ${v} (${GRADE_TYPE_FOR_EVENT[ev.type] || "Test"}) la ${ev.subject}.`);
     });
+    celebrateGrade(v);
 }
 
 function openGradeForEvent(id, date) {

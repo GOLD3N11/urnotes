@@ -53,6 +53,7 @@
     <script src="js/calendar-actions.js" defer></script>
     <script src="js/settings-backup.js" defer></script>
     <script src="js/nav.js" defer></script>
+    <script src="js/motion.js" defer></script>
     <script src="js/simulator.js" defer></script>
     <script src="js/events.js" defer></script>
     <script src="js/reminders.js" defer></script>
@@ -824,7 +825,7 @@
         <div class="palette-backdrop" data-action="palette-close"></div>
         <div class="palette-card">
             <div class="palette-bar"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input type="text" id="palette-input" placeholder="Caută o materie, o pagină, un test…" autocomplete="off" spellcheck="false" aria-label="Caută" aria-controls="palette-list" aria-activedescendant=""><kbd>Esc</kbd></div>
-            <ul id="palette-list" class="palette-list" role="listbox" aria-label="Rezultate"></ul>
+            <ul id="palette-list" class="palette-list" role="listbox" aria-label="Rezultate" tabindex="0"></ul>
         </div>
     </div>
 
