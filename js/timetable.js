@@ -38,7 +38,11 @@ function openTimetable({ day = 0 } = {}) {
     $("tt-overlay").hidden = false;
     document.body.classList.add("tt-open");
     renderTimetable();
-    $("tt-overlay").querySelector(".tt-tap:not([disabled])")?.focus({ preventScroll: true });
+    // Cu mouse/tastatură, focusul merge pe prima materie; pe ecran tactil, pe fereastră (fără inel pe un buton)
+    const fine = window.matchMedia?.("(pointer: fine)")?.matches;
+    const first = $("tt-overlay").querySelector(".tt-tap:not([disabled])");
+    if (fine && first) first.focus({ preventScroll: true });
+    else { $("tt-card").setAttribute("tabindex", "-1"); $("tt-card").focus({ preventScroll: true }); }
 }
 /** Numele vechi, folosit din alte locuri (configurare, Azi, Calendar). */
 const openTimetableModal = () => openTimetable();
@@ -77,7 +81,7 @@ function renderTimetable(focus = "") {
     const nextDay = TIMETABLE_DAYS.find(d => d > day);
 
     const hint = sel !== null
-        ? `Alege materia pentru <b>ora ${sel + 1}</b>, ${escapeHTML(WEEKDAY_LONG[day].toLowerCase())}.`
+        ? `Alege altă materie pentru <b>ora ${sel + 1}</b>.`
         : full ? `${escapeHTML(WEEKDAY_LONG[day])} e plină (${TIMETABLE_MAX} ore).`
             : `Atinge o materie: intră la <b>${escapeHTML(WEEKDAY_LONG[day].toLowerCase())}, ora ${list.length + 1}</b>.`;
 
@@ -95,7 +99,7 @@ function renderTimetable(focus = "") {
                     </button>
                     <span class="tt-col-tools">
                         ${canCopy ? `<button type="button" class="tt-tool" data-action="tt-copy" data-day="${d}" title="Copiază orele de ${escapeHTML(WEEKDAY_LONG[prev].toLowerCase())}">${icon("copy")}<span>Ca ${escapeHTML(WEEKDAY_LONG[prev].toLowerCase())}</span></button>` : ""}
-                        ${items.length ? `<button type="button" class="tt-tool" data-action="tt-clear" data-day="${d}" aria-label="Golește ${escapeHTML(WEEKDAY_LONG[d].toLowerCase())}" title="Golește ziua">${icon("trash")}</button>` : ""}
+                        ${items.length ? `<button type="button" class="tt-tool" data-action="tt-clear" data-day="${d}" aria-label="Golește ${escapeHTML(WEEKDAY_LONG[d].toLowerCase())}" title="Golește ziua">${icon("trash")}<span class="tt-lbl">Golește</span></button>` : ""}
                     </span>
                 </header>
                 <ol class="tt-list">
@@ -109,13 +113,13 @@ function renderTimetable(focus = "") {
                                 <span class="tt-name">${escapeHTML(shortSubjectName(m))}</span>
                             </button>
                             ${isSel ? `<span class="tt-cell-tools">
-                                <button type="button" data-action="tt-move" data-day="${d}" data-i="${i}" data-by="-1" aria-label="Mută mai sus" ${i === 0 ? "disabled" : ""}>${icon("arrow-up")}</button>
-                                <button type="button" data-action="tt-move" data-day="${d}" data-i="${i}" data-by="1" aria-label="Mută mai jos" ${i === items.length - 1 ? "disabled" : ""}>${icon("arrow-down")}</button>
-                                <button type="button" class="is-danger" data-action="tt-remove" data-day="${d}" data-i="${i}" aria-label="${escapeHTML(`Scoate ${m}, ora ${i + 1}`)}">${icon("x")}</button>
+                                <button type="button" data-action="tt-move" data-day="${d}" data-i="${i}" data-by="-1" aria-label="Mută mai sus" ${i === 0 ? "disabled" : ""}>${icon("arrow-up")}<span class="tt-lbl" aria-hidden="true">Sus</span></button>
+                                <button type="button" data-action="tt-move" data-day="${d}" data-i="${i}" data-by="1" aria-label="Mută mai jos" ${i === items.length - 1 ? "disabled" : ""}>${icon("arrow-down")}<span class="tt-lbl" aria-hidden="true">Jos</span></button>
+                                <button type="button" class="is-danger" data-action="tt-remove" data-day="${d}" data-i="${i}" aria-label="${escapeHTML(`Scoate ${m}, ora ${i + 1}`)}">${icon("trash")}<span class="tt-lbl" aria-hidden="true">Scoate</span></button>
                             </span>` : ""}
                         </li>`;
                     }).join("")}
-                    ${items.length < TIMETABLE_MAX ? `<li class="tt-row"><button type="button" class="tt-slot ${on && sel === null ? "is-next" : ""}" data-action="tt-slot" data-day="${d}">${icon("plus")} Ora ${items.length + 1}</button></li>` : ""}
+                    ${items.length < TIMETABLE_MAX ? `<li class="tt-row"><button type="button" class="tt-slot ${on && sel === null ? "is-next" : ""}" data-action="tt-slot" data-day="${d}">${icon("plus")} <span class="tt-slot-d">Ora ${items.length + 1}</span><span class="tt-slot-m">Adaugă ora ${items.length + 1}</span></button></li>` : ""}
                 </ol>
             </section>`;
     };
@@ -290,5 +294,24 @@ document.addEventListener("dragend", () => {
     $("tt-overlay")?.classList.remove("is-dragging");
     document.querySelectorAll("#tt-overlay .is-drop").forEach(n => n.classList.remove("is-drop"));
 });
+
+/* ---------- telefon: glisezi stânga/dreapta pe listă ca să schimbi ziua ---------- */
+let ttTouch = null;
+document.addEventListener("touchstart", event => {
+    if (!event.target.closest?.("#tt-overlay .tt-week") || event.touches.length !== 1) { ttTouch = null; return; }
+    ttTouch = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+}, { passive: true });
+document.addEventListener("touchend", event => {
+    if (!ttTouch || !tt.draft) return;
+    const t = event.changedTouches[0];
+    const dx = t.clientX - ttTouch.x, dy = t.clientY - ttTouch.y;
+    ttTouch = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > 40) return;
+    const i = TIMETABLE_DAYS.indexOf(tt.day) + (dx < 0 ? 1 : -1);
+    if (i < 0 || i >= TIMETABLE_DAYS.length) return;
+    tt.day = TIMETABLE_DAYS[i];
+    tt.sel = null;
+    renderTimetable();
+}, { passive: true });
 
 ["tt-done", "tt-close", "tt-day", "tt-slot", "tt-cell"].forEach(a => GUEST_OK.add(a));

@@ -1413,3 +1413,78 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
 .cal-lesson:hover { background: color-mix(in srgb, var(--subj, var(--sunken)) 30%, transparent); }
 .cal-lesson-n { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 6px; background: var(--subj, var(--sunken)); color: var(--subj-ink, var(--ink)); font-size: 10.5px; font-weight: 800; text-align: center; }
 .cal-lesson-name { padding-left: 0; border-left: 0; }
+
+/* ---------- orarul pe telefon: curat, alb, ușor de atins ---------- */
+.tt-slot-m { display: none; }
+@media (min-width: 761px) { .tt-cell-tools .tt-lbl { display: none; } }
+@media (max-width: 760px) {
+    .tt-card { background: var(--paper); }
+    .tt-head { padding: 12px 16px; gap: 12px; }
+    .tt-head h2 { font-size: 21px; gap: 8px; }
+    .tt-title-ico { display: none; }
+    .tt-head p { font-size: 13px; }
+    .tt-done { min-height: 44px; padding: 0 18px; }
+
+    /* zilele: un comutator simplu */
+    .tt-days { gap: 2px; margin: 12px 16px 0; padding: 4px; border-radius: 14px; background: var(--sunken); }
+    .tt-daytab { min-height: 48px; border: 0; border-radius: 11px; background: transparent; color: var(--ink-2); }
+    .tt-daytab b { font-size: 15px; }
+    .tt-daytab small { font-size: 11.5px; font-weight: 600; }
+    .tt-daytab[aria-pressed="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+    .tt-daytab[aria-pressed="true"] small { color: var(--ink-2); }
+
+    /* ziua */
+    .tt-week { padding: 14px 16px 16px; }
+    .tt-col-head { min-height: 36px; margin-bottom: 10px; }
+    .tt-col-pick { padding: 0; }
+    .tt-col-pick b { font-size: 18px; }
+    .tt-col-pick small { font-size: 13px; }
+    .tt-tool { height: 36px; padding: 0 10px; color: var(--ink-2); font-size: 13px; }
+    .tt-list { gap: 8px; }
+
+    /* o oră = un rând alb; culoarea materiei doar pe număr */
+    .tt-cell {
+        min-height: 56px; padding: 8px 14px 8px 8px; gap: 12px;
+        background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 14px; box-shadow: none;
+    }
+    .tt-cell:hover { transform: none; box-shadow: none; }
+    .tt-n { width: 38px; height: 38px; border-radius: 11px; background: var(--subj); color: var(--subj-ink); font-size: 15px; }
+    body.dark-mode .tt-n { background: var(--subj); }
+    .tt-name { font-size: 16px; font-weight: 700; }
+    .tt-row.is-sel .tt-cell { outline: 0; border: 2px solid var(--accent-fill); background: var(--yellow-soft); padding: 7px 13px 7px 7px; }
+
+    /* ce poți face cu ora aleasă: butoane cu nume, sub ea */
+    .tt-cell-tools { position: static; transform: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; padding: 0; background: transparent; box-shadow: none; }
+    .tt-cell-tools button { width: auto; height: 44px; gap: 6px; display: flex; align-items: center; justify-content: center; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; }
+    .tt-cell-tools button.is-danger { color: var(--risk); }
+
+    .tt-slot { min-height: 56px; border-radius: 14px; border-width: 1.5px; font-size: 15px; }
+    .tt-slot-d { display: none; }
+    .tt-slot-m { display: inline; }
+    .tt-slot.is-next { background: transparent; color: var(--ink); border: 1.5px dashed var(--accent-fill); }
+    body.dark-mode .tt-slot.is-next { color: var(--accent-ink); }
+
+    /* materiile: o grilă liniștită, ușor de atins */
+    .tt-pal { padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 20px -16px rgba(0, 0, 0, .35); }
+    .tt-pal-head { min-height: 32px; margin-bottom: 10px; }
+    .tt-pal-hint { font-size: 14px; color: var(--ink-2); }
+    .tt-pal-hint b { color: var(--ink); }
+    .tt-taps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 36vh; overflow-y: auto; padding: 0; }
+    .tt-tap {
+        justify-content: flex-start; gap: 10px; min-height: 48px; padding: 6px 10px 6px 8px; min-width: 0;
+        background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; font-size: 14.5px; font-weight: 700;
+    }
+    body.dark-mode .tt-tap { background: var(--sunken); }
+    .tt-tap:hover:not([disabled]) { background: var(--sunken); }
+    .tt-tap:active:not([disabled]) { background: var(--yellow-soft); transform: none; }
+    .tt-tap i { flex: none; width: 28px; height: 28px; border-radius: 9px; font-size: 11.5px; }
+    .tt-tap span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media (max-width: 760px) {
+    /* materiile mai strânse, ca ziua să rămână la vedere */
+    .tt-taps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 30vh; }
+    .tt-tap { gap: 7px; min-height: 44px; padding: 4px 8px; font-size: 13.5px; }
+    .tt-tap i { width: 10px; height: 10px; border-radius: 50%; font-size: 0; }
+    body.dark-mode .tt-daytab[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 14%, var(--sheet)); }
+}
+.tt-card:focus { outline: none; }
