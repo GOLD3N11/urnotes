@@ -125,6 +125,8 @@
 
     const fold = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
     const EMOJI_RE = /\p{Extended_Pictographic}/u;
+    /** Nume rezervate de JavaScript (ar încurca datele dacă ar fi chei de materii). */
+    const RESERVED_NAMES = new Set(Object.getOwnPropertyNames(Object.prototype).concat(["__proto__", "prototype"]));
 
     /** Text curat: spații normale, fără litere repetate la nesfârșit, fără cuvinte repetate, cel mult 2 emoji. */
     function cleanText(value, max) {
@@ -192,6 +194,7 @@
         const o = opts || {};
         const clean = cleanText(name, LIMITS.subjectName);
         if (clean.length < 2) return "Scrie numele materiei.";
+        if (RESERVED_NAMES.has(clean)) return "Numele nu pare al unei materii.";
         if (EMOJI_RE.test(clean)) return "Numele materiei nu poate avea emoji.";
         if (!/\p{L}{2}/u.test(clean)) return "Numele materiei trebuie să aibă litere.";
         if (looksLikeJunk(clean.replace(/^Op[tț]ional\s*[-–:]\s*/iu, ""))) return "Numele nu pare al unei materii.";
