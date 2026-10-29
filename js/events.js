@@ -6,7 +6,7 @@
 // Toate butoanele folosesc data-action în loc de onclick inline,
 // așa că numele cu apostrof sau ghilimele nu mai pot strica nimic.
 const ACTIONS = {
-    "nav": el => switchTab(el.dataset.tab),
+    "nav": el => (typeof navigateWithFx === "function" ? navigateWithFx(el.dataset.tab) : switchTab(el.dataset.tab)),
     "add-grade": el => ccOpenGlobal({ type: "Notă", mat: el.dataset.mat || (ui.activeTab === "tab-catalog" ? ui.catalog.selected || "" : "") }),
     "add-subject": () => promptAddMaterie(),
     "add-event": el => openEventModal({ date: el.dataset.date, subject: el.dataset.mat, type: el.dataset.type }),

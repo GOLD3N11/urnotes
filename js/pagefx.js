@@ -7,7 +7,7 @@
 "use strict";
 
 const PAGEFX_KEY = "urn_page_fx_v1";
-const PAGEFX_MS = 920;
+const PAGEFX_MS = 900;
 const pfx = { t: 0, bootAt: Date.now() };
 
 function pageFxOn() {
@@ -82,32 +82,61 @@ function pfGear(cx, cy, ro, ri, n) {
     return `M${pts.map(p => p.map(v => v.toFixed(1)).join(" ")).join(" L")} Z`;
 }
 
-/** Animația de intrare a paginii `tabId` (doar la o navigare a elevului, nu la pornire). */
-function pageFx(tabId) {
-    const art = PAGE_FX_ART[tabId];
-    if (!art || !pageFxOn() || reduceMotion() || Date.now() - pfx.bootAt < 1200) return false;
+/** Se poate arăta animația acum? (nu la pornire, nu cu „reducere mișcare”, nu în testele automate) */
+const PFX_REAL = !/jsdom/i.test((typeof navigator !== "undefined" && navigator.userAgent) || "");
+function pageFxReady(tabId) {
+    return PFX_REAL && Boolean(PAGE_FX_ART[tabId]) && pageFxOn() && !reduceMotion() && Date.now() - pfx.bootAt > 1200;
+}
+
+/**
+ * Animația de intrare a paginii `tabId`. Totul se mișcă doar prin transform/opacity (merge pe placa video),
+ * deci rămâne lin chiar și cât timp aplicația desenează pagina nouă dedesubt.
+ * `instant`: foaia acoperă deja tot (pagina s-a schimbat pe loc, de ex. din căutare).
+ */
+function pageFx(tabId, { instant = false } = {}) {
+    if (!pageFxReady(tabId)) return false;
     const main = document.querySelector(".content-body");
     if (!main) return false;
     document.querySelector(".pagefx")?.remove();
     clearTimeout(pfx.t);
     const r = main.getBoundingClientRect();
-    const box = document.createElement("div");
-    box.className = "pagefx";
-    box.setAttribute("aria-hidden", "true");
-    box.style.left = `${Math.max(0, r.left)}px`;
-    box.style.width = `${Math.min(innerWidth, r.width)}px`;
-    // pornește din locul atins (dacă a fost o atingere recentă), altfel din mijloc
+    const left = Math.max(0, r.left), width = Math.min(innerWidth, r.width) || innerWidth;
     const recent = typeof fluid !== "undefined" && Date.now() - fluid.pAt < 800;
-    box.style.setProperty("--ox", `${recent ? fluid.px - Math.max(0, r.left) : r.width / 2}px`);
-    box.style.setProperty("--oy", `${recent ? fluid.py : innerHeight / 2}px`);
+    const ox = recent ? fluid.px - left : width / 2, oy = recent ? fluid.py : innerHeight / 2;
+    // raza până la colțul cel mai îndepărtat: cercul de hârtie acoperă tot fără să se vadă marginea
+    const radius = Math.ceil(Math.hypot(Math.max(ox, width - ox), Math.max(oy, innerHeight - oy))) + 4;
+    const box = document.createElement("div");
+    box.className = `pagefx${instant ? " is-instant" : ""}`;
+    box.setAttribute("aria-hidden", "true");
+    box.style.left = `${left}px`;
+    box.style.width = `${width}px`;
     const title = TABS[tabId]?.title || "";
     box.innerHTML = `
-        <div class="pagefx-note"><svg viewBox="0 0 120 120" class="pagefx-art">${art}</svg></div>
+        <span class="pagefx-sheet" style="left:${ox}px;top:${oy}px;width:${radius * 2}px;height:${radius * 2}px"></span>
+        <div class="pagefx-note"><svg viewBox="0 0 120 120" class="pagefx-art">${PAGE_FX_ART[tabId]}</svg></div>
         <b class="pagefx-title">${escapeHTML(title)}</b>`;
     document.body.appendChild(box);
     document.body.classList.add("pfx-on");
     pfx.t = setTimeout(() => { box.remove(); document.body.classList.remove("pfx-on"); }, PAGEFX_MS);
     return true;
+}
+
+/**
+ * Navigarea apăsată de elev: întâi pornește animația (foaia acoperă pagina veche), iar pagina nouă se desenează
+ * abia când e acoperită, ca desenatul să nu „înghețe” animația. Fără animație, schimbarea e imediată.
+ */
+const PFX_SWAP_MS = 170;
+function navigateWithFx(tabId) {
+    clearTimeout(pfx.swap);
+    if (!$(tabId) || ui.activeTab === tabId || !pageFxReady(tabId)) { switchTab(tabId); return; }
+    pfx.pending = tabId;
+    pageFx(tabId);
+    pfx.swap = setTimeout(() => {
+        pfx.pending = null;
+        pfx.fromFx = true;
+        switchTab(tabId);
+        pfx.fromFx = false;
+    }, PFX_SWAP_MS);
 }
 
 /* Comutatorul din Setări › Aspect */

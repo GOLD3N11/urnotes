@@ -49,7 +49,8 @@ function switchTab(tabId) {
     closeQuickAdd({ restoreFocus: false });
     renderActiveTab();
     if (changed) {
-        if (typeof pageFx === "function") pageFx(tabId); // desenul animat al paginii, peste conținut
+        // desenul animat al paginii: pornit deja de navigateWithFx; altfel (căutare, legături) foaia apare direct peste tot
+        if (typeof pageFx === "function" && typeof pfx !== "undefined" && !pfx.fromFx) pageFx(tabId, { instant: true });
         animateTabEnter(tabId, from);
     }
     moveNavPill();
@@ -70,7 +71,8 @@ function animateTabEnter(tabId, from) {
     void el.offsetWidth; // repornește animația
     el.classList.add(`enter-${dir}`, "is-entering");
     clearTimeout(el._enterT);
-    el._enterT = setTimeout(() => el.classList.remove("enter-fwd", "enter-back", "is-entering"), 800);
+    document.body.classList.add("is-entering-page");
+    el._enterT = setTimeout(() => { el.classList.remove("enter-fwd", "enter-back", "is-entering"); document.body.classList.remove("is-entering-page"); }, 950);
     if (typeof staggerIn === "function") staggerIn(el); // cardurile apar pe rând
 }
 

@@ -368,8 +368,7 @@ function countUpHTML(value, decimals = 0, extraClass = "") {
 
 function runStatsAnimations(root) {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    root.classList.remove("is-animating");
-    void root.offsetWidth; // repornește animațiile CSS
+    // conținutul tocmai a fost redesenat (noduri noi), deci animațiile CSS pornesc singure: fără o așezare forțată a paginii
     root.classList.add("is-animating");
     clearTimeout(runStatsAnimations.timer);
     runStatsAnimations.timer = setTimeout(() => root.classList.remove("is-animating"), 1400);
@@ -980,9 +979,12 @@ function renderStatsHeatmap(range) {
             <span class="hm-legend-break"><span class="hm-cell l0 is-break"></span> vacanță / weekend</span>
         </div>`;
     // Pe ecrane înguste, derulează până la săptămâna de azi.
-    const scroller = $("hm-scroll");
-    const todayCell = scroller?.querySelector(".hm-cell.is-today");
-    if (scroller && todayCell) scroller.scrollLeft = Math.max(0, todayCell.offsetLeft - scroller.clientWidth * 0.6);
+    // (în cadrul următor, ca să nu forțăm o așezare în plus a paginii cât timp se desenează)
+    requestAnimationFrame(() => {
+        const scroller = $("hm-scroll");
+        const todayCell = scroller?.querySelector(".hm-cell.is-today");
+        if (scroller && todayCell && scroller.scrollWidth > scroller.clientWidth) scroller.scrollLeft = Math.max(0, todayCell.offsetLeft - scroller.clientWidth * 0.6);
+    });
 }
 
 function renderStatsCharts(timeline, range, pm) {
