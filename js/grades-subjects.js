@@ -187,6 +187,7 @@ function openAddGradeModal(presetMat = null, link = null) {
                 grade.eventId = link.eventId;
                 grade.eventDate = link.eventDate;
             }
+            if (!allowGrade(mat, grade)) return;
             state.subjects[mat].grades.push(grade);
 
             addActivity(`Ai adăugat nota ${values.val} (${values.type}) la ${mat}.`);
@@ -226,6 +227,7 @@ function openEditGradeModal(mat, idx) {
                 return;
             }
 
+            if (!allowGrade(mat, { ...grade, val: values.val, date: values.date || undefined }, grade)) return;
             const before = grade.val;
             grade.val = values.val;
             grade.type = values.type;
@@ -371,6 +373,14 @@ function promptAddMaterie() {
             const row = missing.find(r => (r.kind === "opt" ? "__opt" : r.name) === pick);
             if (!row) return;
             const name = row.kind === "opt" ? optionalName(field("subj-opt")) : row.name;
+            if (row.kind === "opt") {
+                const topic = URN_RULES.cleanText(field("subj-opt"), 40);
+                if (!topic || URN_RULES.looksLikeJunk(topic) || /\p{Extended_Pictographic}/u.test(topic)) {
+                    showToast("⚠️ Scrie tema opționalului (ex: Educație financiară).");
+                    $("subj-opt")?.focus();
+                    return;
+                }
+            }
             if (row.kind === "opt" && firstOptional()) {
                 showToast(`⚠️ Poți avea un singur opțional (${firstOptional()}).`);
                 return;

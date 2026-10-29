@@ -366,7 +366,7 @@ function readEventForm() {
         subject,
         date,
         time,
-        title: eventTitleFrom(field("ev-title"), type, subject),
+        title: URN_RULES.cleanText(eventTitleFrom(field("ev-title"), type, subject), URN_RULES.LIMITS.eventTitle) || eventTitleFrom("", type, subject),
         description: field("ev-description").trim().slice(0, 500),
         repeat: every === 1 || every === 2 ? { every, until: until || "" } : null
     };
@@ -414,6 +414,7 @@ function openEventModal({ id = null, date = "", subject = "", type = "" } = {}) 
 
             const ev = { id: uid(), title: values.title, time: values.time, type: values.type, subject: values.subject, description: values.description };
             if (values.repeat) ev.repeat = values.repeat;
+            if (!allowEvent(ev, values.date)) return;
             (state.calendar[values.date] ||= []).push(ev);
 
             addActivity(`Ai adăugat „${ev.title}” pentru ${getDateLabel(values.date)}${ev.repeat ? " (se repetă)" : ""}.`);
@@ -436,6 +437,7 @@ function saveEventEdits(id, values) {
         return;
     }
     const { ev, start } = found;
+    if (!allowEvent({ ...ev, ...values }, values.date, ev.id)) return;
 
     Object.assign(ev, { title: values.title, time: values.time, type: values.type, subject: values.subject, description: values.description });
 
@@ -486,6 +488,8 @@ function moveOccurrence(id, from, to) {
         showToast("⚠️ Evenimentul are deja o notă, așa că rămâne la data lui.");
         return;
     }
+    const moveWhy = realEventProblem(ev, to, ev.id);
+    if (moveWhy) { showToast(`⚠️ ${moveWhy}`, { duration: 4500 }); return; }
 
     if (ev.repeat) {
         ev.skipDates = [...new Set([...(ev.skipDates || []), from])];
@@ -594,6 +598,7 @@ function quickGradeForEvent(id, date, val) {
     const v = parseStrictInteger(val, 1, 10);
     if (!found || v === null || !canGradeOccurrence(found.ev, date, gradeLinks())) return;
     const { ev } = found;
+    if (!allowGrade(ev.subject, { val: v, date })) return;
     withUndo(`Ai adăugat nota ${v} la ${ev.subject} („${ev.title}”).`, () => {
         state.subjects[ev.subject].grades.push({ id: uid(), val: v, type: GRADE_TYPE_FOR_EVENT[ev.type] || "Test", date, eventId: ev.id, eventDate: date });
         addActivity(`Ai adăugat nota ${v} (${GRADE_TYPE_FOR_EVENT[ev.type] || "Test"}) la ${ev.subject}.`);

@@ -2,7 +2,8 @@
    Aplicația trimite doar ce s-a schimbat și cere doar ce s-a schimbat după ultimul rev văzut, așa că două dispozitive
    pot lucra în același timp: fiecare notă, materie sau eveniment e o înregistrare separată (ultima scriere câștigă). */
 import type { Db } from "../../db.js";
-import { forbidden } from "../../errors.js";
+import { badRequest, forbidden } from "../../errors.js";
+import { rules } from "../../rules.js";
 import type { AccountsService } from "../accounts/service.js";
 import type { Actor } from "../accounts/policy.js";
 import { checkRecord, type Collection } from "./collections.js";
@@ -48,7 +49,42 @@ export class RecordsService {
                 throw forbidden("Importul poate scrie doar notele importate de el.");
             }
         }
+        if (access.write !== "grades") await this.checkRealism(studentId, changes);
         return this.write(studentId, changes, by);
+    }
+
+    /**
+     * Realismul (aceleași reguli ca aplicația, din shared/rules.js), doar pentru înregistrările NOI:
+     * cel mult 8 lucruri și 3 evaluări pe zi, o teză pe zi, un test pe zi la o materie; cel mult 2 note pe zi la o materie.
+     * Ce exista deja (date vechi) se poate încă actualiza sau șterge.
+     */
+    private async checkRealism(studentId: string, changes: Change[]) {
+        const fresh = changes.filter(c => c.data !== null && (c.collection === "event" || c.collection === "grade"));
+        if (!fresh.length) return;
+        const existing = new Set((await this.db.query<{ collection: string; record_id: string }>(
+            "SELECT collection, record_id FROM data_records WHERE student_id = $1 AND collection IN ('event','grade') AND record_id = ANY($2)",
+            [studentId, fresh.map(c => c.id)])).map(r => `${r.collection}/${r.record_id}`));
+        const added = fresh.filter(c => !existing.has(`${c.collection}/${c.id}`));
+        if (!added.length) return;
+        const live = (await this.db.query<{ collection: string; record_id: string; data: Record<string, unknown> }>(
+            "SELECT collection, record_id, data FROM data_records WHERE student_id = $1 AND collection IN ('event','grade') AND NOT deleted", [studentId]));
+        const events = live.filter(r => r.collection === "event").map(r => r.data);
+        const grades = live.filter(r => r.collection === "grade").map(r => r.data);
+        for (const c of added) {
+            const d = c.data as Record<string, unknown>;
+            if (c.collection === "event") {
+                const day = events.filter(e => e.start === d.start) as { type?: string; subject?: string; title?: string }[];
+                const why = rules.eventProblem(d as { type?: string; subject?: string; title?: string }, String(d.start), day);
+                if (why) throw badRequest("unrealistic", `event/${c.id}: ${why}`);
+                events.push(d);
+            } else if (typeof d.date === "string") {
+                const same = grades.filter(g => g.mat === d.mat && g.date === d.date).length;
+                const all = grades.filter(g => g.date === d.date).length;
+                if (same >= rules.LIMITS.gradesPerSubjectPerDay) throw badRequest("unrealistic", `grade/${c.id}: cel mult ${rules.LIMITS.gradesPerSubjectPerDay} note pe zi la aceeași materie.`);
+                if (all >= rules.LIMITS.gradesPerDay) throw badRequest("unrealistic", `grade/${c.id}: prea multe note într-o zi.`);
+                grades.push(d);
+            }
+        }
     }
 
     /** Fără verificări de acces: pentru celelalte module ale serverului (clasele, importul). */

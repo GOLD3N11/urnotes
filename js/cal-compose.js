@@ -259,6 +259,8 @@ function ccSubmit() {
     const subject = state.subjects[cc.subject] ? cc.subject : "";
     const ev = { id: uid(), title: eventTitleFrom(text, cc.type, subject), time: TIME_RE.test(cc.time) ? cc.time : "", type: cc.type, subject, description: "" };
     const date = cc.date;
+    ev.title = URN_RULES.cleanText(ev.title, URN_RULES.LIMITS.eventTitle) || eventTitleFrom("", cc.type, subject);
+    if (!allowEvent(ev, date)) return;
     withUndo(`✅ Am pus „${ev.title}”, ${relativeDayLabel(date)}.`, () => {
         (state.calendar[date] ||= []).push(ev);
         addActivity(`Ai adăugat „${ev.title}” pentru ${getDateLabel(date)}.`);
@@ -279,8 +281,12 @@ function ccSubmitGrade() {
         return;
     }
     const grade = { id: uid(), val: cc.val, type: cc.gtype, date: cc.date > ccToday() ? ccToday() : cc.date };
+    // în weekend sau în vacanță nu se pun note: dacă n-ai ales tu ziua, nota merge pe ultima zi de școală
+    const moved = !cc.manual.has("date") && !isSchoolDay(grade.date);
+    if (moved) grade.date = lastSchoolDay(grade.date);
+    if (!allowGrade(mat, grade)) return;
     try { localStorage.setItem(CC_GTYPE_KEY, cc.gtype); } catch (_) { /* fără stocare */ }
-    withUndo(`✅ Am pus ${grade.val} (${grade.type}) la ${mat}.`, () => {
+    withUndo(`✅ Am pus ${grade.val} (${grade.type}) la ${mat}${moved ? `, ${weekdayLabel(grade.date)} (ultima zi de școală)` : ""}.`, () => {
         state.subjects[mat].grades.push(grade);
         addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${mat}.`);
     });

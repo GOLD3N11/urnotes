@@ -1847,3 +1847,5 @@ body.pfx-on .tab-content .buddy, body.pfx-on .tab-content .buddy *, body.pfx-on 
 .pagefx-art { contain: layout paint; }
 /* Progres e o pagină lungă: secțiunile de mai jos se așează abia când ajungi la ele (deschiderea e mult mai lină) */
 #stats-body > .stats-section:not(#sec-now) { content-visibility: auto; contain-intrinsic-size: auto 720px; }
+.azi-real { border-color: color-mix(in srgb, var(--warn, #B7791F) 45%, var(--rule)); background: color-mix(in srgb, var(--warn, #B7791F) 8%, var(--sheet)); }
+.azi-real h3 .ico { color: var(--warn, #B7791F); }

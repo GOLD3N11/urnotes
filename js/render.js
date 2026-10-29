@@ -62,7 +62,7 @@ function renderNotificationBadge() {
     const badge = $("notif-badge");
     if (!badge) return;
     const unread = alerts.filter(a => a.unread).length;
-    badge.textContent = unread;
+    badge.textContent = unread > 99 ? "99+" : unread;
     badge.hidden = unread === 0;
     $("notif-btn")?.setAttribute("aria-label", unread > 0 ? `Notificări (${unread} necitite)` : "Notificări");
     // Pe ecranul principal (iPhone, Android), iconița aplicației arată același număr ca clopoțelul.

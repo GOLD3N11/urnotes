@@ -802,6 +802,7 @@ function setupRowsError() {
         if (!r.on || r.exists) continue;
         const name = (r.kind === "opt" ? optionalName(r.topic) : r.name).trim().replace(/\s+/g, " ");
         if (!name) return "O materie bifată nu are nume.";
+        if (r.kind === "opt" && (r.topic || "").trim() && (URN_RULES.looksLikeJunk(r.topic) || /\p{Extended_Pictographic}/u.test(r.topic))) return "Scrie tema opționalului (ex: Educație financiară).";
         if (name === "__proto__" || name === PURTARE_KEY || isLegacyPurtareName(name)) return "Purtarea e deja în catalog; nu o adăuga ca materie.";
         const low = name.toLocaleLowerCase("ro");
         if (seen.has(low)) return `„${name}” apare de două ori.`;

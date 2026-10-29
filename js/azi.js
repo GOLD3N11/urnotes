@@ -327,6 +327,7 @@ function renderDashboard() {
     if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; }
     if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
     if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
+    if ($("azi-real") && typeof realismCardHTML === "function") { const rh = guest?.on ? "" : realismCardHTML(); $("azi-real").innerHTML = rh; $("azi-real").hidden = !rh; }
     if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
     if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
     if ($("azi-tiles")) {

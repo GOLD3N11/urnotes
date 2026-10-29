@@ -232,7 +232,8 @@ const SETUP_ACTIONS = {
     "setup-quick-grade": () => {
         const st = ui.setup;
         if (!state.subjects[st.qMat] || !st.qVal) return;
-        const grade = { id: uid(), val: st.qVal, type: "Test", date: getLocalDateKey() };
+        const grade = { id: uid(), val: st.qVal, type: "Test", date: lastSchoolDay() };
+        if (!allowGrade(st.qMat, grade)) return;
         state.subjects[st.qMat].grades.push(grade);
         addActivity(`Ai adăugat nota ${grade.val} (${grade.type}) la ${st.qMat}.`);
         refresh();

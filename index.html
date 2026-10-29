@@ -65,6 +65,7 @@
     <script src="js/palette.js" defer></script>
     <script src="js/settings-sections.js" defer></script>
     <script src="js/timetable.js" defer></script>
+    <script src="js/realism.js" defer></script>
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
@@ -255,6 +256,7 @@
                     <div class="azi-col azi-col-main">
                         <!-- „Acum”: un singur lucru de făcut, primul pe pagină -->
                         <section class="azi-next-wrap" id="azi-next" aria-labelledby="azi-next-title" hidden></section>
+                        <section class="glass-card azi-card azi-real" id="azi-real" aria-labelledby="azi-real-title" hidden></section>
                         <section class="glass-card azi-card azi-year" id="azi-year" aria-labelledby="azi-year-title" hidden></section>
                         <section class="glass-card azi-card azi-todo" id="azi-todo" aria-labelledby="azi-todo-title"></section>
                         <section class="glass-card azi-card azi-day" id="azi-day" aria-labelledby="azi-day-title"></section>
@@ -756,6 +758,7 @@
                         <div class="backup-danger mt-3">
                             <button type="button" class="btn btn-text text-danger btn-sm" data-action="reset-menu"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg> Șterge notele sau începe de la zero</button>
                             <button type="button" class="btn btn-text text-danger btn-sm" data-action="reset-settings">Restabilește setările implicite</button>
+                            <button type="button" class="btn btn-text btn-sm" data-action="reality-clean"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg> Curăță ce nu pare real</button>
                         </div>
 
                         <p id="backup-status" class="backup-status mt-3" aria-live="polite"></p>

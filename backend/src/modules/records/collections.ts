@@ -1,6 +1,7 @@
 /* Ce fel de înregistrări are un elev și cum arată fiecare. Verificările sunt de formă (nu de conținut):
    aplicația normalizează datele oricum, dar serverul nu primește gunoi sau înregistrări uriașe. */
 import { badRequest } from "../../errors.js";
+import { rules } from "../../rules.js";
 
 export type Collection = "subject" | "grade" | "event" | "doc";
 export const COLLECTIONS: Collection[] = ["subject", "grade", "event", "doc"];
@@ -20,13 +21,16 @@ export function checkRecord(collection: string, id: string, data: unknown): void
     switch (collection) {
         case "subject":
             if (!isObj(data) || typeof data.ore !== "number" || typeof data.target !== "number") throw bad(collection, id, "materia are nevoie de ore și țintă");
+            if (data.ore < 0 || data.ore > 10 || data.target < 1 || data.target > 10) throw bad(collection, id, "ore sau țintă nerealiste");
             break;
         case "grade":
-            if (!isObj(data) || typeof data.mat !== "string" || !data.mat || typeof data.val !== "number" || data.val < 1 || data.val > 10) throw bad(collection, id, "nota are nevoie de materie și o valoare 1–10");
+            if (!isObj(data) || typeof data.mat !== "string" || !data.mat || typeof data.val !== "number" || !Number.isInteger(data.val) || data.val < 1 || data.val > 10) throw bad(collection, id, "nota are nevoie de materie și o valoare întreagă 1–10");
             if (data.date !== undefined && !(typeof data.date === "string" && DATE.test(data.date))) throw bad(collection, id, "dată invalidă");
             break;
         case "event":
             if (!isObj(data) || typeof data.start !== "string" || !DATE.test(data.start) || typeof data.title !== "string") throw bad(collection, id, "evenimentul are nevoie de zi și titlu");
+            if ([...data.title].length > rules.LIMITS.eventTitle + 20) throw bad(collection, id, "titlu prea lung");
+            if (typeof data.type === "string" && rules.NEEDS_SUBJECT.includes(data.type) && !data.subject) throw bad(collection, id, "un test sau o temă are nevoie de materie");
             break;
         case "doc":
             if (!DOC_KEYS.includes(id)) throw bad(collection, id, "cheie necunoscută");

@@ -67,9 +67,11 @@ Object.assign(ACTIONS, {
     "quick-grade-add": el => {
         const mat = quickGrade.mat, val = Number(el.dataset.val), type = quickGrade.type;
         if (!state.subjects[mat] || !(val >= 1 && val <= 10)) return closeQuickGrade();
+        const date = lastSchoolDay();
+        if (!allowGrade(mat, { val, date })) return;
         closeQuickGrade({ focus: true });
         withUndo(`✅ Ai pus ${val} (${type}) la ${mat}.`, () => {
-            state.subjects[mat].grades.push({ id: uid(), val, type, date: getLocalDateKey() });
+            state.subjects[mat].grades.push({ id: uid(), val, type, date });
             addActivity(`Ai adăugat nota ${val} (${type}) la ${mat}.`);
         });
         celebrateGrade(val);
