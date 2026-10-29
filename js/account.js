@@ -633,6 +633,9 @@ function openAccountPanel() {
                 <small>${cloud.lastSyncAt ? `Ultima sincronizare: ${escapeHTML(formatDateTime(new Date(cloud.lastSyncAt)))}` : "Încă nesincronizat"}</small>
                 <small>Notele se salvează în cont la câteva secunde după fiecare modificare și apar singure pe celelalte dispozitive.</small>
             </div>
+            <p class="account-mode">${icon(typeof api !== "undefined" && api.enabled ? "check-circle" : "info")} ${typeof api !== "undefined" && api.enabled
+                ? `Se sincronizează prin <b>serverul urNotes</b> (${escapeHTML(String(window.URNOTES_API).replace(/^https?:\/\//, ""))})${window.URNOTES_API_LOCAL ? ` · doar pe acest dispozitiv · <a href="?api=off">Oprește</a>` : ""}`
+                : "Se sincronizează prin Firebase (varianta fără server)."}</p>
             ${typeof api !== "undefined" && api.enabled ? `<div class="account-links" id="account-links"><p class="muted-small">Se încarcă…</p></div>` : ""}
             <div class="account-actions is-col">
                 <button type="button" class="btn btn-glass" data-action="sync-now">${icon("refresh")} Sincronizează acum</button>

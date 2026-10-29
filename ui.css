@@ -1851,3 +1851,6 @@ body.pfx-on .tab-content .buddy, body.pfx-on .tab-content .buddy *, body.pfx-on 
 .azi-real h3 .ico { color: var(--warn, #B7791F); }
 /* pe calculator, cu o fereastră lipită sau plutitoare deschisă, pagina de dedesubt se derulează în continuare */
 body.modal-open:has(#action-modal.is-modeless:not([hidden])), body:has(#notif-panel.is-modeless:not([hidden])) { overflow: visible; }
+.account-mode { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.account-mode .ico { width: 16px; height: 16px; color: var(--accent-ink); }
+.account-mode a { color: var(--accent-ink); font-weight: 700; }
