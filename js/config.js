@@ -204,7 +204,7 @@ const SUBJECT_COLOR_FIXED = {
     "Logică, argumentare și comunicare": "grape", "Psihologie": "pink", "Economie": "mint", "Filosofie": "grape", "Dirigenție": "teal"
 };
 function subjectColor(mat = "") {
-    if (SUBJECT_COLOR_FIXED[mat]) return SUBJECT_COLOR_FIXED[mat];
+    if (Object.hasOwn(SUBJECT_COLOR_FIXED, mat)) return SUBJECT_COLOR_FIXED[mat];
     let h = 0;
     for (const ch of String(mat)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
     return SUBJECT_COLORS[h % SUBJECT_COLORS.length];

@@ -1,7 +1,7 @@
 /* urNotes — lucru fără internet.
    Fișierele aplicației: mai întâi rețeaua (ca să primești mereu ultima versiune), copia salvată doar când nu e semnal.
    Fonturile și Chart.js: copia salvată imediat, actualizată în fundal. Firebase nu trece pe aici. */
-const CACHE = "urnotes-v36";
+const CACHE = "urnotes-v37";
 const APP_JS = ["shared/rules.js", "js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/motion.js", "js/fluid.js", "js/pagefx.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/quickgrade.js", "js/cal-compose.js", "js/palette.js", "js/settings-sections.js", "js/timetable.js", "js/realism.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/api.js", "js/serversync.js", "js/viewer.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "js/state.js", "js/boot.js", "js/main.js"];
 const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "tokens.css", "cloud.js", "firebase-config.js", "api-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
 const REMIND_CACHE = "urnotes-remind"; // amintirile scrise de aplicație (vezi checkReminder în js/reminders.js)
@@ -22,7 +22,9 @@ self.addEventListener("fetch", event => {
     if (req.method !== "GET") return;
     const url = new URL(req.url);
     if (url.origin === location.origin) {
-        event.respondWith(fetch(req).then(res => {
+        // „no-cache”: întreabă mereu serverul (răspuns scurt 304 dacă nu s-a schimbat), ca după o actualizare
+        // să nu amestecăm fișiere noi cu unele vechi din memoria browserului (GitHub Pages le ține 10 minute)
+        event.respondWith(fetch(req, { cache: "no-cache" }).then(res => {
             if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
             return res;
         }).catch(() => caches.match(req, { ignoreSearch: true }).then(hit => hit || (req.mode === "navigate" ? caches.match("index.html") : Response.error()))));

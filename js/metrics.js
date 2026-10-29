@@ -171,21 +171,38 @@ function addActivity(text) {
  * Punctul central: recalculează, salvează, apoi redesenează doar tabul vizibil.
  * Salvarea are loc înainte de randare, așa că o eroare de afișare nu poate pierde date.
  */
-function refresh() {
-    guestGuard(); // vizitatorii nu pot schimba nimic: o modificare ajunsă în date se anulează aici
-    syncProgrammeHours();
-    metrics = calculateMetrics();
-    checkModuleRollover();
-    updateHistoryPoint();
-    if (!guest.on) checkAchievements(); // vizitatorii (și caietul de exemplu) nu primesc realizări
-    checkPalLevel();
-    updatePlan();
-    alerts = generateAlerts();
-    pruneTimetable();
-    pruneSimulator();
-    saveState();
+/** Rulează un pas; dacă eșuează (date ciudate, o versiune amestecată), îl notăm și mergem mai departe. */
+function safeStep(name, fn) {
+    try { return fn(); } catch (err) {
+        console.error(`Pasul „${name}” a eșuat.`, err);
+        reportRenderError(err);
+        return undefined;
+    }
+}
+/** Un singur mesaj discret, nu câte unul la fiecare redesenare. */
+function reportRenderError() {
+    if (reportRenderError.shown) return;
+    reportRenderError.shown = true;
+    setTimeout(() => showToast("⚠️ O parte din aplicație n-a putut fi afișată. Restul merge; reîncarcă pagina dacă lipsește ceva."), 0);
+}
 
-    renderNotificationBadge();
-    if (!$("notif-panel")?.hidden) renderAlerts();
-    renderActiveTab({ keepSettingsForm: true });
+function refresh() {
+    safeStep("guest", () => guestGuard()); // vizitatorii nu pot schimba nimic: o modificare ajunsă în date se anulează aici
+    safeStep("programă", () => syncProgrammeHours());
+    const m = safeStep("medii", () => calculateMetrics());
+    if (m) metrics = m;
+    safeStep("module", () => checkModuleRollover());
+    safeStep("istoric", () => updateHistoryPoint());
+    if (!guest.on) safeStep("realizări", () => checkAchievements()); // vizitatorii (și caietul de exemplu) nu primesc realizări
+    safeStep("coleg", () => checkPalLevel());
+    safeStep("plan", () => updatePlan());
+    const a = safeStep("alerte", () => generateAlerts());
+    if (Array.isArray(a)) alerts = a;
+    safeStep("orar", () => pruneTimetable());
+    safeStep("simulator", () => pruneSimulator());
+    safeStep("salvare", () => saveState());
+
+    safeStep("insignă", () => renderNotificationBadge());
+    if (!$("notif-panel")?.hidden) safeStep("notificări", () => renderAlerts());
+    safeStep("pagina", () => renderActiveTab({ keepSettingsForm: true }));
 }

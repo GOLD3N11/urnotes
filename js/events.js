@@ -156,7 +156,13 @@ function bindEvents() {
             requireAccount();
             return;
         }
-        ACTIONS[el.dataset.action]?.(el, event);
+        try {
+            ACTIONS[el.dataset.action]?.(el, event);
+        } catch (err) {
+            // o acțiune care eșuează nu blochează restul aplicației
+            console.error(`Acțiunea „${el.dataset.action}” a eșuat.`, err);
+            if (typeof reportRenderError === "function") reportRenderError(err);
+        }
     });
     document.addEventListener("input", event => {
         if (event.target.id === "set-name" || event.target.id === "set-buddy") renderBuddyPreview();

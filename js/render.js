@@ -31,10 +31,10 @@ function renderPalChrome() {
 }
 
 function renderActiveTab({ keepSettingsForm = false } = {}) {
-    renderPalChrome();
-    renderSideTree();
-    renderPagePal(ui.activeTab); // colegul din antet (pe fiecare pagină)
-    renderPageIcons();
+    safeStep("coleg (meniu)", () => renderPalChrome());
+    safeStep("meniul lateral", () => renderSideTree());
+    safeStep("colegul din antet", () => renderPagePal(ui.activeTab));
+    safeStep("iconițele paginilor", () => renderPageIcons());
     // Formularul de setări nu e redesenat la fiecare calcul, ca să nu pierdem ce scrie utilizatorul.
     if (keepSettingsForm && ui.activeTab === "tab-setari") return;
 
@@ -45,6 +45,7 @@ function renderActiveTab({ keepSettingsForm = false } = {}) {
         render();
     } catch (err) {
         console.error(`Eroare la afișarea ${ui.activeTab}.`, err);
+        reportRenderError(err);
     }
     renderPageIcons(); // unele pagini își rescriu titlul (ex. Examene → „Bacalaureatul”)
 }

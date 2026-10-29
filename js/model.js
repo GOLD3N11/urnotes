@@ -154,7 +154,8 @@ const SUBJECT_SHORT = {
     "Limba și literatura maternă": "Maternă"
 };
 function shortSubjectName(mat) {
-    if (SUBJECT_SHORT[mat]) return SUBJECT_SHORT[mat];
+    mat = String(mat ?? "");
+    if (Object.hasOwn(SUBJECT_SHORT, mat)) return SUBJECT_SHORT[mat];
     const m = /^Limba (\S+)$/.exec(mat);
     return m ? m[1][0].toUpperCase() + m[1].slice(1) : mat;
 }

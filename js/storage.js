@@ -245,8 +245,15 @@ function normalizeState(s) {
 
     // Materii: păstrăm doar câmpurile salvate (versiunile vechi salvau și valorile calculate).
     const subjects = {};
-    for (const [mat, sub] of Object.entries(isPlainObject(s.subjects) ? s.subjects : {})) {
-        if (!isPlainObject(sub) || !mat.trim() || mat === "__proto__" || mat === PURTARE_KEY) continue;
+    const reserved = new Set(Object.getOwnPropertyNames(Object.prototype));
+    for (const [rawMat, sub] of Object.entries(isPlainObject(s.subjects) ? s.subjects : {})) {
+        if (!isPlainObject(sub) || !rawMat.trim() || rawMat === "__proto__" || rawMat === PURTARE_KEY) continue;
+        // nume ca „constructor” sau „toString” ar încurca datele: păstrăm materia (și notele), cu un nume sigur
+        let mat = rawMat;
+        if (reserved.has(mat)) {
+            mat = `${mat} (materie)`;
+            Object.values(isPlainObject(s.calendar) ? s.calendar : {}).forEach(list => Array.isArray(list) && list.forEach(ev => { if (ev && ev.subject === rawMat) ev.subject = mat; }));
+        }
         subjects[mat] = {
             ore: clampNumber(sub.ore, 0.5, MAX_ORE, 2),
             target: clampNumber(sub.target, 1, 10, 10),

@@ -306,34 +306,48 @@ function homeTodo(links, today) {
 function renderDashboard() {
     if (!$("azi-day")) return;
     const now = new Date();
-    const links = gradeLinks();
-    const days = homeDays(now);
-    const todo = homeTodo(links, days.today);
+    // Fiecare bucată a paginii se desenează separat: dacă una eșuează (date ciudate), restul paginii rămâne folosibil.
+    const part = (name, fn, fallbackId = "") => {
+        try { return fn(); } catch (err) {
+            console.error(`Azi: „${name}” n-a putut fi afișat.`, err);
+            if (typeof reportRenderError === "function") reportRenderError(err);
+            if (fallbackId && $(fallbackId)) { $(fallbackId).hidden = false; $(fallbackId).innerHTML = `<p class="azi-more-line">${icon("alert")} Partea asta n-a putut fi afișată.</p>`; }
+            return undefined;
+        }
+    };
+    const links = part("legături", () => gradeLinks()) || new Map();
+    const days = part("zile", () => homeDays(now)) || { today: getLocalDateKey(now), date: getLocalDateKey(now), next: null, pick: "today" };
+    const todo = part("de făcut", () => homeTodo(links, days.today)) || { missed: [], homework: [], tests: [] };
 
-    const mod = moduleAt(days.today);
-    setText("azi-date", [
-        longDateLabel(days.today),
-        mod ? `Modulul ${mod.n}, săptămâna ${Math.floor(daysBetween(weekStart(mod.start), days.today) / 7) + 1}` : "Vacanță"
-    ].join(" · "));
-    const first = firstName();
-    setText("h-dashboard", `${greeting(now.getHours())}${first ? `, ${first}` : ""}!`);
-    setText("azi-summary", homeSummary(days, todo));
-    renderBuddy(days, todo);
+    part("data", () => {
+        const mod = moduleAt(days.today);
+        setText("azi-date", [
+            longDateLabel(days.today),
+            mod ? `Modulul ${mod.n}, săptămâna ${Math.floor(daysBetween(weekStart(mod.start), days.today) / 7) + 1}` : "Vacanță"
+        ].join(" · "));
+    });
+    part("salut", () => {
+        const first = firstName();
+        setText("h-dashboard", `${greeting(now.getHours())}${first ? `, ${first}` : ""}!`);
+    });
+    part("rezumat", () => setText("azi-summary", homeSummary(days, todo)));
+    part("colegul", () => renderBuddy(days, todo));
 
-    const step = homeNextStep(days, todo, links);
-    if ($("azi-next")) { const nh = homeNextHTML(step, days.today); $("azi-next").innerHTML = nh; $("azi-next").hidden = !nh; }
-    $("azi-day").innerHTML = homeDayHTML(days, links);
-    $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today, step.key || "");
-    if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; }
-    if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today);
-    if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; }
-    if ($("azi-real") && typeof realismCardHTML === "function") { const rh = guest?.on ? "" : realismCardHTML(); $("azi-real").innerHTML = rh; $("azi-real").hidden = !rh; }
-    if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; }
-    if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; }
-    if ($("azi-tiles")) {
+    const step = part("acum", () => homeNextStep(days, todo, links)) || { kind: "clear" };
+    part("acum", () => { if ($("azi-next")) { const nh = homeNextHTML(step, days.today); $("azi-next").innerHTML = nh; $("azi-next").hidden = !nh; } }, "azi-next");
+    part("orele", () => { $("azi-day").innerHTML = homeDayHTML(days, links); }, "azi-day");
+    part("de făcut", () => { $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today, step.key || ""); }, "azi-todo");
+    part("săptămâna", () => { if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; } }, "azi-week");
+    part("planul", () => { if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today); }, "azi-plan");
+    part("anul", () => { if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; } });
+    part("realism", () => { if ($("azi-real") && typeof realismCardHTML === "function") { const rh = guest?.on ? "" : realismCardHTML(); $("azi-real").innerHTML = rh; $("azi-real").hidden = !rh; } });
+    part("primii pași", () => { if ($("azi-start")) { const st = homeStartHTML(); $("azi-start").innerHTML = st; $("azi-start").hidden = !st; } });
+    part("instalare", () => { if ($("azi-install")) { const ih = homeInstallHTML(); $("azi-install").innerHTML = ih; $("azi-install").hidden = !ih; } });
+    part("plăcile", () => {
+        if (!$("azi-tiles")) return;
         $("azi-tiles").innerHTML = homeTilesHTML(days, todo);
         if (metrics.globalAvg > 0) countUp($("azi-tiles").querySelector(".home-tile.is-hero .home-tile-value"), "gpa", metrics.globalAvg);
-    }
+    });
 }
 
 /** Cele patru cifre ale zilei, ca plăci colorate: media, testele din săptămână, planul de azi, examenul (sau riscul). */
