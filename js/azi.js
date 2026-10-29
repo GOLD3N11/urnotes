@@ -79,14 +79,9 @@ const buddyName = () => state.settings.profile.buddy || DEFAULT_SETTINGS.profile
 const formatAvg = v => Number(v).toFixed(2);
 
 /*
- * Fața mascotei, pe stări. Ochii „normali” au pupilele într-un grup separat (.buddy-pupils),
- * ca să poată urmări cursorul; celelalte stări (râde, „au!”) își desenează singure ochii.
+ * Fața mascotei, pe stări (stilul „marker”, mai jos). Efectele din jur folosesc bLine/STAR/HEART.
  */
 const INK = "#2A1B5C";
-const EYES_OPEN = (r = 4.5) => `<g class="b-eyes-pop"><g class="buddy-eyes">
-    <circle cx="44" cy="55" r="9.5" fill="#FFFFFF"/><circle cx="76" cy="55" r="9.5" fill="#FFFFFF"/>
-    <g class="buddy-pupils"><circle cx="45" cy="56" r="${r}" fill="${INK}"/><circle cx="77" cy="56" r="${r}" fill="${INK}"/></g>
-</g></g>`;
 const bLine = (d, w = 3.6, cls = "") => `<path class="${cls}" d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
 const STAR = (x, y, s = 1, fill = "#FFFFFF") => `<g transform="translate(${x} ${y}) scale(${s})"><path class="b-spark" d="M0 -6 L1.6 -1.6 L6 0 L1.6 1.6 L0 6 L-1.6 1.6 L-6 0 L-1.6 -1.6 Z" fill="${fill}" stroke="${INK}" stroke-width="0.8"/></g>`;
 const HEART = (x, y) => `<g transform="translate(${x} ${y})"><path class="b-heart" d="M0 4 C-7 -1 -4 -7 0 -3 C4 -7 7 -1 0 4 Z" fill="#FF5C8A"/></g>`;
@@ -108,32 +103,39 @@ const BUDDY_FX = {
     shy: `<g class="b-blush-lines">${bLine("M24 66 L27 62M29 67 L32 63M34 68 L37 64", 1.6)}${bLine("M84 64 L87 68M89 63 L92 67M94 62 L97 66", 1.6)}</g>`,
     party: `<g class="b-bits"><rect x="10" y="20" width="5" height="8" rx="1" fill="#FF5C7A"/><rect class="is-late" x="104" y="14" width="5" height="8" rx="1" fill="#4F6BF5"/><rect x="108" y="48" width="5" height="8" rx="1" fill="#2EC4B6"/><rect class="is-late" x="6" y="52" width="5" height="8" rx="1" fill="#FFC93C"/><rect x="58" y="-6" width="5" height="8" rx="1" fill="#9B5DE5"/></g>`
 };
-const STAR_EYE = (x, y) => `<g transform="translate(${x} ${y})"><path class="b-star-eye" d="M0 -10 L2.9 -3 L10 -3 L4.3 1.6 L6.4 9 L0 4.6 L-6.4 9 L-4.3 1.6 L-10 -3 L-2.9 -3 Z" fill="#FFD23F" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/></g>`;
-const SPIRAL = (cx, cy) => `<g transform="translate(${cx} ${cy})"><path class="b-spiral" d="M0 0 m0 -1.5 a1.5 1.5 0 1 1 -1.5 1.5 a3.5 3.5 0 1 1 3.5 3.5 a5.5 5.5 0 1 1 -5.5 -5.5 a7.5 7.5 0 1 1 7.5 7.5" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>`;
+/* Fața „marker”: linii groase, desenate de mână pe post-it (ca un doodle). Ochii stau în .buddy-pupils,
+   așa că se mută spre cursor; .buddy-eyes clipește; clasele b-* sunt animate din CSS după stare. */
+const MK = "#1E2B58";
+const mk = (d, w = 5, cls = "") => `<path class="${cls}" d="${d}" stroke="${MK}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+const mkFill = (d, cls = "") => `<path class="${cls}" d="${d}" fill="${MK}" stroke="${MK}" stroke-width="3.6" stroke-linejoin="round"/>`;
+/** Ochii-liniuță (dy mută privirea în sus/jos, h e înălțimea). */
+const MK_EYES = (dy = 0, h = 11, dx = 0) => `<g class="b-eyes-pop"><g class="buddy-eyes"><g class="buddy-pupils">${mk(`M${44 + dx} ${49 + dy} L${44.5 + dx} ${49 + dy + h}M${76 + dx} ${49 + dy} L${75.5 + dx} ${49 + dy + h}`, 5.4)}</g></g></g>`;
+const MK_DOTS = (r = 4.6) => `<g class="b-eyes-pop"><g class="buddy-eyes"><g class="buddy-pupils"><circle cx="44" cy="55" r="${r}" fill="${MK}"/><circle cx="76" cy="55" r="${r}" fill="${MK}"/></g></g></g>`;
+const MK_HAPPY_EYES = (cls = "b-squint") => mk("M37 59 L44 51 L51 59M69 59 L76 51 L83 59", 5, cls);
+const MK_OPEN_MOUTH = `<g class="b-mouth">${mkFill("M45 69 C50 84 70 84 75 69 Z")}<path d="M52 79 Q60 84 68 79" fill="#FF7AA8"/></g>`;
+const STAR_EYE = (x, y) => `<g transform="translate(${x} ${y})"><path class="b-star-eye" d="M0 -10 L2.9 -3 L10 -3 L4.3 1.6 L6.4 9 L0 4.6 L-6.4 9 L-4.3 1.6 L-10 -3 L-2.9 -3 Z" fill="#FFF3B0" stroke="${MK}" stroke-width="3" stroke-linejoin="round"/></g>`;
+const MK_HEART_EYE = (x, y) => `<g transform="translate(${x} ${y}) scale(1.6)"><path class="b-heart-eye" d="M0 4 C-7 -1 -4 -7 0 -3 C4 -7 7 -1 0 4 Z" fill="#FF5C8A" stroke="${MK}" stroke-width="1.8" stroke-linejoin="round"/></g>`;
+const SPIRAL = (cx, cy) => `<g transform="translate(${cx} ${cy})"><path class="b-spiral" d="M0 0 m0 -1.5 a1.5 1.5 0 1 1 -1.5 1.5 a3.5 3.5 0 1 1 3.5 3.5 a5.5 5.5 0 1 1 -5.5 -5.5 a7.5 7.5 0 1 1 7.5 7.5" stroke="${MK}" stroke-width="3.6" fill="none" stroke-linecap="round"/></g>`;
 const BUDDY_FACES = {
-    happy: { eyes: EYES_OPEN(), mouth: bLine("M50 72 Q60 84 70 72", 3.6, "b-mouth") },
-    focused: { eyes: EYES_OPEN(), mouth: bLine("M52 76 H68", 3.6, "b-mouth") },
-    worried: { eyes: EYES_OPEN(), brows: bLine("M36 41 L50 44M84 41 L70 44", 3, "b-brows"), mouth: bLine("M50 81 Q60 70 70 81", 3.6, "b-mouth") },
-    giggle: { eyes: bLine("M36 57 Q44 48 52 57M68 57 Q76 48 84 57", 3.4, "b-squint"), mouth: `<g class="b-mouth"><path d="M47 69 Q60 90 73 69 Z" fill="${INK}"/><path d="M53 79 Q60 85 67 79" fill="#FF7AA8"/></g>` },
-    surprised: { eyes: EYES_OPEN(3), brows: bLine("M36 39 Q44 34 51 38M69 38 Q76 34 84 39", 3, "b-brows"), mouth: `<ellipse class="b-mouth" cx="60" cy="78" rx="5.5" ry="7" fill="${INK}"/>` },
-    ouch: { eyes: bLine("M38 50 L50 61M50 50 L38 61", 3.4, "b-x") + bLine("M70 50 L82 61M82 50 L70 61", 3.4, "b-x"), mouth: bLine("M47 79 q4.3 -5 8.6 0 t8.6 0 t8.6 0", 3.2, "b-mouth") },
-    dizzy: { eyes: SPIRAL(44, 55) + SPIRAL(76, 55), mouth: bLine("M48 80 Q54 74 60 80 T72 80", 3.2, "b-mouth") },
-    angry: { eyes: EYES_OPEN(4), brows: bLine("M35 42 L51 48M85 42 L69 48", 3.6, "b-brows"), mouth: bLine("M50 80 Q60 73 70 80", 3.6, "b-mouth"), hot: true },
-    love: { eyes: HEART(44, 55).replace('class="b-heart"', 'class="b-heart-eye"').replace("translate(44 55)", "translate(44 55) scale(1.7)") + HEART(76, 55).replace('class="b-heart"', 'class="b-heart-eye"').replace("translate(76 55)", "translate(76 55) scale(1.7)"),
-        mouth: bLine("M48 71 Q60 86 72 71", 3.6, "b-mouth"), hot: true },
-    // fețe noi: somnoros, face cu ochiul, ochi-steluță, trist, „cool”, gânditor, rușinos, petrecere
-    sleepy: { eyes: bLine("M36 55 Q44 61 52 55M68 55 Q76 61 84 55", 3.2, "b-sleep-eyes"), mouth: `<ellipse class="b-mouth" cx="60" cy="79" rx="3.6" ry="4.2" fill="${INK}"/>` },
-    wink: { eyes: `<g class="b-eyes-pop"><g class="buddy-eyes"><circle cx="44" cy="55" r="9.5" fill="#FFFFFF"/><g class="buddy-pupils"><circle cx="45" cy="56" r="4.5" fill="${INK}"/></g></g></g>` + bLine("M68 57 Q76 49 84 57", 3.4, "b-wink"),
-        mouth: bLine("M49 72 Q61 84 73 69", 3.6, "b-mouth") },
-    starry: { eyes: `<g class="b-star-eyes">${STAR_EYE(44, 55)}${STAR_EYE(76, 55)}</g>`,
-        mouth: `<g class="b-mouth"><path d="M46 68 Q60 92 74 68 Z" fill="${INK}"/><path d="M52 80 Q60 87 68 80" fill="#FF7AA8"/></g>`, hot: true },
-    sad: { eyes: EYES_OPEN(4.2).replace(/cy="56"/g, 'cy="58"'), brows: bLine("M36 45 L50 41M84 45 L70 41", 3, "b-brows"), mouth: bLine("M50 83 Q60 73 70 83", 3.6, "b-mouth") },
-    proud: { eyes: `<g class="b-shades"><path d="M29 47 H58 V54 Q58 64 46 64 Q32 64 30 54 Z" fill="${INK}"/><path d="M62 47 H91 V54 Q89 64 75 64 Q62 64 62 54 Z" fill="${INK}"/><path d="M57 50 H63" stroke="${INK}" stroke-width="3.4"/></g>`,
-        mouth: bLine("M49 76 Q62 83 73 71", 3.6, "b-mouth") },
-    thinking: { eyes: EYES_OPEN(4).replace('cx="45" cy="56"', 'cx="48" cy="52"').replace('cx="77" cy="56"', 'cx="80" cy="52"'), brows: bLine("M36 42 Q44 39 51 42M69 40 Q77 36 84 39", 2.8, "b-brows"),
-        mouth: bLine("M52 79 q3 -3 6 0 t6 0 t6 0", 3, "b-mouth") },
-    shy: { eyes: EYES_OPEN(4).replace(/cy="56"/g, 'cy="60"'), mouth: bLine("M54 76 Q60 81 66 76", 3.2, "b-mouth"), hot: true },
-    party: { eyes: bLine("M36 57 Q44 48 52 57M68 57 Q76 48 84 57", 3.4, "b-squint"), mouth: `<g class="b-mouth"><path d="M46 69 Q60 90 74 69 Z" fill="${INK}"/><path d="M52 79 Q60 85 68 79" fill="#FF7AA8"/></g>`, hot: true }
+    happy: { eyes: MK_EYES(), mouth: mk("M45 70 C51 80 68 81 75 68", 5, "b-mouth") },
+    focused: { eyes: MK_EYES(1, 10), brows: mk("M37 44 L50 45M70 45 L83 44", 4, "b-brows"), mouth: mk("M50 75 L70 74", 5, "b-mouth") },
+    worried: { eyes: MK_EYES(2), brows: mk("M36 44 L50 40M84 44 L70 40", 4, "b-brows"), mouth: mk("M48 77 q4 -4 8 0 t8 0 t8 0", 4.4, "b-mouth") },
+    giggle: { eyes: MK_HAPPY_EYES(), mouth: MK_OPEN_MOUTH },
+    surprised: { eyes: MK_DOTS(4.8), brows: mk("M36 41 Q43 35 50 39M70 39 Q77 35 84 41", 4, "b-brows"), mouth: `<ellipse class="b-mouth" cx="60" cy="77" rx="6" ry="7.5" fill="none" stroke="${MK}" stroke-width="4.6"/>` },
+    ouch: { eyes: mk("M38 50 L50 61M50 50 L38 61", 5, "b-x") + mk("M70 50 L82 61M82 50 L70 61", 5, "b-x"), mouth: mk("M47 79 l4.3 -4 l4.3 4 l4.3 -4 l4.3 4 l4.3 -4 l4.3 4", 4.2, "b-mouth") },
+    dizzy: { eyes: SPIRAL(44, 55) + SPIRAL(76, 55), mouth: mk("M48 79 Q54 73 60 79 T72 79", 4.4, "b-mouth") },
+    angry: { eyes: MK_EYES(3, 8), brows: mk("M35 42 L51 48M85 42 L69 48", 5, "b-brows"), mouth: mk("M49 80 Q60 72 71 80", 5, "b-mouth"), hot: true },
+    love: { eyes: MK_HEART_EYE(44, 55) + MK_HEART_EYE(76, 55), mouth: mk("M46 70 C52 80 68 80 74 70", 5, "b-mouth"), hot: true },
+    sleepy: { eyes: mk("M37 57 Q44 62 51 57M69 57 Q76 62 83 57", 5, "b-sleep-eyes"), mouth: `<ellipse class="b-mouth" cx="60" cy="77" rx="3.4" ry="4" fill="none" stroke="${MK}" stroke-width="4"/>` },
+    wink: { eyes: `<g class="b-eyes-pop"><g class="buddy-eyes"><g class="buddy-pupils">${mk("M44 49 L44.5 60", 5.4)}</g></g></g>` + mk("M69 58 L76 51 L83 58", 5, "b-wink"),
+        mouth: mk("M46 69 C52 80 67 80 75 66", 5, "b-mouth") },
+    starry: { eyes: `<g class="b-star-eyes">${STAR_EYE(44, 55)}${STAR_EYE(76, 55)}</g>`, mouth: MK_OPEN_MOUTH, hot: true },
+    sad: { eyes: MK_EYES(4, 9), brows: mk("M36 46 L50 41M84 46 L70 41", 4, "b-brows"), mouth: mk("M49 82 C53 73 67 73 71 82", 5, "b-mouth") },
+    proud: { eyes: `<g class="b-shades"><path d="M29 47 H58 V54 Q58 64 46 64 Q32 64 30 54 Z" fill="${MK}"/><path d="M62 47 H91 V54 Q89 64 75 64 Q62 64 62 54 Z" fill="${MK}"/><path d="M57 50 H63" stroke="${MK}" stroke-width="4"/></g>`,
+        mouth: mk("M49 74 C56 80 66 79 73 69", 5, "b-mouth") },
+    thinking: { eyes: MK_EYES(-4, 10, 3), brows: mk("M37 41 Q44 38 51 41M71 38 Q78 34 85 37", 4, "b-brows"), mouth: mk("M53 78 q3.5 -3 7 0 t7 0", 4.4, "b-mouth") },
+    shy: { eyes: MK_EYES(5, 7), mouth: mk("M54 76 Q60 80 66 76", 4.4, "b-mouth"), hot: true },
+    party: { eyes: MK_HAPPY_EYES(), mouth: MK_OPEN_MOUTH, hot: true }
 };
 
 function buddySVG(mood = "happy", cls = "", look = palLook()) {
@@ -148,7 +150,7 @@ function buddySVG(mood = "happy", cls = "", look = palLook()) {
                 <path d="M88 104V86H106Z" fill="${paper.fold}"/>
                 ${acc?.hat ? "" : `<rect x="44" y="10" width="32" height="13" fill="${look.color === "pink" ? "#FFE58A" : "#FF9EC0"}"/>`}
                 ${f.eyes}${f.brows || ""}
-                <g class="b-cheeks"><ellipse cx="31" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.75"/><ellipse cx="89" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.75"/></g>
+                ${f.hot ? `<g class="b-cheeks"><ellipse cx="31" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.7"/><ellipse cx="89" cy="70" rx="6.5" ry="3.8" fill="${cheek}" opacity="0.7"/></g>` : ""}
                 ${f.mouth}
                 ${acc ? palAccessorySVG(acc.id) : ""}
                 ${BUDDY_FX[mood] || ""}
