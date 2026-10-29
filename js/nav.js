@@ -48,7 +48,10 @@ function switchTab(tabId) {
 
     closeQuickAdd({ restoreFocus: false });
     renderActiveTab();
-    if (changed) animateTabEnter(tabId, from);
+    if (changed) {
+        if (typeof pageFx === "function") pageFx(tabId); // desenul animat al paginii, peste conținut
+        animateTabEnter(tabId, from);
+    }
     moveNavPill();
     // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
     requestAnimationFrame(() => moveNavPill(false));
