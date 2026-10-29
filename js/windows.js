@@ -329,3 +329,15 @@ Object.assign(ACTIONS, {
     "win-mode": el => setWindowMode(el.closest("#action-modal, #notif-panel"), el.dataset.mode)
 });
 GUEST_OK.add("win-mode");
+
+/* Esc închide fereastra lipită de deasupra (notificări, cont, formulare), oriunde ar fi focusul,
+   dar lasă întâi meniurile mici dinăuntru (liste, căutarea, bara de adăugat) să se închidă singure. */
+window.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    const inner = [$("np-pop"), $("palette"), $("cc-overlay"), $("tt-overlay"), $("setup"), $("auth"), $("quick-add"), $("more-menu")]
+        .some(el => el && !el.hidden) || document.querySelector(".cs-open, .emoji-pop, .qg-pop:not([hidden])");
+    if (inner) return;
+    const notif = $("notif-panel"), modal = $("action-modal");
+    if (notif && !notif.hidden) { event.preventDefault(); closeNotifPanel(); return; }
+    if (modal && !modal.hidden) { event.preventDefault(); closeActionModal(); }
+}, true);

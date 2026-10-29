@@ -128,7 +128,12 @@ const ACTIONS = {
     "quick-add": el => openQuickAdd(el),
     "quick-add-close": () => closeQuickAdd(),
     "qa": el => runQuickAdd(el.dataset.kind),
-    "notif-open": () => openNotifPanel(),
+    // clopoțelul deschide și închide notificările; dacă e deschisă altă fereastră lipită (ex. contul), o închide întâi
+    "notif-open": () => {
+        if ($("notif-panel") && !$("notif-panel").hidden) { closeNotifPanel(); return; }
+        if (!$("action-modal").hidden && $("action-modal").classList.contains("is-modeless")) closeActionModal();
+        openNotifPanel();
+    },
     "more-open": () => openMoreMenu(),
     "more-close": () => closeMoreMenu(),
     "more-run": el => {

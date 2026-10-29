@@ -644,7 +644,12 @@ function openAccountPanel() {
 }
 
 const ACCOUNT_ACTIONS = {
-    "account-open": () => openAccountPanel(),
+    // a doua apăsare pe cont închide fereastra contului
+    "account-open": () => {
+        if (!$("action-modal").hidden && $("action-modal-title")?.textContent === "Contul tău") { closeActionModal(); return; }
+        if ($("notif-panel") && !$("notif-panel").hidden) closeNotifPanel({ restoreFocus: false });
+        openAccountPanel();
+    },
     "auth-open": () => openAuth(),
     "auth-close": () => ACCOUNT_ACTIONS["auth-local"](), // închis fără să intre = răsfoiește ca vizitator
     "auth-mode": el => {
