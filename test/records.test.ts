@@ -145,4 +145,21 @@ describe("ștergerea contului", () => {
         expect((await t.app.inject({ method: "DELETE", url: "/v1/me", headers: s.headers })).statusCode).toBe(204);
         expect(await t.services.records.count(s.user.id)).toBe(0);
     });
+    it("realism: serverul refuză spamul de teste și note (ca aplicația)", async () => {
+        const { s } = await linked();
+        const id = s.user.id;
+        const ev = (n: number, mat: string, type = "Test") => ({ collection: "event", id: `e${n}`, data: { start: "2026-10-13", title: "Test", type, subject: mat } });
+        expect((await push(s.headers, id, [ev(1, "Matematică"), ev(2, "Fizică"), ev(3, "Chimie", "Examen")])).statusCode).toBe(200);
+        const fourth = await push(s.headers, id, [ev(4, "Biologie")]);
+        expect(fourth.statusCode).toBe(400);
+        expect(fourth.json().error).toBe("unrealistic");
+        // un test fără materie nu trece nici ca formă
+        expect((await push(s.headers, id, [{ collection: "event", id: "e9", data: { start: "2026-10-14", title: "Test", type: "Test", subject: "" } }])).statusCode).toBe(400);
+        // ce există deja se poate actualiza (date vechi), chiar dacă ziua e plină
+        expect((await push(s.headers, id, [{ ...ev(1, "Matematică"), data: { ...ev(1, "Matematică").data, title: "Test la mate" } }])).statusCode).toBe(200);
+        const g = (n: number, val = 9) => ({ collection: "grade", id: `g${n}`, data: { mat: "Fizică", val, type: "Test", date: "2026-10-12" } });
+        expect((await push(s.headers, id, [g(1), g(2)])).statusCode).toBe(200);
+        expect((await push(s.headers, id, [g(3)])).statusCode).toBe(400);
+        expect((await push(s.headers, id, [{ collection: "grade", id: "g4", data: { mat: "Fizică", val: 9.5 } }])).statusCode).toBe(400);
+    });
 });
