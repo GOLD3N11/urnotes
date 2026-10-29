@@ -1849,3 +1849,5 @@ body.pfx-on .tab-content .buddy, body.pfx-on .tab-content .buddy *, body.pfx-on 
 #stats-body > .stats-section:not(#sec-now) { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 .azi-real { border-color: color-mix(in srgb, var(--warn, #B7791F) 45%, var(--rule)); background: color-mix(in srgb, var(--warn, #B7791F) 8%, var(--sheet)); }
 .azi-real h3 .ico { color: var(--warn, #B7791F); }
+/* pe calculator, cu o fereastră lipită sau plutitoare deschisă, pagina de dedesubt se derulează în continuare */
+body.modal-open:has(#action-modal.is-modeless:not([hidden])), body:has(#notif-panel.is-modeless:not([hidden])) { overflow: visible; }

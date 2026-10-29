@@ -94,7 +94,8 @@ function bindSheetDrag() {
 const OVERLAY_IDS = ["action-modal", "quick-add", "more-menu", "notif-panel", "setup", "auth"];
 const scrollLock = { on: false, y: 0 };
 function syncScrollLock() {
-    const open = OVERLAY_IDS.some(id => { const el = $(id); return el && !el.hidden; });
+    // o fereastră lipită în dreapta/stânga sau plutitoare (pe calculator) lasă pagina folosibilă: se poate derula
+    const open = OVERLAY_IDS.some(id => { const el = $(id); return el && !el.hidden && !el.classList.contains("is-modeless"); });
     if (open === scrollLock.on) return;
     scrollLock.on = open;
     const b = document.body;
@@ -112,7 +113,7 @@ function syncScrollLock() {
 
 function bindScrollLock() {
     const mo = new MutationObserver(syncScrollLock);
-    OVERLAY_IDS.forEach(id => { const el = $(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); });
+    OVERLAY_IDS.forEach(id => { const el = $(id); if (el) mo.observe(el, { attributes: true, attributeFilter: ["hidden", "class"] }); });
     // Atingerile pe fundal sau pe o parte care nu se derulează nu mai mișcă nimic (nici „elasticul” din Safari).
     document.addEventListener("touchmove", event => {
         if (!scrollLock.on || event.defaultPrevented) return;
