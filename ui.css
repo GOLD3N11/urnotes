@@ -1513,14 +1513,6 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
     35% { transform: scale(1.15); opacity: 1; }
     100% { transform: scale(1.5); opacity: 0; }
 }
-/* cardurile intră o dată, când se deschide pagina (nu la fiecare redesenare) */
-@media (prefers-reduced-motion: no-preference) {
-    .tab-content.active.just-opened > .page-intro,
-    .tab-content.active.just-opened .azi-grid,
-    .tab-content.active.just-opened .home-tiles { animation: pageIn .2s ease-out both; }
-    .tab-content.active.just-opened .azi-grid { animation-delay: .04s; }
-}
-@keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .confetti, .tick-pop { display: none !important; } }
 
 /* ==========================================================================
@@ -1592,4 +1584,166 @@ body.dark-mode .azi-lesson { background: color-mix(in srgb, var(--subj, var(--su
     .azi-buddy .pal-level, .azi-buddy [class*="level"] { transform: scale(.82); }
     .azi-head h2 { font-size: 30px; }
     .home-tile.is-hero { min-height: 0; }
+}
+
+/* ==========================================================================
+   TIȚI · fețe noi și viață (respiră, clipește, reacționează)
+   ========================================================================== */
+.buddy-breath { transform-box: view-box; transform-origin: 60px 104px; }
+.b-sleep-eyes, .b-wink, .b-star-eye, .b-shades, .b-glint, .b-tear, .b-zzz text, .b-think circle, .b-blush-lines, .b-bits rect, .b-wink-spark {
+    transform-box: fill-box; transform-origin: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+    /* respiră mereu, încet (pe un strat separat, ca să nu se bată cu mișcarea stării) */
+    .buddy-breath { animation: bBreathe 3.8s ease-in-out infinite; }
+    /* somnoros: se leagănă încet, „Zzz” urcă */
+    [data-mood="sleepy"] .buddy-anim { animation: bSnooze 3.4s ease-in-out infinite; }
+    [data-mood="sleepy"] .b-zzz text { animation: bZ 2.4s ease-out infinite; opacity: 0; }
+    [data-mood="sleepy"] .b-zzz .is-late { animation-delay: .8s; }
+    [data-mood="sleepy"] .b-zzz .is-later { animation-delay: 1.6s; }
+    [data-mood="sleepy"] .b-mouth { animation: bYawn 3.4s ease-in-out infinite; }
+    /* face cu ochiul */
+    [data-mood="wink"] .b-wink { animation: bWinkLid .5s cubic-bezier(.3,1.6,.5,1) both; }
+    [data-mood="wink"] .b-wink-spark .b-spark { animation: bSpark .9s ease-out .15s both; }
+    [data-mood="wink"] .buddy-anim { animation: bTilt .6s cubic-bezier(.3,1.5,.5,1) both; }
+    /* ochi-steluță: sare de bucurie, steluțele se rotesc și strălucesc */
+    [data-mood="starry"] .buddy-anim { animation: bJump .62s cubic-bezier(.3,1.3,.5,1) 2; }
+    [data-mood="starry"] .b-star-eye { animation: bStarEye 1.4s ease-in-out infinite; }
+    [data-mood="starry"] .b-spark { animation: bSpark 1.1s ease-out infinite; }
+    [data-mood="starry"] g:nth-of-type(odd) > .b-spark { animation-delay: .35s; }
+    /* trist: se lasă puțin, o lacrimă alunecă */
+    [data-mood="sad"] .buddy-anim { animation: bDroop 2.6s ease-in-out infinite; }
+    [data-mood="sad"] .b-tear { animation: bTear 2.2s ease-in infinite; }
+    /* „cool”: își ridică bărbia, ochelarii sclipesc */
+    [data-mood="proud"] .buddy-anim { animation: bProud .7s cubic-bezier(.3,1.5,.5,1) both; }
+    [data-mood="proud"] .b-glint { animation: bGlint 3s ease-in-out infinite; }
+    /* gânditor: bulele de gând apar pe rând */
+    [data-mood="thinking"] .b-think circle { animation: bThought 2.4s ease-out infinite; opacity: 0; }
+    [data-mood="thinking"] .b-think .is-late { animation-delay: .35s; }
+    [data-mood="thinking"] .b-think .is-later { animation-delay: .7s; }
+    [data-mood="thinking"] .b-mouth { animation: bThink 2.6s ease-in-out infinite; }
+    /* rușinos: se fâțâie, roșește */
+    [data-mood="shy"] .buddy-anim { animation: bShy 1.1s ease-in-out 2; }
+    [data-mood="shy"] .b-cheeks, [data-mood="shy"] .b-blush-lines { animation: bFlush .8s ease-in-out infinite alternate; }
+    /* petrecere: sare, confetti în jur */
+    [data-mood="party"] .buddy-anim { animation: bJump .55s cubic-bezier(.3,1.3,.5,1) 3; }
+    [data-mood="party"] .b-bits rect { animation: bBit 1.2s ease-out infinite; }
+    [data-mood="party"] .b-bits .is-late { animation-delay: .4s; }
+    [data-mood="party"] .b-mouth { animation: bLaugh .25s ease-in-out 6 alternate; }
+
+    /* reacții la ce faci în aplicație (js/fluid.js) și mici gesturi când stă degeaba */
+    .buddy.is-react .buddy-anim { animation: bJump .6s cubic-bezier(.3,1.3,.5,1) both !important; }
+    .buddy.is-hop .buddy-breath { animation: bHop .55s cubic-bezier(.3,1.4,.5,1) both; }
+    .buddy.is-wiggle .buddy-breath { animation: bShy .7s ease-in-out both; }
+    .buddy.is-stretch .buddy-breath { animation: bStretch .9s cubic-bezier(.3,1.3,.5,1) both; }
+    .buddy.is-blink .buddy-eyes { animation: buddyBlinkNow .22s ease-in-out both; }
+    .buddy.is-glance .buddy-pupils { transition: transform .25s ease-out; }
+}
+@keyframes bBreathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.03); } }
+@keyframes bSnooze { 0%, 100% { transform: rotate(-3deg) translateY(1px); } 50% { transform: rotate(3deg) translateY(0); } }
+@keyframes bZ { 0% { transform: translate(0, 4px) scale(.6); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(6px, -14px) scale(1.1); opacity: 0; } }
+@keyframes bYawn { 0%, 70%, 100% { transform: scale(1); } 82% { transform: scale(1.4, 1.9); } }
+@keyframes bWinkLid { 0% { transform: scaleY(.2); } 60% { transform: scaleY(1.3); } 100% { transform: scaleY(1); } }
+@keyframes bTilt { 0% { transform: rotate(0); } 50% { transform: rotate(-7deg); } 100% { transform: rotate(-3deg); } }
+@keyframes bStarEye { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.18) rotate(18deg); } }
+@keyframes bDroop { 0%, 100% { transform: scale(1, 1) translateY(0); } 50% { transform: scale(1.02, .96) translateY(2px); } }
+@keyframes bTear { 0% { transform: translateY(-2px) scale(.5); opacity: 0; } 20% { opacity: 1; transform: translateY(0) scale(1); } 100% { transform: translateY(18px) scale(.9); opacity: 0; } }
+@keyframes bProud { 0% { transform: rotate(0) translateY(0); } 55% { transform: rotate(4deg) translateY(-4px); } 100% { transform: rotate(2deg) translateY(-1px); } }
+@keyframes bGlint { 0%, 60% { transform: translateX(0); opacity: 0; } 70% { opacity: .9; } 90% { transform: translateX(46px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes bThought { 0% { transform: scale(0); opacity: 0; } 30% { transform: scale(1.15); opacity: 1; } 75% { transform: scale(1); opacity: 1; } 100% { transform: scale(.8); opacity: 0; } }
+@keyframes bShy { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg) translateX(-2px); } 75% { transform: rotate(6deg) translateX(2px); } }
+@keyframes bBit { 0% { transform: translateY(6px) rotate(0) scale(.4); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-14px) rotate(220deg) scale(1); opacity: 0; } }
+@keyframes bHop { 0%, 100% { transform: translateY(0) scale(1, 1); } 35% { transform: translateY(-9px) scale(.95, 1.06); } 70% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes bStretch { 0%, 100% { transform: scale(1, 1); } 40% { transform: scale(.94, 1.1); } 70% { transform: scale(1.04, .97); } }
+@keyframes buddyBlinkNow { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.1); } }
+@media (prefers-reduced-motion: reduce) { .b-zzz, .b-tear, .b-think, .b-bits, .b-glint { display: none; } }
+
+/* ==========================================================================
+   FLUID (js/fluid.js): tranziții moi, cu arc; nimic cu „reducere mișcare”
+   ========================================================================== */
+:root { --spring: cubic-bezier(.2, 1.25, .35, 1); --ease-out: cubic-bezier(.2, .9, .25, 1); }
+
+/* paginile: intră din partea în care mergi (mai lin), cardurile apar pe rând */
+@keyframes tabInFwd { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes tabInBack { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.tab-content.active.enter-fwd, .tab-content.active.enter-back { animation-duration: .34s; animation-timing-function: var(--ease-out); }
+.stg { animation: cardIn .5s var(--ease-out) both; animation-delay: calc(var(--stg, 0) * 38ms); }
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* pastila din meniul lateral */
+.side-nav { position: relative; }
+.side-pill {
+    position: absolute; left: 0; top: 0; z-index: 0; width: 0; height: 0; border-radius: 14px; pointer-events: none; opacity: 0;
+    background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+    transition: transform .42s var(--spring), height .3s var(--ease-out), width .3s var(--ease-out), opacity .2s;
+}
+body.dark-mode .side-pill { background: color-mix(in srgb, var(--accent-color) 20%, transparent); }
+.side-nav.has-pill .tab-btn.side-link { position: relative; z-index: 1; }
+.side-nav.has-pill .tab-btn.side-link.active { background: transparent; }
+.side-nav.has-pill .tab-btn.side-link.active .ico { animation: navPop .42s var(--spring); }
+@media (max-width: 900px) { .side-pill { display: none; } }
+
+/* nota care zboară spre „Note” */
+.grade-fly {
+    position: fixed; z-index: 2100; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px;
+    background: var(--accent-fill); color: var(--on-accent-fill); font-family: var(--font-hand); font-size: 24px; font-weight: 800;
+    box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35); pointer-events: none; will-change: transform, opacity;
+}
+.grade-fly.tone-bad { background: var(--risk, #C0392B); color: #fff; }
+.is-catch { animation: catchPulse .6s var(--spring); }
+@keyframes catchPulse { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* valul de la atingere */
+.ripple-host { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
+.ripple-host i { position: absolute; border-radius: 50%; background: currentColor; opacity: .14; transform: scale(0); animation: ripple .6s var(--ease-out) forwards; }
+@keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+/* apăsat: butoanele și cardurile se lasă puțin, revin cu arc */
+.btn, .setup-choice, .cc-chip, .tt-tap, .set-sec, .setup-qchip, .setup-qval, .note-link, .mobile-add, .side-add { transition: transform .18s var(--spring), background-color .15s, box-shadow .2s, border-color .15s, color .15s; }
+.btn:active:not([disabled]), .cc-chip:active, .set-sec:active, .setup-qchip:active, .setup-qval:active { transform: scale(.96); }
+.setup-choice:active, .note-link:active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) {
+    .cat-row, .home-tile, .note-link, .setup-choice, .azi-lesson { transition: transform .22s var(--spring), box-shadow .22s; }
+    .cat-row:hover, .note-link:hover, .setup-choice:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -16px rgba(0, 0, 0, .35); }
+    .azi-lesson:hover { transform: translateX(3px); }
+}
+
+/* alunecă: săptămâna, materia vecină, ziua din orar, secțiunea din Setări */
+.slide-from-r { animation: slideFromR .34s var(--ease-out); }
+.slide-from-l { animation: slideFromL .34s var(--ease-out); }
+.slide-up { animation: slideUp .3s var(--ease-out); }
+@keyframes slideFromR { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+@keyframes slideFromL { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: none; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ferestrele apar cu arc */
+.cc-overlay:not([hidden]) .cc-overlay-host, .palette:not([hidden]) .palette-card { animation: popSpring .34s var(--spring) both; }
+.modal-overlay:not([hidden]).is-dialog .modal-card { animation: popSpring .32s var(--spring) both; }
+.setup:not([hidden]) .setup-card { animation: popSpring .4s var(--spring) both; }
+.setup-body > * { animation: slideUp .32s var(--ease-out) both; }
+.setup-body > *:nth-child(2) { animation-delay: .04s; } .setup-body > *:nth-child(3) { animation-delay: .08s; } .setup-body > *:nth-child(4) { animation-delay: .12s; }
+@keyframes popSpring { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+.tt-card { animation: popSpring .36s var(--spring); }
+.tt-row { animation: slideUp .28s var(--ease-out) both; }
+
+/* mesajele: urcă cu arc; cele cu vești bune strălucesc o dată */
+.toast { animation: toastUp .42s var(--spring); }
+.toast.is-celebrate { position: relative; overflow: hidden; }
+.toast.is-celebrate::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .55) 48%, transparent 66%); transform: translateX(-120%);
+    animation: shine 1.1s .25s ease-out forwards;
+}
+body.dark-mode .toast.is-celebrate::after { background: linear-gradient(105deg, transparent 30%, rgba(255, 210, 94, .25) 48%, transparent 66%); }
+.toast.is-celebrate .toast-pal, .toast.is-celebrate .toast-ico { animation: navPop .5s .1s var(--spring) both; }
+@keyframes shine { to { transform: translateX(120%); } }
+
+/* „Acum” și plăcile de pe Azi: numerele intră cu arc */
+.home-tile-value { display: inline-block; }
+.stg .home-tile-value { animation: popSpring .5s var(--spring) both; animation-delay: calc(var(--stg, 0) * 38ms + .1s); }
+
+@media (prefers-reduced-motion: reduce) {
+    .grade-fly, .ripple-host { display: none !important; }
+    .side-pill { transition: none; }
+    .toast.is-celebrate::after { display: none; }
 }

@@ -166,6 +166,8 @@ function renderTimetable(focus = "", { reveal = "" } = {}) {
     if (week) { week.scrollTop = oneDay && keep.day !== String(day) ? 0 : keep.week; week.scrollLeft = keep.weekLeft; }
     if (taps) taps.scrollTop = keep.taps;
     if (reveal && week) ttReveal(week, box.querySelector(reveal));
+    // altă zi: lista ei alunecă din partea în care ai mers
+    if (keep.day && keep.day !== String(day) && typeof slideIn === "function") slideIn(box.querySelector(".tt-col.is-active .tt-list"), Number(day) - Number(keep.day));
     if (focus) box.querySelector(focus)?.focus({ preventScroll: true });
 }
 

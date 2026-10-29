@@ -98,8 +98,17 @@ const BUDDY_FX = {
     dizzy: `<g class="b-orbit is-slow">${STAR(38, 6, 0.95, "#FFE58A")}${STAR(82, 6, 0.95, "#FFE58A")}${STAR(60, -2, 0.75, "#FF9EC0")}</g>`,
     angry: `<circle class="b-steam" cx="22" cy="8" r="5" fill="#FFFFFF" stroke="${INK}" stroke-width="0.8"/><circle class="b-steam is-late" cx="98" cy="6" r="5" fill="#FFFFFF" stroke="${INK}" stroke-width="0.8"/>`,
     worried: `<path class="b-sweat" d="M95 30 Q90 38 95 41 Q100 38 95 30 Z" fill="#8FD3FF" stroke="${INK}" stroke-width="0.8"/>`,
-    love: HEART(20, 30) + `<g class="is-late">${HEART(100, 24)}</g>` + HEART(104, 52)
+    love: HEART(20, 30) + `<g class="is-late">${HEART(100, 24)}</g>` + HEART(104, 52),
+    sleepy: `<g class="b-zzz" font-family="Figtree, sans-serif" font-weight="800" fill="${INK}"><text x="90" y="26" font-size="12">z</text><text class="is-late" x="98" y="14" font-size="16">Z</text><text class="is-later" x="108" y="2" font-size="20">Z</text></g>`,
+    wink: `<g class="b-wink-spark">${STAR(98, 42, 0.7, "#FFE58A")}</g>`,
+    starry: STAR(16, 24, 0.9, "#FFE58A") + STAR(104, 18, 0.8, "#FFE58A") + STAR(108, 50, 0.55, "#FFFFFF") + STAR(10, 56, 0.5, "#FFFFFF"),
+    sad: `<path class="b-tear" d="M40 66 Q36 73 40 76 Q44 73 40 66 Z" fill="#8FD3FF" stroke="${INK}" stroke-width="0.8"/>`,
+    proud: `<path class="b-glint" d="M34 50 L40 50 L36 60 L30 60 Z" fill="#FFFFFF" opacity="0.85"/>`,
+    thinking: `<g class="b-think"><circle cx="98" cy="34" r="3" fill="#FFFFFF" stroke="${INK}" stroke-width="1"/><circle class="is-late" cx="106" cy="22" r="4.5" fill="#FFFFFF" stroke="${INK}" stroke-width="1"/><circle class="is-later" cx="113" cy="7" r="6.5" fill="#FFFFFF" stroke="${INK}" stroke-width="1"/></g>`,
+    shy: `<g class="b-blush-lines">${bLine("M24 66 L27 62M29 67 L32 63M34 68 L37 64", 1.6)}${bLine("M84 64 L87 68M89 63 L92 67M94 62 L97 66", 1.6)}</g>`,
+    party: `<g class="b-bits"><rect x="10" y="20" width="5" height="8" rx="1" fill="#FF5C7A"/><rect class="is-late" x="104" y="14" width="5" height="8" rx="1" fill="#4F6BF5"/><rect x="108" y="48" width="5" height="8" rx="1" fill="#2EC4B6"/><rect class="is-late" x="6" y="52" width="5" height="8" rx="1" fill="#FFC93C"/><rect x="58" y="-6" width="5" height="8" rx="1" fill="#9B5DE5"/></g>`
 };
+const STAR_EYE = (x, y) => `<g transform="translate(${x} ${y})"><path class="b-star-eye" d="M0 -10 L2.9 -3 L10 -3 L4.3 1.6 L6.4 9 L0 4.6 L-6.4 9 L-4.3 1.6 L-10 -3 L-2.9 -3 Z" fill="#FFD23F" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/></g>`;
 const SPIRAL = (cx, cy) => `<g transform="translate(${cx} ${cy})"><path class="b-spiral" d="M0 0 m0 -1.5 a1.5 1.5 0 1 1 -1.5 1.5 a3.5 3.5 0 1 1 3.5 3.5 a5.5 5.5 0 1 1 -5.5 -5.5 a7.5 7.5 0 1 1 7.5 7.5" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>`;
 const BUDDY_FACES = {
     happy: { eyes: EYES_OPEN(), mouth: bLine("M50 72 Q60 84 70 72", 3.6, "b-mouth") },
@@ -111,7 +120,20 @@ const BUDDY_FACES = {
     dizzy: { eyes: SPIRAL(44, 55) + SPIRAL(76, 55), mouth: bLine("M48 80 Q54 74 60 80 T72 80", 3.2, "b-mouth") },
     angry: { eyes: EYES_OPEN(4), brows: bLine("M35 42 L51 48M85 42 L69 48", 3.6, "b-brows"), mouth: bLine("M50 80 Q60 73 70 80", 3.6, "b-mouth"), hot: true },
     love: { eyes: HEART(44, 55).replace('class="b-heart"', 'class="b-heart-eye"').replace("translate(44 55)", "translate(44 55) scale(1.7)") + HEART(76, 55).replace('class="b-heart"', 'class="b-heart-eye"').replace("translate(76 55)", "translate(76 55) scale(1.7)"),
-        mouth: bLine("M48 71 Q60 86 72 71", 3.6, "b-mouth"), hot: true }
+        mouth: bLine("M48 71 Q60 86 72 71", 3.6, "b-mouth"), hot: true },
+    // fețe noi: somnoros, face cu ochiul, ochi-steluță, trist, „cool”, gânditor, rușinos, petrecere
+    sleepy: { eyes: bLine("M36 55 Q44 61 52 55M68 55 Q76 61 84 55", 3.2, "b-sleep-eyes"), mouth: `<ellipse class="b-mouth" cx="60" cy="79" rx="3.6" ry="4.2" fill="${INK}"/>` },
+    wink: { eyes: `<g class="b-eyes-pop"><g class="buddy-eyes"><circle cx="44" cy="55" r="9.5" fill="#FFFFFF"/><g class="buddy-pupils"><circle cx="45" cy="56" r="4.5" fill="${INK}"/></g></g></g>` + bLine("M68 57 Q76 49 84 57", 3.4, "b-wink"),
+        mouth: bLine("M49 72 Q61 84 73 69", 3.6, "b-mouth") },
+    starry: { eyes: `<g class="b-star-eyes">${STAR_EYE(44, 55)}${STAR_EYE(76, 55)}</g>`,
+        mouth: `<g class="b-mouth"><path d="M46 68 Q60 92 74 68 Z" fill="${INK}"/><path d="M52 80 Q60 87 68 80" fill="#FF7AA8"/></g>`, hot: true },
+    sad: { eyes: EYES_OPEN(4.2).replace(/cy="56"/g, 'cy="58"'), brows: bLine("M36 45 L50 41M84 45 L70 41", 3, "b-brows"), mouth: bLine("M50 83 Q60 73 70 83", 3.6, "b-mouth") },
+    proud: { eyes: `<g class="b-shades"><path d="M29 47 H58 V54 Q58 64 46 64 Q32 64 30 54 Z" fill="${INK}"/><path d="M62 47 H91 V54 Q89 64 75 64 Q62 64 62 54 Z" fill="${INK}"/><path d="M57 50 H63" stroke="${INK}" stroke-width="3.4"/></g>`,
+        mouth: bLine("M49 76 Q62 83 73 71", 3.6, "b-mouth") },
+    thinking: { eyes: EYES_OPEN(4).replace('cx="45" cy="56"', 'cx="48" cy="52"').replace('cx="77" cy="56"', 'cx="80" cy="52"'), brows: bLine("M36 42 Q44 39 51 42M69 40 Q77 36 84 39", 2.8, "b-brows"),
+        mouth: bLine("M52 79 q3 -3 6 0 t6 0 t6 0", 3, "b-mouth") },
+    shy: { eyes: EYES_OPEN(4).replace(/cy="56"/g, 'cy="60"'), mouth: bLine("M54 76 Q60 81 66 76", 3.2, "b-mouth"), hot: true },
+    party: { eyes: bLine("M36 57 Q44 48 52 57M68 57 Q76 48 84 57", 3.4, "b-squint"), mouth: `<g class="b-mouth"><path d="M46 69 Q60 90 74 69 Z" fill="${INK}"/><path d="M52 79 Q60 85 68 79" fill="#FF7AA8"/></g>`, hot: true }
 };
 
 function buddySVG(mood = "happy", cls = "", look = palLook()) {
@@ -120,7 +142,7 @@ function buddySVG(mood = "happy", cls = "", look = palLook()) {
     const acc = PAL_ACCESSORIES.find(a => a.id === look.acc);
     const cheek = f.hot ? "#FF5C7A" : "#FF7AA8";
     return `<svg class="buddy ${cls}" viewBox="0 0 120 120" aria-hidden="true" data-mood="${mood}">
-        <g class="buddy-body"><g class="buddy-anim">
+        <g class="buddy-body"><g class="buddy-anim"><g class="buddy-breath">
             <g transform="rotate(-6 60 62)">
                 <path d="M14 18H106V86L88 104H14Z" fill="${paper.fill}"/>
                 <path d="M88 104V86H106Z" fill="${paper.fold}"/>
@@ -131,7 +153,7 @@ function buddySVG(mood = "happy", cls = "", look = palLook()) {
                 ${acc ? palAccessorySVG(acc.id) : ""}
                 ${BUDDY_FX[mood] || ""}
             </g>
-        </g></g>
+        </g></g></g>
     </svg>`;
 }
 
@@ -170,7 +192,7 @@ function initBuddyLook() {
  * Clic pe mascotă: fără text, doar fața și corpul reacționează. La clicuri repetate:
  * râde, se miră, „au!”, se supără (cu abur), amețește, apoi face pace (cu inimioare).
  */
-const BUDDY_POKES = ["giggle", "giggle", "surprised", "ouch", "angry", "angry", "dizzy", "love"];
+const BUDDY_POKES = ["giggle", "wink", "giggle", "surprised", "shy", "ouch", "angry", "angry", "dizzy", "love", "party"];
 const buddyPoke = { n: 0, last: 0, timer: 0, rest: null };
 
 function pokeBuddy(btn, event) {
@@ -217,7 +239,7 @@ function buddyState({ today }, { tests }) {
         .sort((a, b) => metrics.subjects[a].exactAvg - metrics.subjects[b].exactAvg)[0];
     const soon = tests.find(o => daysBetween(today, o.date) <= 1);
 
-    if (ten && daysBetween(ten.date, today) <= 2) return { mood: "happy", text: `Un 10 la ${ten.mat}! Bravo${hey}, ți-am lipit o steluță.` };
+    if (ten && daysBetween(ten.date, today) <= 2) return { mood: "starry", text: `Un 10 la ${ten.mat}! Bravo${hey}, ți-am lipit o steluță.` };
     const planToday = state.plan.prefs.setup ? state.plan.items.filter(it => it.date === today) : [];
     if (planToday.length && planToday.every(it => it.done)) return { mood: "love", text: `Gata planul de azi! Bravo${hey}, mă bucur tare.` };
     if (risk) return { mood: "worried", text: `${risk} e la ${formatAvg(metrics.subjects[risk].exactAvg)}, sub pragul tău de ${formatAvg(state.settings.calc.riskThreshold)}. ${state.plan.prefs.setup ? "Am pus sesiuni pentru ea în planul tău." : "Facem un plan împreună? Îl găsești la „Plan”."}` };
@@ -225,10 +247,12 @@ function buddyState({ today }, { tests }) {
     if (todo.length && new Date().getHours() >= 15) return { mood: "focused", text: `Mai ai ${plural(todo.length, "sesiune", "sesiuni")} în planul de azi. Începem cu ${todo[0].mat}?` };
     if (soon) {
         const what = `${soon.ev.type.toLocaleLowerCase("ro")}${soon.ev.subject ? ` la ${soon.ev.subject}` : ""}`;
-        return { mood: "focused", text: `${capitalize(dayWord(soon.date, today))} ai ${what}. Recapitulăm puțin${hey}?` };
+        return { mood: "thinking", text: `${capitalize(dayWord(soon.date, today))} ai ${what}. Recapitulăm puțin${hey}?` };
     }
     if (ten) return { mood: "happy", text: `Săptămâna asta ai luat 10 la ${ten.mat}. Continuă tot așa${hey}!` };
-    if (metrics.globalAvg >= 9) return { mood: "happy", text: `Media ta e ${formatAvg(metrics.globalAvg)}. Ești pe drumul cel bun${hey}!` };
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour < 6) return { mood: "sleepy", text: `E târziu${hey}. Notele te așteaptă și mâine; somn ușor!` };
+    if (metrics.globalAvg >= 9) return { mood: metrics.globalAvg >= 9.5 ? "proud" : "happy", text: `Media ta e ${formatAvg(metrics.globalAvg)}. Ești pe drumul cel bun${hey}!` };
     if (metrics.totalGrades === 0) return { mood: "happy", text: `Când primești prima notă, scrie-o aici și îți calculez media${hey}.` };
     return { mood: "happy", text: `Sunt aici${hey}. Pas cu pas, spre ținta de ${formatAvg(state.settings.goals.targetGPA)}.` };
 }

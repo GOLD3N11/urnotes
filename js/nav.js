@@ -29,12 +29,7 @@ function switchTab(tabId) {
     if (changed && window.scrollY > 0) window.scrollTo({ top: 0 });
 
     document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
-    // pagina intră o dată, scurt, când o deschizi (vezi .just-opened în ui.css)
-    if (changed) {
-        const sec = $(tabId);
-        sec.classList.remove("just-opened"); void sec.offsetWidth; sec.classList.add("just-opened");
-        clearTimeout(switchTab.t); switchTab.t = setTimeout(() => sec.classList.remove("just-opened"), 400);
-    }
+
     $("more-btn")?.classList.toggle("is-active", tabId === "tab-setari");
     $("more-btn")?.classList.toggle("active", tabId === "tab-setari"); // pastila din bara de jos stă pe „Eu”
     // Trei pagini principale (Azi, Note, Calendar); celelalte sunt sub-pagini ale lor și le aprind butonul
@@ -57,6 +52,7 @@ function switchTab(tabId) {
     moveNavPill();
     // după ce pagina nouă s-a așezat (fonturi, bara de derulare), o mai potrivim o dată
     requestAnimationFrame(() => moveNavPill(false));
+    if (typeof queueSidePill === "function") queueSidePill();
     watchPageTitle();
 }
 
@@ -72,6 +68,7 @@ function animateTabEnter(tabId, from) {
     el.classList.add(`enter-${dir}`, "is-entering");
     clearTimeout(el._enterT);
     el._enterT = setTimeout(() => el.classList.remove("enter-fwd", "enter-back", "is-entering"), 800);
+    if (typeof staggerIn === "function") staggerIn(el); // cardurile apar pe rând
 }
 
 /** Pastila din bara de jos alunecă sub fila activă. */
@@ -391,13 +388,18 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
     const toast = document.createElement("div");
     toast.className = `toast${warn ? " is-warn" : ""}${action ? " has-action" : ""}`;
     // Veștile bune le dă colegul: fața lui în locul bifei (avertizările și „Anulează” rămân cu iconiță)
-    const PAL_TOAST = { "check-circle": "happy", trophy: "love", flame: "love", sparkles: "love", medal: "love", "trend-up": "happy", target: "happy", graduation: "happy", calendar: "focused", bell: "focused", "calendar-days": "happy", save: "happy" };
+    const PAL_TOAST = { "check-circle": "happy", trophy: "starry", flame: "starry", sparkles: "party", medal: "proud", "trend-up": "happy", target: "happy", graduation: "proud", calendar: "thinking", bell: "thinking", "calendar-days": "wink", save: "wink" };
     const palMood = !warn && !action && !document.body.classList.contains("style-notion") && PAL_TOAST[toastIcon];
     toast.innerHTML = `${palMood ? `<span class="toast-pal" aria-hidden="true">${buddySVG(palMood, "toast-buddy")}</span>` : icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
         ? `<button type="button" class="toast-action" title="${escapeHTML(actionIcon === "undo" ? `${action} (Ctrl+Z)` : action)}">${icon(actionIcon)} ${escapeHTML(action)}</button>` : ""}`;
     // câte un mesaj pe rând: cele vechi fără buton pleacă; unul cu „Anulează” rămâne până expiră
     container.querySelectorAll(".toast:not(.leaving):not(.has-action)").forEach(t => t.leave?.());
     container.appendChild(toast);
+    // veștile bune (realizare, nivel nou): mesajul strălucește, Tiți face petrecere
+    if (/^\s*(🏆|🎉)/u.test(msg)) {
+        toast.classList.add("is-celebrate");
+        if (typeof palReact === "function") palReact("party", 2600);
+    }
 
     let timer = 0;
     const leave = () => {
