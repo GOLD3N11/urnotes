@@ -34,7 +34,7 @@ function init() {
     if (!cloud.configured && shouldOfferSetup()) openSetup(0);
 }
 
-/** Ecranul de pornire pleacă după ce aplicația e gata (cel puțin o clipă, ca să se vadă post-it-ul). */
+/** Ecranul de pornire pleacă după ce aplicația e gata (cel puțin o clipă, numărată de la deschidere, ca să se vadă post-it-ul). */
 function hideSplash() {
     const el = $("splash");
     if (!el) return;
@@ -43,5 +43,5 @@ function hideSplash() {
     setTimeout(() => {
         el.classList.add("is-out");
         setTimeout(() => el.remove(), 450);
-    }, quick ? 150 : 650);
+    }, Math.max(0, (quick ? 150 : 650) - performance.now()));
 }
