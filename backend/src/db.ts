@@ -26,16 +26,20 @@ function wrap(client: pg.Pool | pg.PoolClient, inTx: boolean): Db {
         async tx(fn) {
             if (inTx) return fn(db);
             const c = await (client as pg.Pool).connect();
+            let lost: Error | undefined; // conexiunea căzută în timpul tranzacției: cererile ei dau eroare, serverul merge mai departe
+            const onLost = (err: Error) => { lost = err; };
+            c.on("error", onLost);
             try {
                 await c.query("BEGIN");
                 const out = await fn(wrap(c, true));
                 await c.query("COMMIT");
                 return out;
             } catch (err) {
-                await c.query("ROLLBACK");
+                await c.query("ROLLBACK").catch(() => {});
                 throw err;
             } finally {
-                c.release();
+                c.off("error", onLost);
+                c.release(lost);
             }
         },
         async close() {
@@ -48,7 +52,10 @@ function wrap(client: pg.Pool | pg.PoolClient, inTx: boolean): Db {
 export function createDb(url: string): Db {
     // datele calendaristice (date) rămân text „YYYY-MM-DD”, nu devin obiecte Date cu fus orar
     pg.types.setTypeParser(1082, v => v);
-    return wrap(new pg.Pool({ connectionString: url, max: 10 }), false);
+    const pool = new pg.Pool({ connectionString: url, max: 10 });
+    // o conexiune inactivă pierdută (baza de date a repornit) nu trebuie să oprească serverul: pool-ul deschide alta
+    pool.on("error", err => console.error("Conexiune pierdută la baza de date:", err.message));
+    return wrap(pool, false);
 }
 
 /** Rulează migrările din folderul migrations/ care n-au rulat încă, în ordine. */
