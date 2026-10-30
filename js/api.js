@@ -55,11 +55,20 @@ const api = {
         return data;
     },
 
+    /** Are deja un caiet în copia din Firebase? (elevii de dinainte de server, pe un dispozitiv nou) */
+    async hasFirebaseNotebook() {
+        try {
+            const remote = await cloud.api?.load?.();
+            const subjects = remote && safeParseJSON(remote.json, null)?.data?.subjects;
+            return isPlainObject(subjects) && Object.keys(subjects).length > 0;
+        } catch (_) { return false; } // nu putem afla: întrebăm
+    },
+
     /** Contul de pe server; la prima intrare îl creăm. Cine are deja note e elev; altfel întrebăm: elev, părinte sau profesor? */
     async ensureRole() {
         const me = await api.loadMe();
         if (me.registered) return me.user;
-        const role = hasLocalData() ? "student" : await (api.rolePick ||= pickRole().finally(() => { api.rolePick = null; }));
+        const role = hasLocalData() || await api.hasFirebaseNotebook() ? "student" : await (api.rolePick ||= pickRole().finally(() => { api.rolePick = null; }));
         if (api.me?.registered) return api.me.user;
         const created = await api.request("POST", "/v1/me", { role, name: state.settings.profile.name || cloud.user?.name || "" });
         api.me = { user: created.data.user, registered: true };
