@@ -11,8 +11,7 @@ function renderSideTree() {
     if (!subs) return;
     const openMat = ui.activeTab === "tab-catalog" && ui.catalog.showDetail ? ui.catalog.selected : "";
     const names = Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro"));
-    const wsName = (state.settings.profile?.name || "").trim();
-    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass), names.map(m => state.subjects[m]?.icon), names.map(m => state.subjects[m]?.priority), wsName]);
+    const key = JSON.stringify([names, openMat, ui.activeTab, sideOpen, names.map(m => metrics.subjects[m]?.statusClass), names.map(m => state.subjects[m]?.icon), names.map(m => state.subjects[m]?.priority)]);
     if (renderSideTree.key === key) return;
     renderSideTree.key = key;
 
@@ -21,12 +20,6 @@ function renderSideTree() {
     const noteRow = document.querySelector('.side-nav .side-row-grades');
     noteRow?.querySelector(".side-row-add")?.remove();
     if (noteRow) noteRow.insertAdjacentHTML("beforeend", `<button type="button" class="side-row-add" data-action="side-add-subject" aria-label="Materie nouă" title="Materie nouă">${icon("plus")}</button>${twist("grades", "materiile")}`);
-    // antetul „spațiului de lucru”, ca în Notion (se vede doar în stilul Notion)
-    const brand = document.querySelector(".sidebar .side-brand");
-    if (brand) {
-        brand.querySelector(".side-ws")?.remove();
-        brand.insertAdjacentHTML("beforeend", `<span class="side-ws"><span class="side-ws-av" aria-hidden="true">${escapeHTML((wsName || "u").slice(0, 1).toUpperCase())}</span><span class="side-ws-name">${escapeHTML(wsName ? `urNotes-ul lui ${wsName}` : "urNotes")}</span></span>`);
-    }
     subs.hidden = !sideOpen.grades;
     // Sub „Note”: doar materiile prioritare (★) și cele la risc; restul la „Toate materiile”, ca meniul să rămână scurt.
     const risk = m => metrics.subjects[m]?.statusClass === "badge-danger";

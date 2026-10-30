@@ -106,7 +106,7 @@ function renderTopbarPlace() {
     if (crumb) {
         const em = e => e ? `<span class="crumb-emoji" aria-hidden="true">${e}</span>` : "";
         const here = `${em(PAGE_EMOJI[ui.activeTab])}${escapeHTML(def.title || "")}`;
-        const sep = `<span class="crumb-sep" aria-hidden="true">${document.body.classList.contains("style-notion") ? "/" : "›"}</span>`;
+        const sep = `<span class="crumb-sep" aria-hidden="true">›</span>`;
         const mat = ui.activeTab === "tab-catalog" && ui.catalog?.showDetail && state.subjects[ui.catalog.selected] ? ui.catalog.selected : "";
         crumb.innerHTML = mat
             ? `<button type="button" class="crumb-link" data-action="cat-back">${here}</button>${sep}<b aria-current="page">${em(subjectEmoji(mat))}${escapeHTML(mat)}</b>`
@@ -394,7 +394,7 @@ function showToast(msg, { action = "", onAction = null, duration = 3000, actionI
     toast.className = `toast${warn ? " is-warn" : ""}${action ? " has-action" : ""}`;
     // Veștile bune le dă colegul: fața lui în locul bifei (avertizările și „Anulează” rămân cu iconiță)
     const PAL_TOAST = { "check-circle": "happy", trophy: "starry", flame: "starry", sparkles: "party", medal: "proud", "trend-up": "happy", target: "happy", graduation: "proud", calendar: "thinking", bell: "thinking", "calendar-days": "wink", save: "wink" };
-    const palMood = !warn && !action && !document.body.classList.contains("style-notion") && PAL_TOAST[toastIcon];
+    const palMood = !warn && !action && PAL_TOAST[toastIcon];
     toast.innerHTML = `${palMood ? `<span class="toast-pal" aria-hidden="true">${buddySVG(palMood, "toast-buddy")}</span>` : icon(toastIcon, "toast-ico")}<span class="toast-text">${escapeHTML(text)}</span>${action
         ? `<button type="button" class="toast-action" title="${escapeHTML(actionIcon === "undo" ? `${action} (Ctrl+Z)` : action)}">${icon(actionIcon)} ${escapeHTML(action)}</button>` : ""}`;
     // câte un mesaj pe rând: cele vechi fără buton pleacă; unul cu „Anulează” rămâne până expiră

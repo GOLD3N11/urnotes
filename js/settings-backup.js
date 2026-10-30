@@ -515,7 +515,6 @@ function applyAppearanceSettings() {
     // bara Safari și bara de stare a telefonului iau culoarea foii, chiar dacă tema din aplicație diferă de cea a telefonului
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? "#111319" : "#F6F4EE"; m.removeAttribute("media"); });
     for (const [k, v] of Object.entries(accentVars(a.accent, dark))) document.documentElement.style.setProperty(k, v);
-    document.body.classList.remove("style-notion");
     document.body.classList.add("style-urnotes");
 
 }

@@ -26,7 +26,7 @@ Detalii, API și pornire: `backend/README.md`. Formele datelor comune aplicație
 Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 - `index.html`: paginile (taburile) și ordinea scripturilor.
-- `style.css`: aspectul componentelor; `ui.css`: stilul colorat „urNotes” (culori, litere, meniul, plăcile post-it); `notion.css`: stilul simplu, ca în Notion (implicit). Stilul se alege din Setări → Aspect → Stil și pune pe `<body>` clasa `style-notion` sau `style-urnotes`.
+- `style.css`: aspectul componentelor; `ui.css`: stilul colorat „urNotes” (culori, litere, meniul, plăcile post-it); `tokens.css`: culorile, literele și umbrele comune.
 - `shared/rules.js`: regulile de calcul (medii, rotunjire, purtare), aceleași în aplicație și pe server; `shared/types.ts`: formele datelor.
 - `js/*.js`: aplicația, împărțită pe domenii. Sunt scripturi clasice care împart același spațiu global și se încarcă în ordinea din `index.html`:
   - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
