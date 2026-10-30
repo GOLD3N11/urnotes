@@ -106,11 +106,15 @@ La prima pornire, serverul încarcă `shared/school-data.json`, generat din `js/
 
 ## Publicarea (când ai un server)
 
-Orice gazdă care rulează un container și are PostgreSQL merge (de exemplu Cloud Run + Cloud SQL, Fly.io, Render, Railway). Pași:
+Aplicația rămâne pe GitHub Pages; serverul stă pe Render, descris în `render.yaml` (serviciu mereu pornit + PostgreSQL). Serverul nu poate dormi: ceasul lui trimite amintirile de seară, iar o trezire ar dura mai mult decât cele 10 secunde cât așteaptă aplicația.
 
-1. o bază PostgreSQL și `DATABASE_URL`
-2. imaginea: `docker build -f backend/Dockerfile -t urnotes-api .` (din rădăcina proiectului)
-3. variabilele din `.env.example`, cu `AUTH_MODE=firebase`, `FIREBASE_PROJECT_ID`, `ADMIN_EMAILS` și cheile VAPID
-4. adresa serverului în `api-config.js`, apoi publici aplicația ca de obicei
+1. Pe Render: **New → Blueprint**, alegi acest depozit (și ramura cu `render.yaml`).
+2. Când ți se cer, completezi `ADMIN_EMAILS` (emailul tău), `VAPID_PUBLIC_KEY` și `VAPID_PRIVATE_KEY` (din `npm run vapid`) și `VAPID_SUBJECT` (`mailto:` + emailul tău).
+3. Când serviciul e pornit, verifici `https://<adresa>/health`: trebuie să răspundă `{"ok":true}`.
+4. Pui adresa în `api-config.js` (`window.URNOTES_API = "https://<adresa>";`) și publici aplicația ca de obicei.
+
+La prima intrare după pasul 4, fiecare elev își aduce caietul din Firebase pe server. Până la pasul 4 nu se schimbă nimic pentru nimeni.
+
+Altă gazdă merge la fel: orice rulează imaginea (`docker build -f backend/Dockerfile -t urnotes-api .`, din rădăcina proiectului) cu variabilele din `.env.example`, dar trebuie să rămână pornită și între cereri.
 
 Serverul aplică singur migrările la pornire. Cu mai multe copii pornite, amintirile pleacă o singură dată (un lacăt în baza de date).
