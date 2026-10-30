@@ -29,6 +29,7 @@ function init() {
     initCloud();
     initReminders();
     hideSplash();
+    scheduleChartJs();
     // Cu conturi, configurarea vine după alegerea de pe ecranul de autentificare.
     if (!cloud.configured && shouldOfferSetup()) openSetup(0);
 }

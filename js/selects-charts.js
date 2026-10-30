@@ -293,6 +293,38 @@ function chartsAvailable() {
     return typeof window.Chart === "function";
 }
 
+/* Chart.js se folosește doar în Progres, așa că nu încetinește pornirea: se încarcă după ce aplicația e gata
+   sau, dacă ajungi mai repede la Progres, chiar atunci. */
+const CHART_JS_URL = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js";
+let chartJsStatus = "idle"; // idle | loading | failed
+
+function redrawChartsPage() {
+    if (ui.activeTab === "tab-statistici") renderActiveTab({ keepSettingsForm: true });
+}
+
+function loadChartJs() {
+    if (chartsAvailable() || chartJsStatus !== "idle") return;
+    chartJsStatus = "loading";
+    const script = document.createElement("script");
+    script.src = CHART_JS_URL;
+    script.onload = () => { chartJsStatus = "idle"; redrawChartsPage(); };
+    script.onerror = () => { chartJsStatus = "failed"; script.remove(); redrawChartsPage(); };
+    document.head.appendChild(script);
+}
+
+/** Încărcarea din fundal, când browserul n-are altceva de făcut. */
+function scheduleChartJs() {
+    if ("requestIdleCallback" in window) requestIdleCallback(loadChartJs, { timeout: 5000 });
+    else setTimeout(loadChartJs, 2000);
+}
+
+// Fără internet, încercarea a eșuat; când revine semnalul, mai încercăm o dată.
+addEventListener("online", () => {
+    if (chartJsStatus !== "failed") return;
+    chartJsStatus = "idle";
+    redrawChartsPage();
+});
+
 function chartTheme() {
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent-color").trim() || ACCENTS.yellow.light;
     return {
@@ -336,7 +368,7 @@ function destroyAllCharts() {
     Object.keys(ui.charts).forEach(destroyChart);
 }
 
-/** Creează sau actualizează un grafic. Fără Chart.js (offline), afișează un mesaj în loc. */
+/** Creează sau actualizează un grafic. Fără Chart.js (offline), afișează un mesaj în loc; cât se încarcă, așteaptă. */
 function upsertChart(id, config) {
     const canvas = $(id);
     if (!canvas) {
@@ -346,7 +378,8 @@ function upsertChart(id, config) {
 
     const frame = canvas.parentElement;
     if (!chartsAvailable()) {
-        frame?.classList.add("chart-unavailable");
+        loadChartJs();
+        frame?.classList.toggle("chart-unavailable", chartJsStatus === "failed");
         return;
     }
     frame?.classList.remove("chart-unavailable");
