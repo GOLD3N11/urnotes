@@ -1,0 +1,43 @@
+# Serverul urNotes pe Render: un serviciu mereu pornit (ceasul amintirilor de seară nu poate dormi) și PostgreSQL.
+# Aplicația rămâne pe GitHub Pages. Pașii sunt în backend/README.md, la „Publicarea”.
+services:
+  - type: web
+    name: urnotes-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**
+        - shared/**
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: urnotes-db
+          property: connectionString
+      - key: AUTH_MODE
+        value: firebase
+      - key: FIREBASE_PROJECT_ID
+        value: zece-2f182
+      - key: CORS_ORIGINS
+        value: https://gold3n11.github.io
+      # Le completezi tu la prima publicare (nu stau în git): VAPID_* din `npm run vapid`, ADMIN_EMAILS emailul tău.
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+
+databases:
+  - name: urnotes-db
+    plan: basic-256mb
+    region: frankfurt
+    databaseName: urnotes
+    user: urnotes
+    postgresMajorVersion: "16"
