@@ -1,5 +1,7 @@
 /* Serverul urNotes: un singur serviciu, împărțit în module (Accounts, School data, Notifications).
    Fiecare modul își are tabelele, serviciul și rutele lui; nu citește tabelele altui modul. */
+import { timingSafeEqual } from "node:crypto";
+import { runRemindersOnce } from "./modules/notifications/scheduler.js";
 import Fastify, { type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import type { Config } from "./config.js";
@@ -71,6 +73,7 @@ export async function buildApp(deps: AppDeps, services = createServices(deps)): 
     app.decorateRequest("ctx", null as never);
     app.addHook("onRequest", async req => {
         req.ctx = { identity: null, user: null, integration: null };
+        if (req.url.startsWith("/internal/")) return; // cronul își verifică singur parola
         const cred = readCredential(req.headers.authorization);
         if (!cred) return;
         if (cred.kind === "user") {
@@ -95,6 +98,18 @@ export async function buildApp(deps: AppDeps, services = createServices(deps)): 
     });
 
     app.get("/health", async () => ({ ok: true }));
+    // ceasul amintirilor pentru gazdele unde serverul doarme între cereri (Vercel): îl cheamă un cron, cu parolă
+    if (config.cronSecret) {
+        const expected = Buffer.from(`Bearer ${config.cronSecret}`);
+        app.route({
+            method: ["GET", "POST"], url: "/internal/cron/reminders",
+            handler: async (req, reply) => {
+                const got = Buffer.from(req.headers.authorization || "");
+                if (got.length !== expected.length || !timingSafeEqual(got, expected)) return reply.code(401).send({ error: "unauthorized" });
+                return runRemindersOnce(deps.db, services.notifications);
+            }
+        });
+    }
     await app.register(accountsRoutes, { accounts: services.accounts });
     await app.register(schoolRoutes, { school: services.school });
     await app.register(notificationsRoutes, { notifications: services.notifications });

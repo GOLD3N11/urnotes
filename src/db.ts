@@ -49,10 +49,10 @@ function wrap(client: pg.Pool | pg.PoolClient, inTx: boolean): Db {
     return db;
 }
 
-export function createDb(url: string): Db {
+export function createDb(url: string, max = 10): Db {
     // datele calendaristice (date) rămân text „YYYY-MM-DD”, nu devin obiecte Date cu fus orar
     pg.types.setTypeParser(1082, v => v);
-    const pool = new pg.Pool({ connectionString: url, max: 10 });
+    const pool = new pg.Pool({ connectionString: url, max });
     // o conexiune inactivă pierdută (baza de date a repornit) nu trebuie să oprească serverul: pool-ul deschide alta
     pool.on("error", err => console.error("Conexiune pierdută la baza de date:", err.message));
     return wrap(pool, false);

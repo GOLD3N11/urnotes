@@ -1,0 +1,22 @@
+# Ceasul amintirilor când serverul stă pe Vercel: serverul doarme între cereri, așa că cineva trebuie să-l
+# trezească des. Cronul din vercel.json merge pe planul gratuit doar o dată pe zi; acesta, la fiecare 15 minute.
+# Pornește singur după ce pui în Settings → Secrets and variables → Actions:
+#   URNOTES_API_URL  adresa serverului (ex. https://urnotes-api.vercel.app)
+#   CRON_SECRET      aceeași valoare ca variabila CRON_SECRET din proiectul Vercel
+name: reminders
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trimite amintirile al căror moment a venit
+        env:
+          URL: ${{ secrets.URNOTES_API_URL }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$SECRET" ]; then echo "::notice::Lipsesc URNOTES_API_URL sau CRON_SECRET; nimic de făcut."; exit 0; fi
+          curl -fsS --max-time 60 -H "Authorization: Bearer $SECRET" "$URL/internal/cron/reminders"

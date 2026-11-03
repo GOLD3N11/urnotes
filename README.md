@@ -129,6 +129,18 @@ Aplicația rămâne pe GitHub Pages; serverul stă pe Render, descris în `rende
 
 La prima intrare după pasul 4, fiecare elev își aduce caietul din Firebase pe server. Până la pasul 4 nu se schimbă nimic pentru nimeni.
 
+## Pe Vercel
+
+Serverul merge și pe Vercel (planul gratuit Hobby ajunge pentru început). Diferența față de Render: pe Vercel serverul pornește doar la cereri și doarme între ele, așa că:
+
+- **Intrarea** e `src/index.ts`; `vercel.json` adaugă la pachet `migrations/` și `shared/`. Migrările se aplică singure la prima cerere de după o versiune nouă.
+- **Baza de date** nu e pe Vercel: o adaugi din Vercel → proiectul → **Storage → Neon (Postgres)**, care pune singur `DATABASE_URL` în proiect. Folosește adresa cu *pooling* (are `-pooler` în nume).
+- **Amintirile** nu mai au un cronometru în server. Le trimite `GET /internal/cron/reminders`, cu antetul `Authorization: Bearer <CRON_SECRET>`. Cronul din `vercel.json` îl cheamă o dată pe zi (cât permite Hobby), iar `.github/workflows/reminders.yml` la fiecare 15 minute, după ce pui secretele `URNOTES_API_URL` și `CRON_SECRET` în GitHub. O amintire pleacă la primul apel de după ora ei, o singură dată.
+- **Variabilele** din proiectul Vercel: `DATABASE_URL` (de la Neon), `AUTH_MODE=firebase`, `FIREBASE_PROJECT_ID=zece-2f182`, `CORS_ORIGINS=https://gold3n11.github.io`, `ADMIN_EMAILS`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+- **Aplicația** rămâne pe GitHub Pages: în repository-ul urnotes, `api-config.js` primește adresa de pe Vercel (`https://urnotes-api.vercel.app` sau cum se numește proiectul).
+
+Pe repository privat, GitHub Actions are un număr limitat de minute gratuite pe lună; un apel la 15 minute le poate depăși. Pe repository public nu e limită.
+
 Altă gazdă merge la fel: orice rulează imaginea (`docker build -t urnotes-api .`) cu variabilele din `.env.example`, dar trebuie să rămână pornită și între cereri.
 
 Serverul aplică singur migrările la pornire. Cu mai multe copii pornite, amintirile pleacă o singură dată (un lacăt în baza de date).

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "fastify",
+  "functions": {
+    "src/index.ts": {
+      "includeFiles": "{migrations,shared}/**"
+    }
+  },
+  "crons": [
+    { "path": "/internal/cron/reminders", "schedule": "0 18 * * *" }
+  ]
+}

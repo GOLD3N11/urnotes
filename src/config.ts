@@ -13,8 +13,12 @@ export interface Config {
     /** De unde are voie aplicația să cheme API-ul (CORS). */
     corsOrigins: string[];
     vapid: VapidKeys | null;
-    /** Cât de des verifică serverul dacă e timpul pentru amintiri. */
+    /** Cât de des verifică serverul dacă e timpul pentru amintiri (0 = deloc; pe Vercel e oprit). */
     schedulerEveryMs: number;
+    /** Parola cronului care cheamă GET /internal/cron/reminders (Vercel Cron, GitHub Actions). Goală = ruta nu există. */
+    cronSecret: string;
+    /** Câte conexiuni la baza de date ține o copie a serverului. */
+    poolMax: number;
 }
 
 const list = (v: string | undefined) => (v || "").split(",").map(s => s.trim()).filter(Boolean);
@@ -36,6 +40,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         adminEmails: list(env.ADMIN_EMAILS).map(e => e.toLowerCase()),
         corsOrigins: list(env.CORS_ORIGINS || "https://gold3n11.github.io,http://localhost:5173,http://localhost:8000"),
         vapid,
-        schedulerEveryMs: Number(env.SCHEDULER_EVERY_MS) || 60_000
+        schedulerEveryMs: env.VERCEL ? 0 : env.SCHEDULER_EVERY_MS === "0" ? 0 : Number(env.SCHEDULER_EVERY_MS) || 60_000,
+        cronSecret: env.CRON_SECRET || "",
+        // pe Vercel rulează multe copii mici deodată: puține conexiuni fiecare, ca baza de date să nu rămână fără
+        poolMax: Number(env.PG_POOL_MAX) || (env.VERCEL ? 3 : 10)
     };
 }
