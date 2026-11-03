@@ -10,7 +10,9 @@ Gândită ca un Notion doar pentru școală: fiecare materie e o pagină (cu med
 - Datele se salvează în browser (localStorage) și merg și offline; din Setări poți exporta și importa un backup.
 - Opțional, conturi (Google sau email + parolă) cu sincronizare între dispozitive, prin Firebase: completează `firebase-config.js` și publică regulile din `firestore.rules`. Fără configurare, aplicația rămâne doar locală.
 
-## Serverul (backend/)
+## Serverul (repository-ul urnotes-api)
+
+Acest repository e doar aplicația (interfața), publicată pe GitHub Pages. Serverul e în [GOLD3N11/urnotes-api](https://github.com/GOLD3N11/urnotes-api), cu istoria lui, și se publică separat. Cele două vorbesc doar prin API-ul serverului (`/v1/...`), la adresa din `api-config.js`; pentru încercări pe un singur dispozitiv, `?api=http://localhost:8080` în adresa aplicației.
 
 Aplicația merge și fără server. Când `api-config.js` are adresa serverului urNotes, ea:
 - ia datele școlare (anii, județele, examenele) de pe server, așa că un ordin nou al ministrului nu mai cere o versiune nouă;
@@ -19,7 +21,9 @@ Aplicația merge și fără server. Când `api-config.js` are adresa serverului 
 - sincronizează caietul notă cu notă (nu ca o copie întreagă), deci două dispozitive nu se mai suprascriu;
 - are conturi de părinte și de profesor: la prima intrare cu un cont nou alegi „elev”, „părinte” sau „profesor”; părintele și profesorul văd caietul elevului doar pentru citire, iar profesorul face clase cu cod și pune teste care apar în calendarul fiecărui elev.
 
-Detalii, API și pornire: `backend/README.md`. Formele datelor comune aplicației și serverului: `shared/types.ts`.
+Detalii, API, formele datelor și pornire: README-ul din urnotes-api.
+
+**Regulile comune.** `shared/rules.js` (medii, rotunjire, purtare, realism) trebuie să fie identic aici și pe server. Locul lui e în urnotes-api; aici e o copie, ca aplicația să meargă și offline. După ce regulile se schimbă pe server: `node scripts/sync-rules.mjs` și commit. Testele de pe GitHub pică până atunci.
 
 ## Cum e organizat codul
 
@@ -27,7 +31,9 @@ Fără pas de build: fișiere statice, publicate direct pe GitHub Pages.
 
 - `index.html`: paginile (taburile) și ordinea scripturilor.
 - `style.css`: aspectul componentelor; `ui.css`: stilul colorat „urNotes” (culori, litere, meniul, plăcile post-it); `tokens.css`: culorile, literele și umbrele comune.
-- `shared/rules.js`: regulile de calcul (medii, rotunjire, purtare), aceleași în aplicație și pe server; `shared/types.ts`: formele datelor.
+- `shared/rules.js`: regulile de calcul (medii, rotunjire, purtare, realism), copia celor din urnotes-api (vezi mai sus).
+- `tests/`: testele aplicației (jsdom): `cd tests && npm ci && node run.js`. Le rulează și GitHub la fiecare push.
+- `scripts/sync-rules.mjs`: aduce sau verifică copia regulilor.
 - `js/*.js`: aplicația, împărțită pe domenii. Sunt scripturi clasice care împart același spațiu global și se încarcă în ordinea din `index.html`:
   - `config.js`: constante, anii școlari (`SCHOOL_YEAR_DATA`), setări implicite.
   - `utils.js`, `model.js`, `storage.js`, `metrics.js`: datele și calculele.

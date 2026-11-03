@@ -1,4 +1,4 @@
-/* urNotes · Stratul de date către serverul urNotes (backend/).
+/* urNotes · Stratul de date către serverul urNotes (repository-ul urnotes-api).
    Paginile nu vorbesc direct cu serverul: trec prin `api`. Cât timp api-config.js are `null`, nimic de aici nu rulează
    și aplicația merge ca înainte (datele în browser + copia din Firebase).
 

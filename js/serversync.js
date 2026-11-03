@@ -3,7 +3,7 @@
 
    Cum lucrează:
    - caietul e împărțit în înregistrări: fiecare materie, fiecare notă, fiecare eveniment și câte un „doc” pentru restul
-     (setări, orar, purtare, plan…). Vezi backend/src/modules/records/collections.ts.
+     (setări, orar, purtare, plan…). Vezi src/modules/records/collections.ts în urnotes-api.
    - ținem minte ce știm că e pe server (`base`: o amprentă pe înregistrare) și până unde am citit (`cursor`).
    - la fiecare sincronizare: aducem ce s-a schimbat pe server de la cursor încoace, le punem peste caiet (o modificare
      făcută aici și netrimisă încă are prioritate), apoi trimitem ce diferă de `base`. Două dispozitive care schimbă
