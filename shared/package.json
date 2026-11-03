@@ -1,0 +1,4 @@
+{
+  "//": "shared/rules.js e un modul UMD (merge și în browser, și cu require). Fără acest fișier, Node l-ar citi ca modul ES din cauza \"type\": \"module\" din rădăcină.",
+  "type": "commonjs"
+}

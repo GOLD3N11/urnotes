@@ -1,18 +1,14 @@
 # Serverul urNotes pe Render: un serviciu mereu pornit (ceasul amintirilor de seară nu poate dormi) și PostgreSQL.
-# Aplicația rămâne pe GitHub Pages. Pașii sunt în backend/README.md, la „Publicarea”.
+# Aplicația (repository-ul urnotes) rămâne pe GitHub Pages. Pașii sunt în README.md, la „Publicarea”.
 services:
   - type: web
     name: urnotes-api
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: starter
     region: frankfurt
     healthCheckPath: /health
-    buildFilter:
-      paths:
-        - backend/**
-        - shared/**
     envVars:
       - key: DATABASE_URL
         fromDatabase:

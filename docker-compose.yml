@@ -1,4 +1,4 @@
-# Totul local, dintr-o comandă (din folderul backend/): docker compose up --build
+# Totul local, dintr-o comandă (din rădăcina acestui repository): docker compose up --build
 # Serverul: http://localhost:8080 · aplicația: pune adresa în api-config.js
 services:
   db:
@@ -15,8 +15,7 @@ services:
       retries: 20
   api:
     build:
-      context: ..
-      dockerfile: backend/Dockerfile
+      context: .
     env_file: .env
     environment:
       DATABASE_URL: postgres://urnotes:urnotes@db:5432/urnotes

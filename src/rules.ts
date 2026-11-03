@@ -24,4 +24,4 @@ export interface Rules {
         opts: { calc: { method: string; rounding: string | number; riskThreshold: number }; purtare: { avg: number } | null; purtareExcluded?: boolean; purtareWeight?: number }): Metrics;
 }
 
-export const rules = createRequire(import.meta.url)(join(BACKEND_DIR, "..", "shared", "rules.js")) as Rules;
+export const rules = createRequire(import.meta.url)(join(BACKEND_DIR, "shared", "rules.js")) as Rules;

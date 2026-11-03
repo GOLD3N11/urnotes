@@ -1,0 +1,40 @@
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: docker build -t urnotes-api .
+
+  # Datele școlare vin din aplicație (repository-ul urnotes). Dacă aplicația le-a schimbat, pasul ăsta pică
+  # până rulezi `npm run extract-school-data` aici și faci commit.
+  school-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/extract-school-data.mjs
+      - run: git diff --exit-code shared/school-data.json || (echo "::error::shared/school-data.json nu mai e la zi cu aplicația. Rulează npm run extract-school-data și fă commit." && exit 1)

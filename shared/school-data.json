@@ -1,5 +1,5 @@
 {
-  "$comment": "Generat din js/config.js și js/exams.js de backend/scripts/extract-school-data.mjs. Nu-l edita de mână.",
+  "$comment": "Generat din js/config.js și js/exams.js de scripts/extract-school-data.mjs (urnotes-api). Nu-l edita de mână.",
   "years": {
     "2026": {
       "order": "OM nr. 3194/2026",

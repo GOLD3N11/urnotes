@@ -1,4 +1,8 @@
-# Serverul urNotes (backend)
+# urnotes-api · serverul urNotes
+
+Aplicația (interfața) e în repository-ul [GOLD3N11/urnotes](https://github.com/GOLD3N11/urnotes) și stă pe GitHub Pages. Ea vorbește cu acest server doar prin API-ul de mai jos (`/v1/...`), la adresa din `api-config.js`. Cele două repository-uri se publică separat.
+
+**Ce au în comun:** `shared/rules.js` (regulile de calcul și de realism). Locul lui e **aici**; aplicația ține o copie, iar testele ei pică dacă copia nu mai e la fel (vezi „Regulile comune” mai jos). `shared/school-data.json` merge invers: se generează din aplicație.
 
 Un singur serviciu, împărțit în module. Fiecare modul are tabelele lui (prefixul din paranteză), serviciul și rutele lui, și nu citește tabelele altui modul. Așa, un modul se poate muta mai târziu într-un serviciu separat fără să schimbi restul.
 
@@ -31,6 +35,16 @@ Caietul nu mai urcă întreg: fiecare materie (`subject/<nume>`), notă (`grade/
 
 Mediile se calculează cu aceleași reguli peste tot: `shared/rules.js` e folosit și de aplicație, și de server (`GET /v1/students/:id/summary`).
 
+## Regulile comune
+
+`shared/rules.js` se schimbă **doar aici**, cu testele serverului. Apoi, în repository-ul aplicației:
+
+```
+node scripts/sync-rules.mjs     # aduce shared/rules.js de aici (ramura main)
+```
+
+și faci commit acolo. Până atunci, testele aplicației pică cu un mesaj care spune exact asta, ca aplicația să nu primească lucruri pe care serverul le refuză.
+
 ## Adservio
 
 Adservio nu are un API public, așa că serverul nu se poate conecta singur la el. Calea pregătită: o integrare creată de administrator (o cheie), permisă de elev, trimite notele la `POST /v1/students/:id/imported-grades`. Fiecare notă vine cu id-ul ei din Adservio (`adservio:<id>`), deci un import repetat nu dublează nimic, iar integrarea nu poate atinge altceva decât notele importate de ea. Dacă Adservio oferă un export sau un acord de acces, legătura se scrie ca un mic program care citește de acolo și trimite aici.
@@ -53,7 +67,7 @@ npm run migrate
 npm run dev
 ```
 
-Apoi, în aplicație, pune adresa serverului în `api-config.js` (de exemplu `window.URNOTES_API = "http://localhost:8080";`). Cât timp acolo e `null`, aplicația merge exact ca înainte, fără server.
+Apoi deschide aplicația cu `?api=http://localhost:8080` (de exemplu `https://gold3n11.github.io/urnotes/?api=http://localhost:8080`). Alegerea rămâne pe acel dispozitiv; `?api=off` o oprește. Pentru toată lumea, adresa se pune în `api-config.js` din repository-ul aplicației. Cât timp acolo e `null`, aplicația merge exact ca înainte, fără server.
 
 ## Teste
 
@@ -102,7 +116,7 @@ Toate răspunsurile sunt JSON; erorile au forma `{ "error": "cod", "message": "t
 
 ## Date școlare
 
-La prima pornire, serverul încarcă `shared/school-data.json`, generat din `js/config.js` și `js/exams.js` cu `npm run extract-school-data`. Ce schimbă administratorul după aceea nu mai e suprascris. Un an nou se publică cu `PUT /v1/school/years/2027` (și `counties`, `exams`); aplicațiile îl primesc la următoarea deschidere, fără o versiune nouă.
+La prima pornire, serverul încarcă `shared/school-data.json`, generat din `js/config.js` și `js/exams.js` ale aplicației cu `npm run extract-school-data` (le citește de pe GitHub; `npm run extract-school-data -- ../urnotes` citește o copie locală). Testele de pe GitHub verifică că fișierul e la zi cu aplicația. Ce schimbă administratorul după aceea nu mai e suprascris. Un an nou se publică cu `PUT /v1/school/years/2027` (și `counties`, `exams`); aplicațiile îl primesc la următoarea deschidere, fără o versiune nouă.
 
 ## Publicarea (când ai un server)
 
@@ -111,10 +125,10 @@ Aplicația rămâne pe GitHub Pages; serverul stă pe Render, descris în `rende
 1. Pe Render: **New → Blueprint**, alegi acest depozit (și ramura cu `render.yaml`).
 2. Când ți se cer, completezi `ADMIN_EMAILS` (emailul tău), `VAPID_PUBLIC_KEY` și `VAPID_PRIVATE_KEY` (din `npm run vapid`) și `VAPID_SUBJECT` (`mailto:` + emailul tău).
 3. Când serviciul e pornit, verifici `https://<adresa>/health`: trebuie să răspundă `{"ok":true}`.
-4. Pui adresa în `api-config.js` (`window.URNOTES_API = "https://<adresa>";`) și publici aplicația ca de obicei.
+4. În repository-ul aplicației, pui adresa în `api-config.js` (`window.URNOTES_API = "https://<adresa>";`) și publici aplicația ca de obicei.
 
 La prima intrare după pasul 4, fiecare elev își aduce caietul din Firebase pe server. Până la pasul 4 nu se schimbă nimic pentru nimeni.
 
-Altă gazdă merge la fel: orice rulează imaginea (`docker build -f backend/Dockerfile -t urnotes-api .`, din rădăcina proiectului) cu variabilele din `.env.example`, dar trebuie să rămână pornită și între cereri.
+Altă gazdă merge la fel: orice rulează imaginea (`docker build -t urnotes-api .`) cu variabilele din `.env.example`, dar trebuie să rămână pornită și între cereri.
 
 Serverul aplică singur migrările la pornire. Cu mai multe copii pornite, amintirile pleacă o singură dată (un lacăt în baza de date).
