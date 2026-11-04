@@ -1,8 +1,8 @@
 /* urNotes — lucru fără internet.
    Fișierele aplicației: mai întâi rețeaua (ca să primești mereu ultima versiune), copia salvată doar când nu e semnal.
    Fonturile și Chart.js: copia salvată imediat, actualizată în fundal. Firebase nu trece pe aici. */
-const CACHE = "urnotes-v44";
-const APP_JS = ["shared/rules.js", "js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/motion.js", "js/fluid.js", "js/pagefx.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/quickgrade.js", "js/cal-compose.js", "js/palette.js", "js/settings-sections.js", "js/timetable.js", "js/realism.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/api.js", "js/serversync.js", "js/viewer.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "vendor/qrcode.js", "js/school.js", "js/state.js", "js/boot.js", "js/main.js"];
+const CACHE = "urnotes-v45";
+const APP_JS = ["shared/rules.js", "js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/account.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/motion.js", "js/fluid.js", "js/pagefx.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/quickgrade.js", "js/cal-compose.js", "js/palette.js", "js/settings-sections.js", "js/timetable.js", "js/realism.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/api.js", "js/serversync.js", "js/viewer.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "vendor/qrcode.js", "js/school.js", "js/router.js", "js/state.js", "js/boot.js", "js/main.js"];
 const CHART_JS = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"; // aceeași adresă ca în js/selects-charts.js
 const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "tokens.css", "cloud.js", "firebase-config.js", "api-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png", CHART_JS];
 const REMIND_CACHE = "urnotes-remind"; // amintirile scrise de aplicație (vezi checkReminder în js/reminders.js)
@@ -10,6 +10,15 @@ const CDN = ["https://fonts.googleapis.com", "https://fonts.gstatic.com", "https
 const NAV_TIMEOUT_MS = 3000;  // cât așteptăm pagina de pe rețea când avem o copie salvată
 const COHERENT_MS = 30000;    // după o pagină din copie, și fișierele ei vin din copie, ca să nu amestecăm versiuni
 let cachedNavAt = 0;
+// adresele paginilor (js/router.js): lucrătorul dă direct aplicația, fără ocolul prin 404.html
+const ROUTES = ["azi", "calendar", "note", "plan", "progres", "ce-ar-fi-daca", "examene", "scoala", "setari"];
+const SCOPE = new URL(self.registration ? self.registration.scope : "./", location.href).pathname;
+function routeOf(url) {
+    if (!url.pathname.startsWith(SCOPE)) return null;
+    const rest = url.pathname.slice(SCOPE.length);
+    const m = /^([a-z-]+)(\/?)$/.exec(rest);
+    return m && ROUTES.includes(m[1]) ? { slug: m[1], slash: Boolean(m[2]) } : null;
+}
 
 self.addEventListener("install", event => {
     // câte un fișier: unul care nu se descarcă nu le pierde pe celelalte
@@ -49,7 +58,10 @@ self.addEventListener("fetch", event => {
     if (req.method !== "GET") return;
     const url = new URL(req.url);
     if (url.origin === location.origin) {
-        if (req.mode === "navigate") event.respondWith(navigate(req));
+        const route = req.mode === "navigate" ? routeOf(url) : null;
+        if (route && route.slash) event.respondWith(Response.redirect(SCOPE + route.slug + url.search, 301)); // …/calendar/ → …/calendar
+        else if (route) event.respondWith(navigate(new Request(SCOPE, { credentials: "same-origin" })));
+        else if (req.mode === "navigate") event.respondWith(navigate(req));
         else if (Date.now() - cachedNavAt < COHERENT_MS) event.respondWith(fromCache(req).then(hit => hit || networkThenCache(req)));
         else event.respondWith(networkThenCache(req));
     } else if (CDN.some(o => req.url.startsWith(o))) {

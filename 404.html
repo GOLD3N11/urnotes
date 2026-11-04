@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>urNotes</title>
+    <script>
+        /* GitHub Pages servește doar fișiere. O adresă ca …/urnotes/calendar ajunge aici și e trimisă înapoi la
+           aplicație cu ?route=calendar; aplicația (js/router.js) pune adresa la loc. */
+        (function () {
+            var known = ["azi", "calendar", "note", "plan", "progres", "ce-ar-fi-daca", "examene", "scoala", "setari", "catalog"];
+            var parts = location.pathname.replace(/\/+$/, "").split("/");
+            var seg = (parts[parts.length - 1] || "").toLowerCase();
+            if (known.indexOf(seg) >= 0) {
+                // aplicația e în dosarul de deasupra paginii cerute (…/urnotes/calendar → …/urnotes/)
+                var base = parts.slice(0, -1).join("/") + "/";
+                if (seg === "catalog") seg = "scoala";
+                location.replace(base + "?route=" + seg + location.search.replace(/^\?/, "&") + location.hash);
+            } else {
+                var p = location.pathname.split("/");
+                window.urnBase = /\.github\.io$/.test(location.hostname) && p[1] ? "/" + p[1] + "/" : "/";
+            }
+        })();
+    </script>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #F6F4EE; color: #171C2E; font: 16px/1.5 system-ui, sans-serif; text-align: center; padding: 1rem; }
+        a { color: #1E2B58; font-weight: 700; }
+        .note { background: #FFC93C; color: #1E2B58; width: 72px; height: 72px; border-radius: 16px; display: grid; place-items: center; margin: 0 auto 1rem; font: 800 28px system-ui; }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="note" aria-hidden="true">ur</div>
+        <h1>Pagina nu există</h1>
+        <p><a id="home" href="/urnotes/">Mergi la urNotes</a></p>
+    </main>
+    <script>if (window.urnBase) document.getElementById("home").href = window.urnBase;</script>
+</body>
+</html>
