@@ -22,7 +22,9 @@ const schoolAccount = (() => {
 
     const S = { access: null, me: null, tab: null, schools: [], accounts: [], filter: { school: "", role: "" }, view: "boot", step: null, started: false };
     const el = id => document.getElementById(id);
-    const body = () => el("school-body");
+    // unde se desenează: pagina Școala sau, la intrare, fereastra de autentificare (mount)
+    const inModal = () => Boolean(S.target && S.target.isConnected && !S.target.closest("[hidden]"));
+    const body = () => (inModal() ? S.target : el("school-body"));
     const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const apiBase = () => String(window.URNOTES_API || "").replace(/\/+$/, "");
     const store = {
@@ -84,6 +86,7 @@ const schoolAccount = (() => {
 
     /* ==================== desenarea ==================== */
     function draw() {
+        if (S.target && !inModal()) { S.target.innerHTML = ""; S.target = null; S.onDone = null; } // fereastra s-a închis: formularul rămâne doar pe pagină
         const root = body();
         if (!root) return;
         const views = { boot: drawBoot, login: drawLogin, first: drawFirst, totpSetup: drawTotpSetup, totp: drawTotp, app: drawApp };
@@ -93,7 +96,7 @@ const schoolAccount = (() => {
 
     function drawBoot(root) { root.innerHTML = `<p class="muted-small">Se încarcă…</p>`; }
 
-    const card = (inner, cls = "") => `<div class="glass-card sch-auth ${cls}">${inner}</div>`;
+    const card = (inner, cls = "") => inModal() ? `<div class="sch-auth sch-in-modal ${cls}">${inner}</div>` : `<div class="glass-card sch-auth ${cls}">${inner}</div>`;
 
     function drawLogin(root) {
         const msg = S.loginMsg; S.loginMsg = "";
@@ -209,6 +212,11 @@ const schoolAccount = (() => {
 
     async function enterApp() {
         try { S.me = await api("GET", "/v2/me"); } catch (_) { return; }
+        if (S.target) { // intrat din fereastra de la început: pagina Școala preia mai departe
+            const done = S.onDone;
+            S.target = null; S.onDone = null;
+            done?.();
+        }
         const tabs = tabsFor(role());
         if (!S.tab || !tabs.some(t => t[0] === S.tab)) S.tab = tabs[0][0];
         if (isAdmin()) { try { S.schools = (await api("GET", "/v2/schools")).schools; } catch (_) { S.schools = []; } }
@@ -547,6 +555,17 @@ const schoolAccount = (() => {
         if (root && !root.firstElementChild) draw();
     }
 
+    /** Intrarea din fereastra de la deschiderea site-ului. `onDone` = ce se face după ce a intrat. */
+    function mount(target, onDone) {
+        S.target = target; S.onDone = onDone;
+        const page = el("school-body");
+        if (page) page.innerHTML = ""; // un singur formular cu aceleași câmpuri; pagina se redesenează când fereastra se închide
+        if (S.view === "app" || S.view === "boot") S.view = "login";
+        S.started = true;
+        draw();
+        target.querySelector("input")?.focus({ preventScroll: true });
+    }
+
     /** Pagina Școala e deschisă? (banda de vizitator se ascunde) */
     function markTab() { document.body.classList.toggle("on-school-tab", typeof ui !== "undefined" && ui.activeTab === "tab-scoala"); }
     document.addEventListener("DOMContentLoaded", () => {
@@ -555,9 +574,9 @@ const schoolAccount = (() => {
     });
 
     /** Fereastra conturilor vechi (Google / email) nu se deschide singură pentru cine vine la Școala. */
-    const skipAuth = () => /^#(scoala|catalog)$/.test(location.hash) || Boolean(store.get()) || (typeof ui !== "undefined" && ui.activeTab === "tab-scoala");
+    const skipAuth = () => Boolean(store.get());
 
-    return { render, start, skipAuth, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
+    return { render, start, skipAuth, mount, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
 })();
 
 registerTab("tab-scoala", { render: schoolAccount.render, title: "Școala", icon: "graduation", group: "school" });

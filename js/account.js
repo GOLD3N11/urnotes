@@ -364,16 +364,18 @@ const AUTH_ERRORS = {
 const SILENT_AUTH = new Set(["auth/popup-closed-by-user", "auth/cancelled-popup-request", "auth/user-cancelled"]);
 const authMessage = err => AUTH_ERRORS[err?.code] || "Nu a mers. Încearcă din nou peste câteva momente.";
 
-const authUI = { mode: "signin", busy: false, error: "", info: "", email: "", returnFocus: null, reason: "" };
+const authUI = { mode: "signin", busy: false, error: "", info: "", email: "", returnFocus: null, reason: "", legacy: false };
 
 function openAuth(mode = "signin") {
-    if (!cloud.api) return;
+    const school = typeof schoolAccount !== "undefined";
+    if (!cloud.api && !school) return;
     if (!$("setup").hidden) closeSetup();
     closeActionModal();
     closeQuickAdd({ restoreFocus: false });
     closeMoreMenu({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
-    Object.assign(authUI, { mode, busy: false, error: "", info: "", returnFocus: authUI.returnFocus || document.activeElement });
+    // fereastra începe mereu cu contul de la școală; contul vechi (Google / email) e la un clic distanță
+    Object.assign(authUI, { mode, busy: false, error: "", info: "", legacy: !school || (mode !== "signin" && Boolean(cloud.api)), returnFocus: authUI.returnFocus || document.activeElement });
     $("auth").hidden = false;
     document.body.classList.add("modal-open");
     renderAuth();
@@ -390,7 +392,25 @@ function closeAuth() {
     if (back && document.contains(back) && back !== document.body) back.focus();
 }
 
+/** Prima față a ferestrei: intrarea cu contul de la școală (nume de utilizator și parolă, fără email). */
+function renderSchoolAuth() {
+    $("auth-body").innerHTML = `
+        <div class="auth-intro">
+            <svg class="brand-logo auth-logo" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-logo"/></svg>
+            <h2 id="auth-title" tabindex="-1">Intră în cont</h2>
+            <p>${authUI.reason ? escapeHTML(authUI.reason) : "Cu numele de utilizator și parola primite de la școală."}</p>
+        </div>
+        <div id="auth-school-box"></div>
+        ${cloud.api ? `<div class="auth-links"><button type="button" class="btn btn-text" data-action="auth-legacy">Am un cont vechi, cu email sau Google</button></div>` : ""}
+        <div class="auth-foot">
+            <button type="button" class="btn btn-text" data-action="auth-local">${icon("eye")} Doar mă uit, ca vizitator</button>
+            <small>Ca vizitator poți răsfoi aplicația, dar nu poți adăuga sau schimba nimic.</small>
+        </div>`;
+    schoolAccount.mount($("auth-school-box"), () => { closeAuth(); switchTab("tab-scoala"); });
+}
+
 function renderAuth(focusId) {
+    if (!authUI.legacy && typeof schoolAccount !== "undefined") { renderSchoolAuth(); return; }
     const { mode, busy, error, info, email } = authUI;
     const titles = { signin: "Intră în cont", signup: "Cont nou", reset: "Resetează parola" };
     $("auth-body").innerHTML = `
@@ -400,7 +420,6 @@ function renderAuth(focusId) {
             <p>${mode === "reset" ? "Îți trimitem pe email un link pentru o parolă nouă." : authUI.reason ? escapeHTML(authUI.reason) : "Notele tale, pe orice telefon sau calculator. Fără cont poți doar să te uiți."}</p>
         </div>
         ${mode !== "reset" ? `
-            <button type="button" class="btn btn-glass auth-school" data-action="auth-school">${icon("graduation")} Am cont de la școală <small>(utilizator și parolă)</small></button>
             <button type="button" class="btn auth-google" data-action="auth-google" ${busy ? "disabled" : ""}>
                 <svg viewBox="0 0 24 24" aria-hidden="true" class="g-logo"><path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/></svg>
                 Continuă cu Google
@@ -432,6 +451,7 @@ function renderAuth(focusId) {
             <button type="submit" class="btn btn-primary auth-submit" ${busy ? "disabled" : ""}>${busy ? "Așteaptă…" : mode === "signin" ? "Intră" : mode === "signup" ? "Creează contul" : "Trimite linkul"}</button>
         </form>
         <div class="auth-links">
+            ${typeof schoolAccount !== "undefined" ? `<button type="button" class="btn btn-text" data-action="auth-school">${icon("undo")} Înapoi la contul de la școală</button>` : ""}
             ${mode === "signin" ? `<button type="button" class="btn btn-text" data-action="auth-mode" data-mode="reset">Am uitat parola</button>` : ""}
             ${mode === "reset" ? `<button type="button" class="btn btn-text" data-action="auth-mode" data-mode="signin">${icon("undo")} Înapoi la autentificare</button>` : ""}
         </div>
@@ -650,7 +670,8 @@ function openAccountPanel() {
 }
 
 const ACCOUNT_ACTIONS = {
-    "auth-school": () => { closeAuth(); switchTab("tab-scoala"); },
+    "auth-school": () => { authUI.legacy = false; authUI.error = ""; renderAuth(); },
+    "auth-legacy": () => { authUI.legacy = true; authUI.mode = "signin"; authUI.error = ""; renderAuth(); },
     // a doua apăsare pe cont închide fereastra contului
     "account-open": () => {
         if (!$("action-modal").hidden && $("action-modal-title")?.textContent === "Contul tău") { closeActionModal(); return; }

@@ -86,6 +86,9 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   await sleep(30);
   assert(!A.$("auth").hidden && A.$("setup").hidden, "A: auth screen shown at start (setup wizard waits)");
   assert(A.w.document.body.classList.contains("has-cloud") && /Intră în cont/.test(A.$("account-chip").textContent), "A: account chip says 'Intră în cont'");
+  assert(A.$("sch-login") && !A.$("auth-email"), "A: the first screen is the school sign-in (username and password, no email)");
+  A.click(A.q('[data-action="auth-legacy"]'));
+  assert(A.$("auth-email") && A.q('[data-action="auth-school"]'), "A: the old email/Google sign-in is one click away, with a way back");
   A.type("auth-email", "ana@"); A.submit();
   assert(/nu e validă/.test(A.q(".auth-msg").textContent), "invalid email caught before calling Firebase");
   A.type("auth-email", "ana@ex.ro"); A.type("auth-pass", "gresit1"); A.submit();
@@ -117,6 +120,7 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   const B = boot("B");
   await sleep(300);
   assert(!B.$("auth").hidden, "B: auth screen");
+  B.click(B.q('[data-action="auth-legacy"]'));
   B.click(B.q('[data-action="auth-google"]'));
   await sleep(40);
   assert(B.$("action-modal").hidden && B.$("setup").hidden, "B: no question, no wizard");
@@ -189,6 +193,7 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   // 8. cont nou, alegerea „încep gol” → backup descărcat întâi
   const D = boot("D", { ls: LOCAL, googleUid: "u-dan" });
   await sleep(30);
+  D.click(D.q('[data-action="auth-legacy"]'));
   D.click(D.q('[data-action="auth-mode"][data-mode="signup"]'));
   assert(D.$("auth-name"), "signup tab shows the name field");
   D.type("auth-email", "ana@ex.ro"); D.type("auth-pass", "abcdef"); D.submit();
@@ -218,6 +223,7 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   server.loadFail = true;
   const E = boot("E", { ls: { ...LOCAL, "pro_auth_choice_v4": "account" }, googleUid: "u-eva" });
   await sleep(30);
+  E.click(E.q('[data-action="auth-legacy"]'));
   E.click(E.q('[data-action="auth-google"]'));
   await sleep(40);
   assert(E.T.cloud.status === "error" && E.saves === 0, "E: account unreadable → error status, nothing uploaded");
@@ -231,6 +237,7 @@ const LOCAL = { "pro_catalog_db_v4": { "Matematica": { ore: 4, target: 10, grade
   // 12. cont nou pe un browser unde configurarea a fost închisă cândva → apare totuși
   const F = boot("F", { ls: { "pro_setup_done_v4": "1" }, googleUid: "u-nou" });
   await sleep(30);
+  F.click(F.q('[data-action="auth-legacy"]'));
   F.click(F.q('[data-action="auth-google"]'));
   await sleep(60);
   assert(!F.$("setup").hidden && F.$("setup-me-name"), "new account + empty notebook → setup wizard opens even after an old skip");

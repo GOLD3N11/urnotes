@@ -1910,3 +1910,5 @@ body.school-in #guest-bar, body.on-school-tab #guest-bar { display: none !import
     .sch-login-card { border: 1.5px dashed #999; border-radius: 4mm; padding: 5mm 6mm; break-inside: avoid; font: 11pt/1.45 var(--font-sans); color: #000; }
     .sch-login-card b { font-size: 13pt; }
 }
+.sch-in-modal { margin: 0; max-width: none; }
+.sch-in-modal #sch-login > h3:first-child, .sch-in-modal #sch-login > h3:first-child + p { display: none; }
