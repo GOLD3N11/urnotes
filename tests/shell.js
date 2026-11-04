@@ -23,7 +23,10 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
 (async () => {
   if (w.document.readyState === "loading") await new Promise(r => w.document.addEventListener("DOMContentLoaded", r));
   // side menu
-  assert(qa(".side-nav .side-link").length === 5 && q(".side-foot [data-tab='tab-setari']") && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Calendar, Note, Plan, Progres + Adaugă + Caută; Setări at the bottom");
+  assert(qa(".side-nav .side-link").length === 6 && q(".side-nav [data-tab='tab-scoala']") && q(".side-foot [data-tab='tab-setari']") && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Calendar, Note, Plan, Progres, Școala + Adaugă + Caută; Setări at the bottom");
+  T.switchTab("tab-scoala");
+  assert(T.ui.activeTab === "tab-scoala" && q(".side-link.active").dataset.tab === "tab-scoala" && $("school-body"), "Școala is a page in the app, lit in the menu");
+  T.switchTab("tab-dashboard");
   click(q("[data-action='nav'][data-tab='tab-statistici']"));
   assert(T.ui.activeTab === "tab-statistici" && q(".side-link.active").dataset.tab === "tab-statistici" && !w.document.body.classList.contains("is-subpage"), "Progres is a main page with its own menu item");
   T.switchTab("tab-simulator");

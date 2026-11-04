@@ -1849,3 +1849,64 @@ body.modal-open:has(#action-modal.is-modeless:not([hidden])), body:has(#notif-pa
 .account-mode { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; font-size: 13.5px; color: var(--ink-2); }
 .account-mode .ico { width: 16px; height: 16px; color: var(--accent-ink); }
 .account-mode a { color: var(--accent-ink); font-weight: 700; }
+
+/* ==================== Școala (catalogul: contul primit de la școală, js/school.js) ==================== */
+#school-body { display: grid; gap: var(--gap-grid, 16px); }
+.sch-auth { max-width: 440px; width: 100%; margin: 8px auto 0; }
+.sch-auth h3 { display: flex; align-items: center; gap: 8px; }
+.sch-full { width: 100%; margin-top: 6px; }
+.sch-error { background: var(--risk-soft); color: var(--risk); border-radius: 10px; padding: 9px 12px; margin: 8px 0; font-size: 14px; }
+.sch-note { background: var(--yellow-soft); border-radius: 10px; padding: 10px 12px; margin: 12px 0 0; font-size: 14px; }
+.sch-help { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+.sch-help summary { cursor: pointer; font-weight: 600; }
+.sch-steps { margin: 6px 0 10px; padding-left: 20px; font-size: 14px; }
+.sch-qr { display: grid; place-items: center; background: #fff; border-radius: 12px; padding: 10px; margin: 8px 0; }
+.sch-qr svg { width: 190px; height: 190px; }
+.sch-secret { font: 600 14px ui-monospace, Menlo, monospace; letter-spacing: .08em; word-break: break-all; background: var(--sunken); padding: 8px 10px; border-radius: 8px; }
+.sch-code { font: 700 24px ui-monospace, Menlo, monospace !important; letter-spacing: .4em; text-align: center; }
+.sch-mono { font-family: ui-monospace, Menlo, monospace; font-size: .92em; }
+.sch-who { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+.sch-who b { display: block; }
+.sch-who small { color: var(--ink-2); }
+.sch-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--yellow); color: var(--on-yellow); display: grid; place-items: center; font: 800 17px var(--font-display); flex: none; }
+.sch-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.sch-tabs .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-2); font: 700 14px var(--font-sans); cursor: pointer; }
+.sch-tabs .chip .ico { width: 16px; height: 16px; }
+.sch-tabs .chip:hover { color: var(--ink); }
+.sch-tabs .chip.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
+body.dark-mode .sch-tabs .chip.is-on { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
+/* cine e intrat cu contul de la școală nu e „vizitator”, iar pe pagina Școala banda nu are rost */
+body.school-in #guest-bar, body.on-school-tab #guest-bar { display: none !important; }
+.sch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--gap-grid, 16px); align-items: start; }
+#sch-page { display: grid; gap: var(--gap-grid, 16px); }
+.sch-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.sch-head h3 { margin: 0; }
+.sch-filters { display: flex; gap: 8px; flex-wrap: nowrap; }
+@media (max-width: 700px) { .sch-filters { flex-wrap: wrap; width: 100%; } .sch-filters > * { flex: 1 1 160px; } }
+.sch-filters > * { flex: 0 1 200px; width: auto; min-width: 170px; }
+.sch-table-wrap { overflow-x: auto; margin: 6px -4px 0; }
+.sch-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sch-table th, .sch-table td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.sch-table th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); font-weight: 700; }
+.sch-table tr:last-child td { border-bottom: 0; }
+.sch-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.sch-pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.sch-pill.is-ok { background: var(--ok-soft); color: var(--ok); }
+.sch-pill.is-new { background: var(--warn-soft); color: var(--warn); }
+.sch-pill.is-off { background: var(--risk-soft); color: var(--risk); }
+.sch-check { display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 4px 0 8px; }
+.sch-rows { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+.sch-dialog { border: 0; border-radius: 18px; padding: 20px; width: min(600px, calc(100vw - 32px)); background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-pop); }
+.sch-dialog::backdrop { background: rgba(17, 19, 25, .45); }
+.sch-dialog-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.sch-pw { font: 700 18px ui-monospace, Menlo, monospace; letter-spacing: .05em; background: var(--yellow-soft); padding: 4px 10px; border-radius: 8px; white-space: nowrap; }
+.auth-school { width: 100%; margin-bottom: 10px; gap: 8px; }
+.auth-school small { color: var(--ink-2); font-weight: 500; }
+.side-badge { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--ink-2); }
+#sch-print { display: none; }
+@media print {
+    body.sch-printing > *:not(#sch-print) { display: none !important; }
+    body.sch-printing #sch-print { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .sch-login-card { border: 1.5px dashed #999; border-radius: 4mm; padding: 5mm 6mm; break-inside: avoid; font: 11pt/1.45 var(--font-sans); color: #000; }
+    .sch-login-card b { font-size: 13pt; }
+}

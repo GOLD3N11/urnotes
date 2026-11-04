@@ -223,6 +223,7 @@ function runQuickAdd(kind) {
 /* ==================== MAI MULT (telefon) ==================== */
 let moreReturn = null;
 const MORE_ACTIONS = {
+    school: () => switchTab("tab-scoala"),
     sim: () => switchTab("tab-simulator"),
     settings: () => switchTab("tab-setari"),
     theme: () => toggleTheme(),

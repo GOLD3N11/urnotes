@@ -77,6 +77,8 @@
     <script src="js/pal.js" defer></script>
     <script src="js/exams.js" defer></script>
     <script src="js/growth.js" defer></script>
+    <script src="vendor/qrcode.js" defer></script>
+    <script src="js/school.js" defer></script>
     <script src="js/state.js" defer></script>
     <script src="js/boot.js" defer></script>
     <script src="js/main.js" defer></script>
@@ -200,6 +202,7 @@
             <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-plan" data-group="plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Plan</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici" data-group="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-scoala" data-group="school"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Școala</span><small class="side-badge" data-school-who hidden></small></button>
             <button type="button" class="side-add" data-action="quick-add" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span><kbd>N</kbd></button>
             <button type="button" class="side-search" data-action="palette-open"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>Caută</span><kbd>Ctrl K</kbd></button>
         </nav>
@@ -581,6 +584,19 @@
             </section>
 
             <!-- ================= SETĂRI ================= -->
+            <!-- ================= ȘCOALA (catalogul: contul primit de la școală) ================= -->
+            <section id="tab-scoala" class="tab-content" aria-labelledby="h-scoala">
+                <div class="page-intro">
+                    <div>
+                        <button type="button" class="page-back" data-action="nav" data-tab="tab-dashboard"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Azi</span></button>
+                        <h2 id="h-scoala">Școala</h2>
+                        <p>Contul primit de la școală: intri cu numele de utilizator și parola de la administrator, fără email.</p>
+                    </div>
+                    <div class="page-pal" hidden></div>
+                </div>
+                <div id="school-body"></div>
+            </section>
+
             <section id="tab-setari" class="tab-content" aria-labelledby="h-setari">
                 <div class="page-intro settings-intro">
                     <div>
@@ -844,6 +860,7 @@
         <div class="quick-add-backdrop" data-action="more-close"></div>
         <div class="quick-add-card" role="menu" aria-label="Mai mult">
             <p class="quick-add-title">Eu</p>
+            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="school"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span><b>Școala</b><small>contul primit de la școală</small></span></button>
             <button type="button" role="menuitem" class="qa-item cloud-only" data-action="more-run" data-kind="account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span><b>Cont</b><small class="sync-line" data-sync-status="local"><i class="sync-dot" aria-hidden="true"></i><span class="sync-text">Doar pe acest dispozitiv</span></small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="settings"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span><b>Setări</b><small>ținte, calcul, aspect, module, backup</small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="theme"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg><span><b id="more-theme-label">Temă întunecată</b><small>foaie sau caiet noaptea</small></span></button>

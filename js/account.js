@@ -108,7 +108,9 @@ async function onCloudUser(user) {
         // La fiecare deschidere arătăm autentificarea, mai puțin dacă a ales deja „doar mă uit” în sesiunea asta
         let browsing = false;
         try { browsing = sessionStorage.getItem(GUEST_SESSION_KEY) === "1"; } catch (_) { /* fără stocare */ }
-        if (first && !browsing) openAuth();
+        // cine vine pentru contul de la școală (sau e deja intrat cu el) nu primește fereastra conturilor vechi
+        const forSchool = typeof schoolAccount !== "undefined" && schoolAccount.skipAuth();
+        if (first && !browsing && !forSchool) openAuth();
         return;
     }
 
@@ -398,6 +400,7 @@ function renderAuth(focusId) {
             <p>${mode === "reset" ? "Îți trimitem pe email un link pentru o parolă nouă." : authUI.reason ? escapeHTML(authUI.reason) : "Notele tale, pe orice telefon sau calculator. Fără cont poți doar să te uiți."}</p>
         </div>
         ${mode !== "reset" ? `
+            <button type="button" class="btn btn-glass auth-school" data-action="auth-school">${icon("graduation")} Am cont de la școală <small>(utilizator și parolă)</small></button>
             <button type="button" class="btn auth-google" data-action="auth-google" ${busy ? "disabled" : ""}>
                 <svg viewBox="0 0 24 24" aria-hidden="true" class="g-logo"><path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/></svg>
                 Continuă cu Google
@@ -647,6 +650,7 @@ function openAccountPanel() {
 }
 
 const ACCOUNT_ACTIONS = {
+    "auth-school": () => { closeAuth(); switchTab("tab-scoala"); },
     // a doua apăsare pe cont închide fereastra contului
     "account-open": () => {
         if (!$("action-modal").hidden && $("action-modal-title")?.textContent === "Contul tău") { closeActionModal(); return; }
