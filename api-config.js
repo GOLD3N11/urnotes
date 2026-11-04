@@ -1,15 +1,13 @@
 /*
- * Serverul urNotes (repository-ul urnotes-api). Cât timp valoarea e `null`, aplicația funcționează ca înainte, fără server.
- * Când serverul e pornit undeva public, pune aici adresa lui, de exemplu:
- *   window.URNOTES_API = "https://api.urnotes.ro";
+ * Serverul urNotes (repository-ul urnotes-api), publicat pe Vercel. Cu `null` aici, aplicația ar merge fără server.
  *
  * Pentru încercări pe un singur dispozitiv (fără să schimbi aplicația pentru ceilalți), deschide aplicația cu
  *   ?api=http://localhost:8080   → folosește serverul pornit pe calculatorul tău (`docker compose up` în urnotes-api)
- *   ?api=off                     → înapoi la varianta fără server
+ *   ?api=off                     → înapoi la serverul de pe Vercel
  * Alegerea rămâne ținută minte pe dispozitivul acela. Din motive de siguranță, din link se acceptă doar un server
  * de pe calculatorul tău (localhost / 127.0.0.1): un link primit de la altcineva nu-ți poate trimite datele în altă parte.
  */
-window.URNOTES_API = null;
+window.URNOTES_API = "https://urnotes-api.vercel.app";
 
 (function () {
     var KEY = "urn_api_local";
