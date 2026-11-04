@@ -315,7 +315,7 @@ function bindShellEvents() {
             return;
         }
         // La fel ecranul de autentificare (Escape îl închide doar dacă elevul a ales deja cum folosește aplicația)
-        if (!$("auth").hidden) {
+        if ($("auth") && !$("auth").hidden) {
             if (!$("action-modal").hidden) return;
             if (k === "Escape" && cloud.seenUser && lsGet(SYNC_KEYS.choice)) closeAuth();
             else trapFocusIn($("auth"), event);

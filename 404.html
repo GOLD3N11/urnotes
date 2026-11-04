@@ -12,6 +12,11 @@
             var known = ["azi", "calendar", "note", "plan", "progres", "ce-ar-fi-daca", "examene", "scoala", "setari", "catalog"];
             var parts = location.pathname.replace(/\/+$/, "").split("/");
             var seg = (parts[parts.length - 1] || "").toLowerCase();
+            // …/urnotes/scoala/baza-de-date → …/urnotes/?route=scoala&sub=baza-de-date
+            if (seg === "baza-de-date" && (parts[parts.length - 2] || "").toLowerCase() === "scoala") {
+                location.replace(parts.slice(0, -2).join("/") + "/?route=scoala&sub=baza-de-date" + location.search.replace(/^\?/, "&") + location.hash);
+                return;
+            }
             if (known.indexOf(seg) >= 0) {
                 // aplicația e în dosarul de deasupra paginii cerute (…/urnotes/calendar → …/urnotes/)
                 var base = parts.slice(0, -1).join("/") + "/";

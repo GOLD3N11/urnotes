@@ -13,8 +13,8 @@ const catalogMode = (() => {
     const PICK_KEY = "urn_cat_child";
     const POLL = 60_000;
     const KIND_TO_TYPE = { Oral: "Ascultare", Test: "Test", Lucrare: "Test", "Teză": "Teză", "Temă": "Temă", Proiect: "Proiect", Altele: "Altele" };
-    const STAFF = ["ceo", "schools_admin", "school_admin", "teacher"];
-    const M = { me: null, children: [], child: "", poll: 0, loading: false, fp: "", wanted: "" };
+    const STAFF = ["ceo", "data_operator", "schools_admin", "school_admin", "teacher"];
+    const M = { me: null, children: [], child: "", poll: 0, loading: false, fp: "", wanted: "", notices: [], vapid: null };
     const role = () => M.me?.account.role || "";
     const isStaff = () => STAFF.includes(role());
     const active = () => Boolean(M.me);
@@ -41,11 +41,17 @@ const catalogMode = (() => {
         });
         return subjects;
     }
-    function apply(cat) {
+    /** Orarul clasei (de la administratorul școlii) → orarul aplicației: pentru fiecare zi, materiile în ordinea orelor. */
+    function toTimetable(tt) {
+        const out = {};
+        (tt?.cells || []).slice().sort((a, b) => a.day - b.day || a.hour - b.hour).forEach(c => { (out[c.day] ||= []).push(c.subject); });
+        return out;
+    }
+    function apply(cat, tt = null) {
         const settings = clone(state.settings);
         settings.profile = { ...settings.profile, name: (cat?.student.displayName || M.me.account.displayName).split(" ")[0] };
         // purtarea nu e (încă) în catalogul școlii: nu intră în medie, ca media să fie doar din notele profesorilor
-        const data = { meta: { schema: DATA_SCHEMA }, settings, subjects: toSubjects(cat), purtare: { grades: {}, excludeFromGPA: true } };
+        const data = { meta: { schema: DATA_SCHEMA }, settings, subjects: toSubjects(cat), timetable: toTimetable(tt), purtare: { grades: {}, excludeFromGPA: true } };
         guest.restoring = true;
         try {
             applyLoadedData(readStoredData(name => clone(data[name] ?? null)));
@@ -63,22 +69,98 @@ const catalogMode = (() => {
         if (!active() || isStaff() || M.loading) return;
         M.loading = true;
         try {
-            let cat = null;
-            if (role() === "student") cat = await req("GET", "/v2/me/catalog");
+            let cat = null, tt = null;
+            if (role() === "student") [cat, tt] = await Promise.all([req("GET", "/v2/me/catalog"), req("GET", "/v2/me/timetable").catch(() => null)]);
             else if (role() === "parent") {
                 M.children = (await req("GET", "/v2/me/children")).children;
                 let saved = "";
                 try { saved = localStorage.getItem(PICK_KEY) || ""; } catch (_) { /* fără stocare */ }
                 const pick = M.children.find(c => c.id === M.child) || M.children.find(c => c.id === saved) || M.children[0];
                 M.child = pick?.id || "";
-                if (M.child) cat = await req("GET", `/v2/students/${M.child}/catalog`);
+                if (M.child) [cat, tt] = await Promise.all([req("GET", `/v2/students/${M.child}/catalog`), req("GET", `/v2/me/timetable?student=${M.child}`).catch(() => null)]);
             }
-            const fp = JSON.stringify(cat?.subjects || []) + M.child;
-            if (force || fp !== M.fp) { M.fp = fp; apply(cat); }
+            const fp = JSON.stringify([cat?.subjects || [], tt?.cells || []]) + M.child;
+            if (force || fp !== M.fp) { M.fp = fp; apply(cat, tt); }
             renderGuestBar();
         } catch (e) {
             if (force && e.status !== 401) showToast(`⚠️ ${e.message}`);
         } finally { M.loading = false; }
+    }
+
+    /* ---------- anunțurile (o notă schimbată sau ștearsă), în clopoțel ---------- */
+    async function loadNotices() {
+        if (!active()) return;
+        try {
+            const r = await req("GET", "/v2/me/notifications");
+            M.notices = r.notifications || [];
+            M.vapid = r.vapidPublicKey || null;
+            renderAlerts();
+            renderNotificationBadge();
+        } catch (_) { /* încercăm la următoarea verificare */ }
+    }
+    const fmtWhen = iso => {
+        const d = new Date(iso);
+        return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    };
+    const oldAlerts = renderAlerts;
+    renderAlerts = function catalogAlerts() {
+        oldAlerts();
+        const cont = $("alerte-container");
+        if (!cont || !active() || !M.notices.length) return;
+        cont.insertAdjacentHTML("afterbegin", M.notices.slice(0, 30).map(n => `
+            <div class="alert-card info cat-notice ${n.seen ? "" : "unread"}">
+                <span class="alert-open">${icon("note", "alert-ico")}<span><b>${escapeHTML(n.title)}</b><small>${escapeHTML(n.body)} · ${fmtWhen(n.createdAt)}</small></span></span>
+            </div>`).join(""));
+    };
+    const oldBadge = renderNotificationBadge;
+    renderNotificationBadge = function catalogBadge() {
+        oldBadge();
+        const extra = active() ? M.notices.filter(n => !n.seen).length : 0;
+        if (!extra) return;
+        const badge = $("notif-badge");
+        if (!badge) return;
+        const n = (Number(badge.hidden ? 0 : badge.textContent) || 0) + extra;
+        badge.textContent = n > 99 ? "99+" : String(n);
+        badge.hidden = false;
+    };
+    const oldOpen = openNotifPanel;
+    openNotifPanel = function catalogOpenNotif(...args) {
+        const out = oldOpen.apply(this, args);
+        if (active() && M.notices.some(n => !n.seen)) {
+            schoolAccount.request("POST", "/v2/me/notifications/seen", {}).then(() => {
+                M.notices = M.notices.map(n => ({ ...n, seen: true }));
+                setTimeout(() => { renderNotificationBadge(); renderAlerts(); }, 1500);
+            }).catch(() => {});
+        }
+        return out;
+    };
+
+    /* ---------- notificările pe telefon ---------- */
+    const pushSupported = () => "serviceWorker" in navigator && typeof window.PushManager === "function" && typeof Notification !== "undefined";
+    const b64 = s => { const pad = "=".repeat((4 - s.length % 4) % 4); const raw = atob((s + pad).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(raw, c => c.charCodeAt(0)); };
+    async function pushState() {
+        if (!pushSupported()) return "unsupported";
+        if (Notification.permission === "denied") return "denied";
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = reg && await reg.pushManager.getSubscription();
+        return sub && Notification.permission === "granted" ? "on" : "off";
+    }
+    async function enablePush() {
+        if (!pushSupported()) throw new Error("Browserul acesta nu primește notificări. Pe iPhone, adaugă întâi aplicația pe ecranul principal.");
+        if (!M.vapid) await loadNotices();
+        if (!M.vapid) throw new Error("Serverul nu trimite încă notificări pe telefon.");
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") throw new Error("Notificările nu au fost permise. Le poți porni din setările browserului.");
+        const reg = await navigator.serviceWorker.ready;
+        const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(M.vapid) });
+        await schoolAccount.request("POST", "/v2/me/push", sub.toJSON());
+    }
+    async function disablePush() {
+        const reg = await navigator.serviceWorker?.getRegistration();
+        const sub = reg && await reg.pushManager.getSubscription();
+        if (!sub) return;
+        await schoolAccount.request("DELETE", `/v2/me/push?endpoint=${encodeURIComponent(sub.endpoint)}`).catch(() => {});
+        await sub.unsubscribe();
     }
 
     /* ---------- schimbarea contului ---------- */
@@ -88,7 +170,8 @@ const catalogMode = (() => {
         M.me = me || null;
         clearInterval(M.poll);
         if (!M.me) {
-            Object.assign(M, { children: [], child: "", fp: "" });
+            Object.assign(M, { children: [], child: "", fp: "", notices: [] });
+            renderNotificationBadge();
             if (guest.viewer) leaveViewer();
             lock();
             return;
@@ -103,10 +186,9 @@ const catalogMode = (() => {
             document.body.classList.add("is-guest", "is-viewer");
         }
         if (isStaff()) apply(null); // profesorii și administratorii n-au caiet: lucrează la Școala
-        else {
-            load(true);
-            M.poll = setInterval(() => { if (document.visibilityState === "visible") load(); }, POLL);
-        }
+        else load(true);
+        loadNotices();
+        M.poll = setInterval(() => { if (document.visibilityState === "visible") { load(); loadNotices(); } }, POLL);
         renderGuestBar();
         // după intrare: elevul și părintele ajung la pagina cerută (sau Azi), profesorii și administratorii la Școala
         if (wasLocked) {
@@ -170,5 +252,5 @@ const catalogMode = (() => {
         window.addEventListener("DOMContentLoaded", () => { document.body.classList.add("cat-mode", "cat-locked"); });
         window.addEventListener("load", () => { if (!M.me) { lock(); schoolAccount.start(); } });
     }
-    return { enabled, get active() { return active(); }, get role() { return role(); }, reload: () => load(true) };
+    return { enabled, get active() { return active(); }, get role() { return role(); }, reload: () => load(true), notices: loadNotices, pushState, enablePush, disablePush };
 })();

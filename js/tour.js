@@ -26,7 +26,7 @@ function tourSteps() {
         { target: phone ? ".mobile-add" : ".side-add", text: `Cu „+” pui o notă, un test, o temă sau o materie nouă.${phone ? "" : " Merge și tasta N."}` },
         ...(phone ? [{ target: "#more-btn", text: "La „Eu” găsești contul, setările și tema întunecată." }] : []),
         { target: "#notif-btn", text: "Clopoțelul te anunță când o materie intră în risc sau când un test își așteaptă nota." },
-        { target: phone ? "#tour-none" : "#account-chip", text: cloud.user ? "Ești în cont: notele se salvează singure și apar pe orice telefon sau calculator." : "Intră în cont ca notele să te urmeze pe orice telefon sau calculator." },
+        { target: phone ? "#tour-none" : ".side-nav [data-tab='tab-scoala']", text: "Școala: contul tău de la școală. Notele le pun profesorii, iar tu le vezi aici, în aplicație." },
         { target: "#azi-buddy", text: "Și eu stau aici, pe pagina Azi: îți spun ce contează și mă bucur de fiecare 10. Mă găsești și pe celelalte pagini, lângă titlu, cu câte un sfat: atinge-mă și îți spun altul. Numele noastre le schimbi din Setări." },
         { text: `Gata${hey}! Poți relua turul oricând din Setări. Spor la note mari!`, last: true }
     ];

@@ -1923,7 +1923,7 @@ body.cat-locked #tab-scoala { max-width: 460px; margin-inline: auto; padding-top
 body.cat-mode #account-chip { display: none !important; }
 /* profesorii și administratorii: doar Școala și Setări */
 body.cat-staff .side-nav > :not([data-tab="tab-scoala"]), body.cat-staff .side-tree, body.cat-staff .side-pal,
-body.cat-staff .mobile-bottom-nav .mobile-nav-btn:not(.more-tab), body.cat-staff .mobile-add, body.cat-staff #notif-btn { display: none !important; }
+body.cat-staff .mobile-bottom-nav .mobile-nav-btn:not(.more-tab), body.cat-staff .mobile-add { display: none !important; }
 /* elevii și părinții: se uită, nu adaugă */
 body.cat-reader .side-add, body.cat-reader .mobile-add, body.cat-reader [data-action="quick-add"],
 body.cat-reader [data-action="add-grade"], body.cat-reader [data-action="add-subject"], body.cat-reader [data-action="quick-grade"],
@@ -1946,3 +1946,60 @@ body.cat-reader [data-action^="purtare-"] { display: none !important; }
 .sch-dialog { border: 0; border-radius: 18px; padding: 20px; width: min(520px, calc(100vw - 32px)); background: var(--sheet, #fff); color: inherit; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
 .sch-dialog::backdrop { background: rgba(0,0,0,.35); }
 .sch-dialog .sch-actions { justify-content: flex-end; margin-top: 8px; }
+
+/* anunțurile catalogului în clopoțel */
+.cat-notice .alert-open { cursor: default; }
+.cat-notice small { display: block; font-weight: 400; opacity: .75; margin-top: 2px; }
+
+/* ==================== Școala → Bază de date (js/dbconsole.js) ==================== */
+.db-wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; }
+.db-side { padding: 10px; position: sticky; top: 12px; }
+.db-pick { display: none; }
+.db-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.db-tab { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: 10px;
+    background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.db-tab small { opacity: .6; font-variant-numeric: tabular-nums; }
+.db-tab:hover { background: color-mix(in srgb, var(--accent, #4F7CFF) 8%, transparent); }
+.db-tab.is-on { background: color-mix(in srgb, var(--accent, #4F7CFF) 14%, transparent); font-weight: 700; }
+.db-main { min-width: 0; }
+.db-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 12px; }
+.db-filters #db-q { flex: 1 1 200px; min-width: 0; }
+.db-filters .glass-select { width: auto; }
+.db-date { display: inline-flex; align-items: center; gap: 6px; }
+.db-date input { width: auto; }
+.db-table th { white-space: nowrap; }
+.db-sort { border: 0; background: none; color: inherit; font: inherit; font-weight: 700; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+.db-row { cursor: pointer; }
+.db-row:hover td, .db-row:focus-visible td { background: color-mix(in srgb, var(--accent, #4F7CFF) 7%, transparent); }
+.db-row:focus-visible { outline: 2px solid var(--accent, #4F7CFF); outline-offset: -2px; }
+.db-table td { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-pager { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 12px; }
+.db-sheet { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; }
+.db-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 8px 0 14px; }
+.db-fields dt { font-weight: 600; opacity: .7; }
+.db-fields dd { margin: 0; overflow-wrap: anywhere; }
+.db-history { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; font-size: .92rem; }
+.db-act { border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent); padding-top: 10px; margin-top: 6px; }
+@media (max-width: 900px) {
+    .db-wrap { grid-template-columns: 1fr; }
+    .db-side { position: static; padding: 10px; }
+    .db-pick { display: block; width: 100%; }
+    .db-list { display: none; }
+    .db-table thead { display: none; }
+    .db-table, .db-table tbody, .db-table tr, .db-table td { display: block; width: 100%; }
+    .db-table tr { border: 1px solid color-mix(in srgb, currentColor 10%, transparent); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; }
+    .db-table td { max-width: none; white-space: normal; display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border: 0; }
+    .db-table td::before { content: attr(data-label); font-weight: 600; opacity: .6; flex: none; }
+    .db-sheet { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; margin: 0; border-radius: 0; }
+}
+
+/* orarul */
+.sch-orar th[scope="row"] { width: 44px; text-align: center; }
+.sch-orar td { min-width: 96px; vertical-align: top; }
+.sch-orar td b { display: block; font-size: .92rem; }
+.sch-orar td small { display: block; opacity: .65; font-size: .75rem; }
+.sch-orar .glass-select { min-width: 110px; padding: 6px 8px; font-size: .88rem; }
+
+/* notele ca butoane (cine le poate corecta) */
+button.sch-grade { border: 0; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+button.sch-grade:hover, button.sch-grade:focus-visible { outline: 2px solid var(--accent, #4F7CFF); outline-offset: 1px; }

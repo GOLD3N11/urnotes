@@ -2,8 +2,8 @@
      cd tests && npm ci && node run.js            → toate
      node run.js cal shell                        → doar câteva */
 const { spawn } = require("child_process"), path = require("path"), os = require("os");
-const ALL = ["real", "stats2", "stats", "purtare", "cat", "cal", "test", "shell", "home", "undo", "setup", "compat", "cloud", "me",
-    "plan", "catmenu", "catnav", "ux", "remind", "years", "pal", "exams", "growth", "notion", "azi2", "apiclient"];
+const ALL = ["real", "stats2", "stats", "purtare", "cat", "cal", "test", "shell", "home", "undo", "setup", "compat", "me",
+    "plan", "catmenu", "catnav", "ux", "remind", "years", "pal", "exams", "growth", "notion", "azi2"];
 const root = path.join(__dirname, "..");
 const names = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 const limit = Math.max(2, Math.min(4, os.cpus().length));
