@@ -17,7 +17,10 @@ const schoolAccount = (() => {
     const ACTION_LABEL = {
         "setup.ceo": "a creat contul de CEO", "school.create": "a adăugat o școală", "account.create": "a creat un cont",
         "account.reset_password": "a făcut o parolă nouă", "account.disable": "a dezactivat un cont", "account.enable": "a activat un cont",
-        "parent.link": "a legat un părinte de un elev", "parent.unlink": "a dezlegat un părinte", "totp.enabled": "a pornit codul din telefon"
+        "parent.link": "a legat un părinte de un elev", "parent.unlink": "a dezlegat un părinte", "totp.enabled": "a pornit codul din telefon",
+        "class.create": "a făcut o clasă", "class.update": "a schimbat o clasă", "class.add_students": "a pus elevi într-o clasă", "class.remove_student": "a scos un elev din clasă",
+        "assignment.create": "a dat o materie unui profesor", "assignment.change_teacher": "a schimbat profesorul unei materii", "assignment.remove": "a scos o materie",
+        "grade.add": "a pus o notă", "grade.delete": "a șters o notă"
     };
 
     const S = { access: null, me: null, tab: null, schools: [], accounts: [], filter: { school: "", role: "" }, view: "boot", step: null, started: false };
@@ -50,28 +53,50 @@ const schoolAccount = (() => {
         return data;
     }
 
-    async function refreshSession() {
-        const rt = store.get();
-        if (!rt) return false;
-        try {
-            const r = await raw("POST", "/v2/auth/refresh", { refreshToken: rt });
-            S.access = r.accessToken;
-            store.set(r.refreshToken);
-            return true;
-        } catch (e) {
-            if (e.status === 401) store.set(null);
-            return false;
-        }
+    /* Sesiunea: jetonul de reîmprospătare se schimbă la fiecare folosire. Două file (sau două cereri) care îl folosesc
+       deodată l-ar strica una alteia, așa că: o singură reîmprospătare odată, împărțită între file (Web Locks), și
+       înainte de fiecare citim jetonul din nou (poate l-a schimbat deja altă filă). Lipsa internetului sau o eroare a
+       serverului nu scot pe nimeni din cont: doar „sesiune expirată” (401) o face. */
+    let inflight = null;
+    const withLock = fn => (navigator.locks?.request ? navigator.locks.request("urn_cat_refresh", fn) : fn());
+    async function refreshOnce() {
+        return withLock(async () => {
+            for (let attempt = 0; attempt < 2; attempt++) {
+                const rt = store.get();
+                if (!rt) return "out";
+                try {
+                    const r = await raw("POST", "/v2/auth/refresh", { refreshToken: rt });
+                    store.set(r.refreshToken);
+                    S.access = r.accessToken;
+                    return "ok";
+                } catch (e) {
+                    if (e.status !== 401) return "offline";
+                    if (store.get() !== rt) continue; // altă filă a pus între timp un jeton nou: încercăm cu el
+                    store.set(null);
+                    return "out";
+                }
+            }
+            return "out";
+        });
     }
+    /** "ok" | "out" (sesiunea chiar s-a încheiat) | "offline" (n-am putut verifica acum) */
+    function refreshSession() {
+        if (!inflight) inflight = refreshOnce().finally(() => { inflight = null; });
+        return inflight;
+    }
+    // când altă filă iese din cont, ieșim și aici
+    window.addEventListener("storage", e => {
+        if (e.key === REFRESH_KEY && !e.newValue && S.me) { Object.assign(S, { access: null, me: null, tab: null, view: "login" }); draw(); announce(); }
+    });
 
     async function api(method, path, payload) {
         try { return await raw(method, path, payload, S.access); }
         catch (e) {
-            if (e.status !== 401 || !(await refreshSession())) {
-                if (e.status === 401) { S.view = "login"; S.loginMsg = "Sesiunea s-a încheiat. Intră din nou."; draw(); }
-                throw e;
-            }
-            return raw(method, path, payload, S.access);
+            if (e.status !== 401) throw e;
+            const r = await refreshSession();
+            if (r === "ok") return raw(method, path, payload, S.access);
+            if (r === "out") { Object.assign(S, { access: null, me: null, view: "login" }); S.loginMsg = "Sesiunea s-a încheiat. Intră din nou."; draw(); announce(); }
+            throw e;
         }
     }
 
@@ -89,7 +114,7 @@ const schoolAccount = (() => {
         if (S.target && !inModal()) { S.target.innerHTML = ""; S.target = null; S.onDone = null; } // fereastra s-a închis: formularul rămâne doar pe pagină
         const root = body();
         if (!root) return;
-        const views = { boot: drawBoot, login: drawLogin, first: drawFirst, totpSetup: drawTotpSetup, totp: drawTotp, app: drawApp };
+        const views = { boot: drawBoot, offline: drawOffline, login: drawLogin, first: drawFirst, totpSetup: drawTotpSetup, totp: drawTotp, app: drawApp };
         (views[S.view] || drawBoot)(root);
         updateChip();
     }
@@ -205,13 +230,15 @@ const schoolAccount = (() => {
     const role = () => S.me?.account.role;
     const isAdmin = () => ["ceo", "schools_admin", "school_admin"].includes(role());
     function tabsFor(r) {
-        if (r === "ceo" || r === "schools_admin") return [["accounts", "Conturi", "user"], ["schools", "Școli", "graduation"], ["audit", "Jurnal", "note"], ["me", "Contul meu", "settings"]];
-        if (r === "school_admin") return [["accounts", "Conturi", "user"], ["audit", "Jurnal", "note"], ["me", "Contul meu", "settings"]];
+        if (r === "ceo" || r === "schools_admin") return [["accounts", "Conturi", "user"], ["classes", "Clase", "layers"], ["schools", "Școli", "graduation"], ["audit", "Jurnal", "note"], ["me", "Contul meu", "settings"]];
+        if (r === "school_admin") return [["accounts", "Conturi", "user"], ["classes", "Clase", "layers"], ["audit", "Jurnal", "note"], ["me", "Contul meu", "settings"]];
+        if (r === "teacher") return [["teach", "Catalog", "notebook"], ["me", "Contul meu", "settings"]];
         return [["home", "Acasă", "home"], ["me", "Contul meu", "settings"]];
     }
 
     async function enterApp() {
-        try { S.me = await api("GET", "/v2/me"); } catch (_) { return; }
+        try { S.me = await api("GET", "/v2/me"); }
+        catch (e) { if (e.status !== 401) { S.view = "offline"; draw(); } return; }
         if (S.target) { // intrat din fereastra de la început: pagina Școala preia mai departe
             const done = S.onDone;
             S.target = null; S.onDone = null;
@@ -222,7 +249,11 @@ const schoolAccount = (() => {
         if (isAdmin()) { try { S.schools = (await api("GET", "/v2/schools")).schools; } catch (_) { S.schools = []; } }
         S.view = "app";
         draw();
+        announce();
     }
+
+    /** Cine e în cont s-a schimbat: restul aplicației (catalogmode.js) se pune după el. */
+    function announce() { window.dispatchEvent(new CustomEvent("urn-school-account", { detail: { me: S.me } })); }
 
     function drawApp(root) {
         const a = S.me.account;
@@ -236,7 +267,7 @@ const schoolAccount = (() => {
             </div>
             <div id="sch-page"></div>`;
         root.querySelectorAll("[data-sch-tab]").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.schTab; draw(); }));
-        ({ accounts: pageAccounts, schools: pageSchools, audit: pageAudit, me: pageMe, home: pageHome })[S.tab]();
+        ({ accounts: pageAccounts, classes: pageClasses, teach: pageTeach, schools: pageSchools, audit: pageAudit, me: pageMe, home: pageHome })[S.tab]();
     }
 
     function pageHome() {
@@ -247,8 +278,215 @@ const schoolAccount = (() => {
                 <h3>Bună, ${esc(a.displayName.split(" ")[0])}!</h3>
                 <p class="muted-small">${esc(ROLE_LABEL[a.role])}${S.me.school ? ` la ${esc(S.me.school.name)}` : ""}.</p>
                 ${a.role === "parent" ? `<h4>Copiii tăi</h4>${kids.length ? `<ul class="links-list">${kids.map(k => `<li><span><b>${esc(k.displayName)}</b></span></li>`).join("")}</ul>` : `<p class="muted-small">Administratorul școlii nu te-a legat încă de copilul tău.</p>`}` : ""}
-                <p class="sch-note">Notele, absențele și orarul de la școală apar aici în curând. Contul tău e gata.</p>
+                <p class="sch-note">${a.role === "parent" ? "Notele copilului le vezi la <b>Note</b> și la <b>Progres</b>. Le pun doar profesorii." : "Notele tale le vezi la <b>Note</b> și la <b>Progres</b>. Le pun doar profesorii."}</p>
+                <button type="button" class="btn btn-primary" id="sch-go-notes">${icon("notebook")} Vezi notele</button>
             </div>`;
+        el("sch-go-notes").addEventListener("click", () => typeof switchTab === "function" && switchTab("tab-catalog"));
+    }
+
+    /* ---------- clase (administratorul școlii) ---------- */
+    const KINDS = ["Oral", "Test", "Lucrare", "Teză", "Temă", "Proiect", "Altele"];
+    const C = { list: [], open: null, detail: null, school: "" };
+    async function pageClasses() {
+        const page = el("sch-page");
+        const multi = role() !== "school_admin";
+        if (multi && !C.school) C.school = defaultSchool();
+        if (multi && !C.school) { page.innerHTML = `<div class="glass-card"><p class="muted-small">Fă întâi o școală.</p></div>`; return; }
+        page.innerHTML = `<p class="muted-small">Se încarcă…</p>`;
+        let teachers = [], students = [];
+        try {
+            C.list = (await api("GET", `/v2/classes${multi ? `?school=${encodeURIComponent(C.school)}` : ""}`)).classes;
+            if (C.open && !C.list.some(c => c.id === C.open)) C.open = null;
+            if (C.open) {
+                const sq = multi ? `&school=${encodeURIComponent(C.school)}` : "";
+                const [d, t, st] = await Promise.all([
+                    api("GET", `/v2/classes/${C.open}`), api("GET", `/v2/accounts?role=teacher${sq}`), api("GET", `/v2/accounts?role=student${sq}`)]);
+                C.detail = d.class;
+                teachers = t.accounts.filter(x => !x.disabled);
+                students = st.accounts.filter(x => !x.disabled);
+            }
+        } catch (e) { page.innerHTML = `<p class="sch-error">${esc(e.message)}</p>`; return; }
+        if (!page.isConnected) return;
+        const schoolPick = multi ? `<label class="sr-only" for="sch-c-school">Școala</label><select id="sch-c-school" class="glass-select">${S.schools.map(s => `<option value="${esc(s.id)}" ${s.id === C.school ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>` : "";
+        if (!C.open) {
+            page.innerHTML = `
+                <div class="glass-card">
+                    <div class="sch-head"><h3>Clase <span class="muted-small">(${C.list.length})</span></h3><div class="sch-filters">${schoolPick}</div></div>
+                    ${C.list.length ? `<div class="sch-table-wrap"><table class="sch-table"><thead><tr><th>Clasa</th><th>Diriginte</th><th>Elevi</th><th>Materii</th><th><span class="sr-only">Deschide</span></th></tr></thead><tbody>
+                        ${C.list.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.headTeacher || "—")}</td><td>${c.students}</td><td>${c.subjects}</td>
+                            <td><button type="button" class="btn btn-glass btn-sm" data-sch-class="${esc(c.id)}">Deschide</button></td></tr>`).join("")}</tbody></table></div>`
+                        : `<p class="muted-small">Încă nu e nicio clasă.</p>`}
+                </div>
+                <form class="glass-card" id="sch-c-new" novalidate>
+                    <h3>${icon("plus")} Clasă nouă</h3>
+                    <div class="form-group"><label for="sch-c-name">Numele clasei</label><input id="sch-c-name" class="glass-input" required maxlength="40" placeholder="a IX-a B"></div>
+                    <div id="sch-c-err"></div>
+                    <button class="btn btn-primary" type="submit">Fă clasa</button>
+                </form>`;
+            el("sch-c-school")?.addEventListener("change", e => { C.school = e.target.value; pageClasses(); });
+            page.querySelectorAll("[data-sch-class]").forEach(b => b.addEventListener("click", () => { C.open = b.dataset.schClass; pageClasses(); }));
+            el("sch-c-new").addEventListener("submit", e => {
+                e.preventDefault();
+                run(e.submitter, el("sch-c-err"), async () => {
+                    const c = (await api("POST", "/v2/classes", { name: el("sch-c-name").value, ...(multi ? { schoolId: C.school } : {}) })).class;
+                    C.open = c.id;
+                    toast(`✓ Clasa ${c.name} e gata. Pune elevii și profesorii.`);
+                    pageClasses();
+                });
+            });
+            return;
+        }
+        const d = C.detail;
+        const inClass = new Set(d.students.map(x => x.id));
+        const free = students.filter(x => !inClass.has(x.id));
+        const opt = (list, selId) => list.map(x => `<option value="${esc(x.id)}" ${x.id === selId ? "selected" : ""}>${esc(x.displayName)} (${esc(x.username)})</option>`).join("");
+        page.innerHTML = `
+            <div class="glass-card">
+                <div class="sch-head">
+                    <h3><button type="button" class="btn btn-text btn-sm" id="sch-c-back">${icon("undo")} Clase</button> ${esc(d.name)}</h3>
+                    <div class="sch-filters"><label for="sch-c-head" class="muted-small">Diriginte</label>
+                        <select id="sch-c-head" class="glass-select"><option value="">— nimeni —</option>${opt(teachers, d.headTeacherId)}</select></div>
+                </div>
+            </div>
+            <div class="sch-grid">
+                <div class="glass-card">
+                    <h3>Elevii <span class="muted-small">(${d.students.length})</span></h3>
+                    ${d.students.length ? `<ul class="links-list">${d.students.map(x => `<li><span><b>${esc(x.displayName)}</b> <span class="sch-mono muted-small">${esc(x.username)}</span></span>
+                        <button type="button" class="btn btn-text btn-sm text-danger" data-sch-unstudent="${esc(x.id)}">Scoate</button></li>`).join("")}</ul>` : `<p class="muted-small">Niciun elev încă.</p>`}
+                    ${free.length ? `<form id="sch-c-add" novalidate>
+                        <div class="form-group"><label for="sch-c-students">Adaugă elevi <span class="label-hint">(poți alege mai mulți)</span></label>
+                            <select id="sch-c-students" class="glass-select" multiple size="${Math.min(8, Math.max(3, free.length))}">${opt(free)}</select></div>
+                        <div id="sch-c-add-err"></div>
+                        <button class="btn btn-primary btn-sm" type="submit">Adaugă în clasă</button>
+                    </form>` : `<p class="muted-small">${students.length ? "Toți elevii școlii sunt în clasa asta." : "Fă întâi conturile elevilor (la Conturi)."}</p>`}
+                </div>
+                <div class="glass-card">
+                    <h3>Materii și profesori <span class="muted-small">(${d.subjects.length})</span></h3>
+                    ${d.subjects.length ? `<ul class="links-list">${d.subjects.map(x => `<li><span><b>${esc(x.subject)}</b> · ${esc(x.teacher)}</span>
+                        <button type="button" class="btn btn-text btn-sm text-danger" data-sch-unsubject="${esc(x.id)}">Scoate</button></li>`).join("")}</ul>` : `<p class="muted-small">Nicio materie încă.</p>`}
+                    ${teachers.length ? `<form id="sch-c-subj" novalidate>
+                        <div class="form-row">
+                            <div class="form-group"><label for="sch-c-subject">Materia</label><input id="sch-c-subject" class="glass-input" required maxlength="80" placeholder="Matematică" list="sch-c-subjects"></div>
+                            <div class="form-group"><label for="sch-c-teacher">Profesorul</label><select id="sch-c-teacher" class="glass-select">${opt(teachers)}</select></div>
+                        </div>
+                        <datalist id="sch-c-subjects">${["Limba română", "Matematică", "Fizică", "Chimie", "Biologie", "Istorie", "Geografie", "Limba engleză", "Limba franceză", "Informatică", "Educație fizică", "Religie", "Desen", "Muzică", "Logică", "Psihologie", "Economie", "Filosofie"].map(x => `<option value="${x}">`).join("")}</datalist>
+                        <p class="muted-small">O materie care există deja primește profesorul ales.</p>
+                        <div id="sch-c-subj-err"></div>
+                        <button class="btn btn-primary btn-sm" type="submit">Salvează</button>
+                    </form>` : `<p class="muted-small">Fă întâi conturile profesorilor (la Conturi).</p>`}
+                </div>
+            </div>`;
+        el("sch-c-back").addEventListener("click", () => { C.open = null; pageClasses(); });
+        el("sch-c-head").addEventListener("change", e => run(null, null, async () => { await api("PATCH", `/v2/classes/${d.id}`, { headTeacherId: e.target.value || null }); toast("✓ Dirigintele a fost salvat."); }));
+        el("sch-c-add")?.addEventListener("submit", e => {
+            e.preventDefault();
+            const ids = [...el("sch-c-students").selectedOptions].map(o => o.value);
+            run(e.submitter, el("sch-c-add-err"), async () => {
+                if (!ids.length) throw new Error("Alege cel puțin un elev.");
+                await api("POST", `/v2/classes/${d.id}/students`, { studentIds: ids });
+                pageClasses();
+            });
+        });
+        el("sch-c-subj")?.addEventListener("submit", e => {
+            e.preventDefault();
+            run(e.submitter, el("sch-c-subj-err"), async () => {
+                await api("POST", `/v2/classes/${d.id}/subjects`, { subject: el("sch-c-subject").value, teacherId: el("sch-c-teacher").value });
+                pageClasses();
+            });
+        });
+        page.querySelectorAll("[data-sch-unstudent]").forEach(b => b.addEventListener("click", () => run(b, null, async () => { await api("DELETE", `/v2/classes/${d.id}/students/${b.dataset.schUnstudent}`); pageClasses(); })));
+        page.querySelectorAll("[data-sch-unsubject]").forEach(b => b.addEventListener("click", () => run(b, null, async () => { await api("DELETE", `/v2/assignments/${b.dataset.schUnsubject}`); pageClasses(); })));
+    }
+
+    /* ---------- catalogul profesorului ---------- */
+    const T = { list: null, headOf: [], open: null, book: null };
+    const avg = gs => (gs.length ? (gs.reduce((a, g) => a + g.value, 0) / gs.length) : null);
+    const fmtDate = d => { const [y, m, dd] = d.split("-"); return `${dd}.${m}`; };
+    const todayKeyRO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
+    async function pageTeach() {
+        const page = el("sch-page");
+        page.innerHTML = `<p class="muted-small">Se încarcă…</p>`;
+        try {
+            const t = await api("GET", "/v2/teaching");
+            T.list = t.assignments; T.headOf = t.headOf;
+            if (!T.open && T.list.length === 1) T.open = T.list[0].id;
+            if (T.open && !T.list.some(a => a.id === T.open)) T.open = null;
+            T.book = T.open ? await api("GET", `/v2/assignments/${T.open}/gradebook`) : null;
+        } catch (e) { page.innerHTML = `<p class="sch-error">${esc(e.message)}</p>`; return; }
+        if (!page.isConnected) return;
+        const picker = T.list.length ? `<div class="sch-tabs sch-subtabs" role="group" aria-label="Clasele și materiile mele">${T.list.map(a => `
+            <button type="button" class="chip${a.id === T.open ? " is-on" : ""}" data-sch-assign="${esc(a.id)}">${esc(a.className)} · ${esc(a.subject)}</button>`).join("")}</div>` : "";
+        if (!T.list.length) {
+            page.innerHTML = `<div class="glass-card"><h3>Catalogul meu</h3><p class="muted-small">Administratorul școlii nu ți-a dat încă nicio materie la vreo clasă.</p></div>`;
+            return;
+        }
+        if (!T.book) {
+            page.innerHTML = `<div class="glass-card"><h3>Catalogul meu</h3><p class="muted-small">Alege clasa și materia.</p>${picker}</div>`;
+            page.querySelectorAll("[data-sch-assign]").forEach(b => b.addEventListener("click", () => { T.open = b.dataset.schAssign; pageTeach(); }));
+            return;
+        }
+        const B = T.book;
+        page.innerHTML = `
+            <div class="glass-card">
+                <div class="sch-head"><h3>${esc(B.assignment.className)} · ${esc(B.assignment.subject)}</h3></div>
+                ${picker}
+                ${B.students.length ? `<div class="sch-table-wrap"><table class="sch-table sch-book"><thead><tr><th>Elev</th><th>Note</th><th>Media</th><th><span class="sr-only">Notă nouă</span></th></tr></thead><tbody>
+                    ${B.students.map(st => { const m = avg(st.grades); return `<tr>
+                        <td><b>${esc(st.displayName)}</b></td>
+                        <td><span class="sch-grades">${st.grades.map(g => `<span class="sch-grade${g.value < 5 ? " is-low" : ""}" title="${esc(`${g.kind} · ${fmtDate(g.date)}${g.note ? ` · ${g.note}` : ""}`)}">${g.value}<small>${fmtDate(g.date)}</small>${B.assignment.canGrade ? `<button type="button" class="sch-grade-x" data-sch-del="${esc(g.id)}" aria-label="Șterge nota ${g.value} din ${fmtDate(g.date)}">×</button>` : ""}</span>`).join("") || `<span class="muted-small">—</span>`}</span></td>
+                        <td>${m === null ? "—" : `<b>${m.toFixed(2)}</b>`}</td>
+                        <td>${B.assignment.canGrade ? `<button type="button" class="btn btn-glass btn-sm" data-sch-grade="${esc(st.id)}">${icon("plus")} Notă</button>` : ""}</td></tr>`; }).join("")}
+                    </tbody></table></div>` : `<p class="muted-small">Clasa nu are încă elevi.</p>`}
+            </div>
+            <dialog class="sch-dialog" id="sch-g-dialog">
+                <form method="dialog" id="sch-g-form" novalidate>
+                    <h3 id="sch-g-title">Notă nouă</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label for="sch-g-value">Nota</label><select id="sch-g-value" class="glass-select">${[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(v => `<option>${v}</option>`).join("")}</select></div>
+                        <div class="form-group"><label for="sch-g-kind">Tipul</label><select id="sch-g-kind" class="glass-select">${KINDS.map(k => `<option>${k}</option>`).join("")}</select></div>
+                        <div class="form-group"><label for="sch-g-date">Data</label><input id="sch-g-date" class="glass-input" type="date"></div>
+                    </div>
+                    <div class="form-group"><label for="sch-g-note">Observație <span class="label-hint">(opțional)</span></label><input id="sch-g-note" class="glass-input" maxlength="200"></div>
+                    <div id="sch-g-err"></div>
+                    <div class="sch-actions"><button type="button" class="btn btn-glass" id="sch-g-cancel">Renunță</button><button type="submit" class="btn btn-primary" id="sch-g-save">Pune nota</button></div>
+                </form>
+            </dialog>`;
+        page.querySelectorAll("[data-sch-assign]").forEach(b => b.addEventListener("click", () => { T.open = b.dataset.schAssign; pageTeach(); }));
+        const dlg = el("sch-g-dialog");
+        let who = "";
+        page.querySelectorAll("[data-sch-grade]").forEach(b => b.addEventListener("click", () => {
+            who = b.dataset.schGrade;
+            const st = B.students.find(x => x.id === who);
+            el("sch-g-title").textContent = `Notă pentru ${st.displayName}`;
+            el("sch-g-date").value = todayKeyRO(); el("sch-g-date").max = todayKeyRO();
+            el("sch-g-note").value = ""; el("sch-g-err").innerHTML = "";
+            dlg.showModal?.() ?? dlg.setAttribute("open", "");
+            el("sch-g-value").focus();
+        }));
+        el("sch-g-cancel").addEventListener("click", () => dlg.close?.());
+        el("sch-g-form").addEventListener("submit", e => {
+            e.preventDefault();
+            run(el("sch-g-save"), el("sch-g-err"), async () => {
+                await api("POST", `/v2/assignments/${B.assignment.id}/grades`, {
+                    studentId: who, value: Number(el("sch-g-value").value), kind: el("sch-g-kind").value, date: el("sch-g-date").value || undefined, note: el("sch-g-note").value
+                });
+                dlg.close?.();
+                toast("✓ Nota a fost pusă.");
+                pageTeach();
+            });
+        });
+        page.querySelectorAll("[data-sch-del]").forEach(b => b.addEventListener("click", () => {
+            if (!confirmDelete()) return;
+            run(b, null, async () => { await api("DELETE", `/v2/grades/${b.dataset.schDel}`); toast("Nota a fost ștearsă."); pageTeach(); });
+        }));
+    }
+    // ștergerea unei note: o a doua apăsare în 4 secunde (fără ferestre de confirmare ale browserului)
+    let armed = 0;
+    function confirmDelete() {
+        if (Date.now() - armed < 4000) { armed = 0; return true; }
+        armed = Date.now();
+        toast("Apasă încă o dată × ca să ștergi nota.");
+        return false;
     }
 
     /* ---------- școli ---------- */
@@ -529,6 +767,7 @@ const schoolAccount = (() => {
         store.set(null);
         Object.assign(S, { access: null, me: null, tab: null, accounts: [], filter: { school: "", role: "" }, view: "login", step: null });
         draw();
+        announce();
     }
 
     /** Eticheta din meniu: numele contului de la școală, dacă e cineva înăuntru. */
@@ -542,9 +781,24 @@ const schoolAccount = (() => {
         if (S.started) return;
         S.started = true;
         if (!apiBase()) { S.view = "login"; S.loginMsg = "Serverul nu e configurat (api-config.js)."; draw(); return; }
-        if (await refreshSession()) return enterApp();
-        S.view = "login";
+        const r = await refreshSession();
+        if (r === "ok") return enterApp();
+        S.view = r === "offline" ? "offline" : "login";
         draw();
+    }
+
+    function drawOffline(root) {
+        root.innerHTML = card(`
+            <h3>${icon("alert")} Nu am legătură cu serverul</h3>
+            <p class="muted-small">Ești în continuare în cont. Verifică internetul și încearcă din nou.</p>
+            <button type="button" class="btn btn-primary sch-full" id="sch-retry">Încearcă din nou</button>`);
+        el("sch-retry").addEventListener("click", async e => {
+            e.target.disabled = true;
+            const r = await refreshSession();
+            if (r === "ok") return enterApp();
+            S.view = r === "offline" ? "offline" : "login";
+            draw();
+        });
     }
 
     /** Desenarea paginii (o cheamă aplicația la fiecare schimbare): doar prima dată și când pagina e goală. */
@@ -576,7 +830,7 @@ const schoolAccount = (() => {
     /** Fereastra conturilor vechi (Google / email) nu se deschide singură pentru cine vine la Școala. */
     const skipAuth = () => Boolean(store.get());
 
-    return { render, start, skipAuth, mount, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
+    return { render, start, skipAuth, mount, request: (m, p, b) => api(m, p, b), get me() { return S.me; }, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
 })();
 
 registerTab("tab-scoala", { render: schoolAccount.render, title: "Școala", icon: "graduation", group: "school" });

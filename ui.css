@@ -1876,7 +1876,7 @@ body.modal-open:has(#action-modal.is-modeless:not([hidden])), body:has(#notif-pa
 .sch-tabs .chip.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
 body.dark-mode .sch-tabs .chip.is-on { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
 /* cine e intrat cu contul de la școală nu e „vizitator”, iar pe pagina Școala banda nu are rost */
-body.school-in #guest-bar, body.on-school-tab #guest-bar { display: none !important; }
+body.school-in:not(.cat-reader) #guest-bar, body.on-school-tab #guest-bar { display: none !important; }
 .sch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--gap-grid, 16px); align-items: start; }
 #sch-page { display: grid; gap: var(--gap-grid, 16px); }
 .sch-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -1912,3 +1912,37 @@ body.school-in #guest-bar, body.on-school-tab #guest-bar { display: none !import
 }
 .sch-in-modal { margin: 0; max-width: none; }
 .sch-in-modal #sch-login > h3:first-child, .sch-in-modal #sch-login > h3:first-child + p { display: none; }
+
+
+/* ==================== Catalogul online (js/catalogmode.js) ==================== */
+/* până la intrare: doar formularul de la Școala */
+body.cat-locked .side-nav, body.cat-locked .side-foot, body.cat-locked .side-pal, body.cat-locked .mobile-bottom-nav,
+body.cat-locked .topbar-actions, body.cat-locked .topbar-back, body.cat-locked .topbar-crumb, body.cat-locked #guest-bar { display: none !important; }
+body.cat-locked #tab-scoala { max-width: 460px; margin-inline: auto; padding-top: clamp(16px, 8vh, 72px); }
+/* conturile vechi nu mai există */
+body.cat-mode #account-chip { display: none !important; }
+/* profesorii și administratorii: doar Școala și Setări */
+body.cat-staff .side-nav > :not([data-tab="tab-scoala"]), body.cat-staff .side-tree, body.cat-staff .side-pal,
+body.cat-staff .mobile-bottom-nav .mobile-nav-btn:not(.more-tab), body.cat-staff .mobile-add, body.cat-staff #notif-btn { display: none !important; }
+/* elevii și părinții: se uită, nu adaugă */
+body.cat-reader .side-add, body.cat-reader .mobile-add, body.cat-reader [data-action="quick-add"],
+body.cat-reader [data-action="add-grade"], body.cat-reader [data-action="add-subject"], body.cat-reader [data-action="quick-grade"],
+body.cat-reader [data-action="plan-create"], body.cat-reader [data-action="timetable"], body.cat-reader [data-action="qa"],
+body.cat-reader [data-action="toggle-priority"], body.cat-reader [data-action="edit-subject"], body.cat-reader [data-action="delete-subject"],
+body.cat-reader [data-action="edit-grade"], body.cat-reader [data-action="delete-grade"], body.cat-reader [data-action="add-event"],
+body.cat-reader [data-action^="purtare-"] { display: none !important; }
+
+/* catalogul profesorului */
+.sch-subtabs { margin: 4px 0 14px; flex-wrap: wrap; }
+.sch-grades { display: flex; flex-wrap: wrap; gap: 6px; }
+.sch-grade { position: relative; display: inline-flex; flex-direction: column; align-items: center; min-width: 38px; padding: 4px 8px 3px; border-radius: 10px;
+    background: color-mix(in srgb, var(--accent, #4F7CFF) 12%, transparent); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sch-grade small { font-weight: 500; font-size: .68rem; opacity: .7; }
+.sch-grade.is-low { background: color-mix(in srgb, #E5484D 16%, transparent); }
+.sch-grade-x { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; border: 0; padding: 0; font-size: 12px; line-height: 18px;
+    background: var(--sheet, #fff); color: inherit; box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; opacity: 0; transition: opacity .15s; }
+.sch-grade:hover .sch-grade-x, .sch-grade-x:focus-visible { opacity: 1; }
+@media (hover: none) { .sch-grade-x { opacity: .85; } }
+.sch-dialog { border: 0; border-radius: 18px; padding: 20px; width: min(520px, calc(100vw - 32px)); background: var(--sheet, #fff); color: inherit; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.sch-dialog::backdrop { background: rgba(0,0,0,.35); }
+.sch-dialog .sch-actions { justify-content: flex-end; margin-top: 8px; }
