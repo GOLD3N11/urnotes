@@ -342,10 +342,23 @@ const schoolAccount = (() => {
     const fmtDate = d => { const [, m, dd] = d.split("-"); return `${dd}.${m}`; };
     const todayKeyRO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest" }).format(new Date());
 
+    /* Preferințele profesorului (Setări → Catalog), pe acest dispozitiv: tipul notei pus implicit, cum se arată media,
+       ordinea elevilor (după numele de familie, ca în catalogul de hârtie, sau după prenume). */
+    const TPREF_KEY = "urn_teacher_prefs_v1";
+    const tprefs = () => {
+        let p = {};
+        try { p = JSON.parse(localStorage.getItem(TPREF_KEY) || "{}") || {}; } catch (_) { p = {}; }
+        return { kind: KINDS.includes(p.kind) ? p.kind : "Oral", decimals: p.decimals === 0 ? 0 : 2, order: p.order === "first" ? "first" : "surname" };
+    };
+    const surname = name => { const parts = String(name).trim().split(/\s+/); return parts.length > 1 ? parts.at(-1) : parts[0]; };
+    const ordered = students => tprefs().order === "first" ? students
+        : students.slice().sort((a, b) => surname(a.displayName).localeCompare(surname(b.displayName), "ro") || a.displayName.localeCompare(b.displayName, "ro"));
+    const fmtAvg = m => (tprefs().decimals === 0 ? String(Math.round(m)) : m.toFixed(2));
+
     function gradebookHTML(B) {
         const A = B.assignment;
         return `${B.students.length ? `<div class="sch-table-wrap"><table class="sch-table sch-book"><thead><tr><th>Elev</th><th>Note</th><th>Media</th><th><span class="sr-only">Notă nouă</span></th></tr></thead><tbody>
-            ${B.students.map(st => { const m = avg(st.grades); return `<tr>
+            ${ordered(B.students).map(st => { const m = avg(st.grades); return `<tr>
                 <td><b>${esc(st.displayName)}</b></td>
                 <td><span class="sch-grades">${st.grades.map(g => {
                     const title = esc(`${g.kind} · ${fmtDate(g.date)}${g.note ? ` · ${g.note}` : ""}`);
@@ -354,7 +367,7 @@ const schoolAccount = (() => {
                         ? `<button type="button" class="sch-grade${g.value < 5 ? " is-low" : ""}" data-sch-fix="${esc(g.id)}" data-student="${esc(st.id)}" title="${title}" aria-label="Corectează nota ${g.value} din ${fmtDate(g.date)}">${inner}</button>`
                         : `<span class="sch-grade${g.value < 5 ? " is-low" : ""}" title="${title}">${inner}</span>`;
                 }).join("") || `<span class="muted-small">—</span>`}</span></td>
-                <td>${m === null ? "—" : `<b>${m.toFixed(2)}</b>`}</td>
+                <td>${m === null ? "—" : `<b>${fmtAvg(m)}</b>`}</td>
                 <td>${A.canGrade ? `<button type="button" class="btn btn-glass btn-sm" data-sch-grade="${esc(st.id)}">${icon("plus")} Notă</button>` : ""}</td></tr>`; }).join("")}
             </tbody></table></div>` : `<p class="muted-small">Clasa nu are încă elevi.</p>`}
             ${A.canCorrect ? `<p class="muted-small">${A.canGrade ? "Atinge o notă ca s-o schimbi sau s-o ștergi." : "Atinge o notă ca s-o corectezi sau s-o ștergi, cu un motiv."} Profesorul, elevul și părinții primesc un anunț.</p>` : ""}
@@ -388,7 +401,7 @@ const schoolAccount = (() => {
             el("sch-g-title").textContent = title;
             el("sch-g-save").textContent = saveText;
             el("sch-g-value").value = String(g?.value ?? 10);
-            el("sch-g-kind").value = g?.kind ?? "Oral";
+            el("sch-g-kind").value = g?.kind ?? tprefs().kind;
             el("sch-g-date").value = g?.date ?? todayKeyRO(); el("sch-g-date").max = todayKeyRO();
             el("sch-g-note").value = g?.note ?? "";
             el("sch-g-reason").value = "";
@@ -945,6 +958,63 @@ const schoolAccount = (() => {
         announce();
     }
 
+    /* ---------- Setări → Cont (orice cont) și Setări → Catalog (profesorul) ---------- */
+    function accountSettings(root) {
+        if (!root) return;
+        if (!S.me) { root.innerHTML = `<p class="muted-small">Intră în cont ca să vezi setările lui.</p>`; return; }
+        const a = S.me.account;
+        root.innerHTML = `
+            <dl class="sch-teachers">
+                <dt>Nume</dt><dd>${esc(a.displayName)}</dd>
+                <dt>Utilizator</dt><dd class="sch-mono">${esc(a.username)}</dd>
+                <dt>Rol</dt><dd>${esc(ROLE_LABEL[a.role])}</dd>
+                ${S.me.school ? `<dt>Școala</dt><dd>${esc(S.me.school.name)}</dd>` : ""}
+                <dt>Intrarea</dt><dd>${a.totpEnabled ? "parolă + cod din telefon" : "nume de utilizator și parolă"}</dd>
+            </dl>
+            ${a.role === "data_operator" ? "" : `<div class="set-row"><span><b>Notificări pe telefon</b><small id="set-push-state" class="muted-small">Se verifică…</small></span>
+                <button type="button" class="btn btn-glass btn-sm" id="set-push" hidden></button></div><div id="set-push-err"></div>`}
+            <div class="sch-actions sch-actions-start">
+                <button type="button" class="btn btn-glass" id="set-pass">${icon("lock")} Schimbă parola</button>
+                <button type="button" class="btn btn-text text-danger" id="set-out">${icon("undo")} Ieși din cont</button>
+            </div>`;
+        root.querySelector("#set-pass").addEventListener("click", () => { S.tab = "me"; if (typeof switchTab === "function") switchTab("tab-scoala"); draw(); el("sch-m-cur")?.focus(); });
+        root.querySelector("#set-out").addEventListener("click", logout);
+        const btn = root.querySelector("#set-push");
+        const show = async () => {
+            if (!btn || typeof catalogMode === "undefined") return;
+            const st = await catalogMode.pushState().catch(() => "unsupported");
+            root.querySelector("#set-push-state").textContent = { on: "Pornite pe acest dispozitiv", off: "Oprite pe acest dispozitiv", denied: "Blocate de browser (le permiți din setările lui)", unsupported: "Browserul acesta nu le primește" }[st];
+            btn.hidden = st === "denied" || st === "unsupported";
+            btn.textContent = st === "on" ? "Oprește" : "Pornește";
+            btn.dataset.on = st === "on" ? "1" : "";
+        };
+        btn?.addEventListener("click", () => run(btn, root.querySelector("#set-push-err"), async () => {
+            if (btn.dataset.on) await catalogMode.disablePush(); else await catalogMode.enablePush();
+            await show();
+        }));
+        show();
+    }
+
+    function teacherSettings(root) {
+        if (!root) return;
+        const p = tprefs();
+        root.innerHTML = `
+            <div class="form-group"><label for="set-t-kind">Tipul notei, pus implicit</label>
+                <select id="set-t-kind" class="glass-select">${KINDS.map(k => `<option ${k === p.kind ? "selected" : ""}>${k}</option>`).join("")}</select></div>
+            <div class="form-group"><label for="set-t-dec">Media elevilor</label>
+                <select id="set-t-dec" class="glass-select"><option value="2" ${p.decimals === 2 ? "selected" : ""}>cu două zecimale (8.67)</option><option value="0" ${p.decimals === 0 ? "selected" : ""}>rotunjită (9)</option></select></div>
+            <div class="form-group"><label for="set-t-order">Ordinea elevilor</label>
+                <select id="set-t-order" class="glass-select"><option value="surname" ${p.order === "surname" ? "selected" : ""}>după numele de familie, ca în catalog</option><option value="first" ${p.order === "first" ? "selected" : ""}>după prenume</option></select></div>
+            <p class="muted-small">Se păstrează pe acest dispozitiv și se văd în Școala → Catalog.</p>`;
+        const save = () => {
+            const next = { kind: root.querySelector("#set-t-kind").value, decimals: Number(root.querySelector("#set-t-dec").value), order: root.querySelector("#set-t-order").value };
+            try { localStorage.setItem(TPREF_KEY, JSON.stringify(next)); } catch (_) { /* fără stocare */ }
+            if (S.view === "app") draw(); // catalogul din Școala se redesenează cu noile preferințe
+            toast("✓ Salvat.");
+        };
+        root.querySelectorAll("select").forEach(x => x.addEventListener("change", save));
+    }
+
     /** Eticheta din meniu: numele contului de la școală, dacă e cineva înăuntru. */
     function updateChip() {
         document.querySelectorAll("[data-school-who]").forEach(n => { n.textContent = S.me ? S.me.account.displayName.split(" ")[0] : ""; n.hidden = !S.me; });
@@ -1005,7 +1075,7 @@ const schoolAccount = (() => {
     /** Fereastra conturilor vechi (Google / email) nu se deschide singură pentru cine vine la Școala. */
     const skipAuth = () => Boolean(store.get());
 
-    return { render, start, skipAuth, mount, request: (m, p, b) => api(m, p, b), get me() { return S.me; }, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
+    return { render, start, skipAuth, mount, accountSettings, teacherSettings, request: (m, p, b) => api(m, p, b), get me() { return S.me; }, open: () => (typeof switchTab === "function" ? switchTab("tab-scoala") : null), get signedIn() { return Boolean(S.me); } };
 })();
 
 registerTab("tab-scoala", { render: schoolAccount.render, title: "Școala", icon: "graduation", group: "school" });

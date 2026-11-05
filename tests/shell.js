@@ -102,7 +102,7 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
   assert(!$("more-btn").classList.contains("is-active"), "button not highlighted elsewhere");
   // Setări pe secțiuni
   click(q("[data-action='nav'][data-tab='tab-setari']"));
-  assert(qa("#set-sec-nav .set-sec").length === 5 && $("settings-grid").dataset.sec, "settings: section menu with 5 sections (no old account section)");
+  assert(qa("#set-sec-nav .set-sec").filter(b => !b.hidden).length === 6 && $("settings-grid").dataset.sec, "settings: 6 sections without a school account (Profil, Aspect, Școală, Calcul, Amintiri, Date)");
   click(q('#set-sec-nav [data-sec="date"]'));
   assert($("settings-grid").dataset.sec === "date" && q('#set-sec-nav [data-sec="date"]').getAttribute("aria-pressed") === "true" && w.localStorage.getItem("urn_settings_section_v1") === "date", "settings: picking 'Date' shows that section and remembers it");
   key("ArrowLeft", {}, q('#set-sec-nav [data-sec="date"]'));

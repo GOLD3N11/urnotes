@@ -1248,12 +1248,13 @@ body.cc-overlay-open, body.palette-open { overflow: hidden; }
 .set-sec:focus-visible { outline: 2px solid var(--focus, var(--accent-ink)); outline-offset: 2px; }
 .settings-grid[data-sec] > [data-sec] { display: none; }
 .settings-grid[data-sec="profil"] > [data-sec="profil"],
+.settings-grid[data-sec="aspect"] > [data-sec="aspect"],
+.settings-grid[data-sec="catalog"] > [data-sec="catalog"],
 .settings-grid[data-sec="scoala"] > [data-sec="scoala"],
 .settings-grid[data-sec="calcul"] > [data-sec="calcul"],
 .settings-grid[data-sec="amintiri"] > [data-sec="amintiri"],
 .settings-grid[data-sec="cont"] > [data-sec="cont"],
 .settings-grid[data-sec="date"] > [data-sec="date"] { display: block; }
-body:not(.has-cloud) .settings-grid[data-sec="cont"] > [data-sec="cont"] { display: none !important; }
 .settings-grid[data-sec] > .me-card { grid-column: 1 / -1; }
 .backup-danger { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 @media (max-width: 760px) { .set-sec-nav { top: 60px; margin-inline: -16px; padding-inline: 16px; } .set-sec { min-height: 44px; } }
@@ -2030,3 +2031,8 @@ button.sch-grade:hover, button.sch-grade:focus-visible { outline: 2px solid var(
 .sch-teachers { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 6px 0 14px; }
 .sch-teachers dt { font-weight: 600; }
 .sch-teachers dd { margin: 0; opacity: .8; }
+
+/* Setări → Cont */
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.set-row small { display: block; }
+.sch-actions-start { justify-content: flex-start; margin-top: 12px; }

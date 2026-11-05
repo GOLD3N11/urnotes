@@ -201,7 +201,7 @@ const catalogMode = (() => {
         M.me = me || null;
         clearInterval(M.poll);
         if (!M.me) {
-            const wasReader = was && !document.body.classList.contains("cat-staff");
+            const wasReader = Boolean(was); // orice cont: la ieșire, ce era al lui pe dispozitiv se golește
             Object.assign(M, { children: [], child: "", fp: "", notices: [] });
             renderNotificationBadge();
             if (guest.viewer) leaveViewer();
@@ -214,18 +214,16 @@ const catalogMode = (() => {
         document.body.classList.remove("cat-locked");
         document.body.classList.toggle("cat-staff", isStaff());
         document.body.classList.toggle("cat-reader", !isStaff());
+        if (guest.viewer) leaveViewer();
         if (isStaff()) {
-            // profesorii și administratorii n-au caiet: lucrează la Școala (modul doar-citire, gol, nesalvat)
-            if (!guest.viewer) { Object.assign(guest, { on: true, demo: false, viewer: true }); document.body.classList.add("is-guest", "is-viewer"); }
-            guest.restoring = true;
-            try { applyLoadedData(readStoredData(name => (name === "settings" ? clone(state.settings) : null))); guest.base = guestSnapshot(); guest.fp = guestFingerprint(); }
-            finally { guest.restoring = false; }
+            // profesorii și administratorii n-au caiet (lucrează la Școala); setările lor (tema etc.) se salvează
+            claimDevice(`x:${M.me.account.id}`);
             refresh();
         } else {
-            if (guest.viewer) leaveViewer();
             claimDevice(role() === "parent" ? `p:${M.me.account.id}` : `s:${M.me.account.id}`);
             load(true);
         }
+        if (ui.activeTab === "tab-setari") TAB_RENDERERS["tab-setari"]?.();
         loadNotices();
         M.poll = setInterval(() => { if (document.visibilityState === "visible") { load(); loadNotices(); } }, POLL);
         renderGuestBar();
@@ -301,6 +299,26 @@ const catalogMode = (() => {
     // purtarea nu vine (încă) de la școală: nu o arătăm ca pe o notă
     const oldPurtare = purtareVisibleInList;
     purtareVisibleInList = () => (active() && !isStaff() ? false : oldPurtare());
+
+    /* Setări: fiecare fel de cont are secțiunile lui (js/settings-sections.js); aici se umplu Contul și Catalogul. */
+    const INTRO = {
+        student: "Totul despre tine, școala ta și cum arată aplicația.",
+        parent: "Cum arată aplicația, cum se calculează mediile copilului și contul tău.",
+        teacher: "Cum arată aplicația, cum arată catalogul tău și contul tău.",
+        default: "Cum arată aplicația și contul tău."
+    };
+    const renderSettingsPrev = TAB_RENDERERS["tab-setari"];
+    TAB_RENDERERS["tab-setari"] = (...args) => {
+        renderSettingsPrev?.(...args);
+        if (!active()) return;
+        const r = role();
+        const intro = document.querySelector("#tab-setari .page-intro p, #tab-setari header p");
+        if (intro?.firstChild?.nodeType === 3) intro.firstChild.textContent = `${INTRO[r] || INTRO.default} `;
+        // turul ghidat și configurarea sunt pentru caietul elevului
+        document.querySelectorAll('#tab-setari [data-action="tour-start"], #tab-setari [data-action="setup-open"]').forEach(b => { b.hidden = r !== "student"; });
+        schoolAccount.accountSettings($("cat-account-settings"));
+        if (r === "teacher") schoolAccount.teacherSettings($("teacher-settings"));
+    };
 
     /* Ce ține de școală nu se schimbă din aplicația elevului sau a părintelui. */
     const SCHOOL_OWNED = ["add-grade", "edit-grade", "delete-grade", "quick-grade", "quick-grade-add", "quick-grade-more", "event-grade", "event-quick-grade",

@@ -611,9 +611,12 @@
                 <!-- Secțiunile setărilor: o secțiune pe ecran (js/settings-sections.js) -->
                 <nav class="set-sec-nav" id="set-sec-nav" aria-label="Secțiunile setărilor">
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="profil" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Profil</button>
+                    <button type="button" class="set-sec" data-action="set-sec" data-sec="aspect" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="scoala" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Școală</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="calcul" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg> Calcul</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="amintiri" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg> Amintiri</button>
+                    <button type="button" class="set-sec" data-action="set-sec" data-sec="catalog" aria-pressed="false" hidden><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg> Catalog</button>
+                    <button type="button" class="set-sec" data-action="set-sec" data-sec="cont" aria-pressed="false" hidden><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Cont</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="date" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg> Date</button>
                 </nav>
                 <div class="settings-grid" id="settings-grid" data-sec="profil">
@@ -695,7 +698,7 @@
                         <div id="remind-setting" class="remind-setting mt-3"></div>
                     </div>
 
-                    <div class="glass-card" data-sec="profil">
+                    <div class="glass-card" data-sec="aspect">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</h3>
                         <div id="badge-setting" class="mt-3" hidden></div>
                         <div class="form-group">
@@ -739,6 +742,14 @@
                         <p class="subtitle mt-2">Datele vin din structura oficială a anului școlar (Ministerul Educației). Județul alege singur săptămâna vacanței de schi; dacă inspectoratul tău a anunțat altceva, o poți schimba.</p>
                     </div>
 
+                    <div class="glass-card" id="teacher-settings-card" data-sec="catalog">
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg> Catalogul meu</h3>
+                        <div id="teacher-settings" class="mt-3"></div>
+                    </div>
+                    <div class="glass-card" id="account-settings-card" data-sec="cont">
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Contul de la școală</h3>
+                        <div id="cat-account-settings" class="mt-3"></div>
+                    </div>
                     <div class="glass-card settings-wide backup-card" id="backup-card" data-sec="date">
                         <div class="section-title-row">
                             <div>
