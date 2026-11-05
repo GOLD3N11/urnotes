@@ -9,7 +9,7 @@ const FOCUSABLE = "button:not([disabled]):not([hidden]), [href], input:not([disa
  * Deschide fereastra de dialog.
  * `body` este HTML generat de aplicație (valorile utilizatorului sunt escapate de apelant).
  */
-function openModal({ title, body = "", onConfirm = null, confirmText = "Confirmă", danger = false, cancelText = "Anulează", layout = "dialog", guestOk = false }) {
+function openModal({ title, body = "", onConfirm = null, confirmText = "Confirmă", danger = false, cancelText = "Anulează", layout = "dialog", guestOk = false, compact = false }) {
     if (!guestOk && !canEdit()) { requireAccount(); return; } // formularele (adăugare, editare, ștergere) cer cont
     const overlay = $("action-modal");
     const confirmBtn = $("action-modal-confirm");
@@ -22,6 +22,7 @@ function openModal({ title, body = "", onConfirm = null, confirmText = "Confirm�
     // Formularele se deschid ca panou lateral (pe telefon: foaie de jos); confirmările rămân la mijloc.
     overlay.classList.toggle("is-panel", layout === "panel");
     overlay.classList.toggle("is-dialog", layout !== "panel");
+    overlay.classList.toggle("is-record", compact); // o fișă mică (un rând din Baza de date): fereastră îngustă, cât conținutul
     $("action-modal-title").textContent = title;
     $("action-modal-body").innerHTML = body;
 

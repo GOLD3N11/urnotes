@@ -167,6 +167,7 @@ const dbConsoleUI = (() => {
         const act = canEnd || lockedNow;
         const name = row.display_name || row.student || row.account || row.username || row.name || row.class || row.actor || "";
         const body = `
+            <p class="db-rec-kind">${esc(t.label)}</p>
             <dl class="db-fields">${t.columns.map(c => `<dt>${esc(c.label)}</dt><dd>${fmt(row[c.key], c.kind, c.key)}</dd>`).join("")}</dl>
             ${R.extra && Object.keys(R.extra).length ? `<h4>Legat de el</h4><dl class="db-fields">
                 ${R.extra.grades !== undefined ? `<dt>Note în catalog</dt><dd>${R.extra.grades}</dd>` : ""}
@@ -198,8 +199,8 @@ const dbConsoleUI = (() => {
             }));
         };
         openModal({
-            layout: "panel", guestOk: true,
-            title: name ? `${t.label} · ${name}` : t.label,
+            layout: "panel", guestOk: true, compact: true,
+            title: name || t.label,
             body, cancelText: "Închide",
             confirmText: act ? (canEnd ? "Închide sesiunea" : "Deblochează") : "",
             onConfirm

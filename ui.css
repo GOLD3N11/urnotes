@@ -2003,3 +2003,21 @@ button.sch-grade { border: 0; color: inherit; font: inherit; font-weight: 700; c
 button.sch-grade:hover, button.sch-grade:focus-visible { outline: 2px solid var(--accent, #4F7CFF); outline-offset: 1px; }
 
 #action-modal-body .db-fields + h4, #action-modal-body .db-act h4 { margin-top: 14px; }
+
+/* fișa unui rând din Baza de date: fereastră mică, cât conținutul */
+#action-modal.is-record #action-modal-title { font-size: 15px; line-height: 1.3; padding: 14px 16px 10px; }
+#action-modal.is-record.is-win #action-modal-title { padding-right: 150px; }
+#action-modal.is-record #action-modal-body { padding: 10px 16px 14px; font-size: 13.5px; }
+#action-modal.is-record .modal-footer { padding: 8px 16px; }
+#action-modal.is-record .modal-footer .btn { padding: 6px 12px; min-height: 0; font-size: 13.5px; }
+#action-modal.is-record .win-bar { top: 8px; right: 10px; transform: scale(.88); transform-origin: top right; }
+#action-modal.is-record .db-rec-kind { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .55; }
+#action-modal.is-record .db-fields { gap: 3px 12px; margin: 0 0 10px; }
+#action-modal.is-record h4 { font-size: 12.5px; margin: 10px 0 4px; }
+#action-modal.is-record .db-history { gap: 3px; font-size: 12.5px; }
+#action-modal.is-record .muted-small { font-size: 12px; }
+#action-modal.is-record .form-group { margin-bottom: 8px; }
+@media (min-width: 901px) and (pointer: fine) {
+    #action-modal.is-record.is-win.win-float .modal-card { height: auto; max-height: min(560px, calc(100vh - 24px)); }
+    #action-modal.is-record.is-win.win-center .modal-card { width: min(420px, 94vw); }
+}

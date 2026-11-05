@@ -1,7 +1,7 @@
 /* urNotes — lucru fără internet.
    Fișierele aplicației: mai întâi rețeaua (ca să primești mereu ultima versiune), copia salvată doar când nu e semnal.
    Fonturile și Chart.js: copia salvată imediat, actualizată în fundal. Serverul catalogului (api-config.js) nu trece pe aici. */
-const CACHE = "urnotes-v48";
+const CACHE = "urnotes-v49";
 const APP_JS = ["shared/rules.js", "js/config.js", "js/utils.js", "js/model.js", "js/storage.js", "js/metrics.js", "js/render.js", "js/azi.js", "js/catalog.js", "js/phone.js", "js/calendar-view.js", "js/alerts-settings-view.js", "js/selects-charts.js", "js/stats.js", "js/report.js", "js/setup.js", "js/plan.js", "js/tour.js", "js/catalogcore.js", "js/guest.js", "js/grades-subjects.js", "js/calendar-actions.js", "js/settings-backup.js", "js/nav.js", "js/motion.js", "js/fluid.js", "js/pagefx.js", "js/simulator.js", "js/events.js", "js/reminders.js", "js/notes.js", "js/quickgrade.js", "js/cal-compose.js", "js/palette.js", "js/settings-sections.js", "js/timetable.js", "js/realism.js", "js/sidetree.js", "js/pages.js", "js/windows.js", "js/years.js", "js/pal.js", "js/exams.js", "js/growth.js", "vendor/qrcode.js", "js/school.js", "js/dbconsole.js", "js/catalogmode.js", "js/router.js", "js/state.js", "js/boot.js", "js/main.js"];
 const CHART_JS = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"; // aceeași adresă ca în js/selects-charts.js
 const SHELL = [...APP_JS, "./", "index.html", "style.css", "ui.css", "tokens.css", "api-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png", CHART_JS];
