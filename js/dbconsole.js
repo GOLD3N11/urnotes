@@ -155,54 +155,55 @@ const dbConsoleUI = (() => {
         }));
     }
 
-    /* ---------- un rând ---------- */
+    /* ---------- un rând: în fereastra aplicației (se trage oriunde sau se lipește de o margine, ca celelalte) ---------- */
     async function openRow(id, reload) {
-        const esc = X.esc, t = tdef();
+        const esc = X.esc, t = tdef(), table = D.table;
         let R;
-        try { R = await X.api("GET", `/v2/db/${D.table}/${encodeURIComponent(id)}`); }
+        try { R = await X.api("GET", `/v2/db/${table}/${encodeURIComponent(id)}`); }
         catch (e) { X.toast(`⚠️ ${e.message}`); return; }
         const row = R.row;
-        const lockedNow = D.table === "accounts" && row.locked_until && new Date(row.locked_until) > new Date();
-        const canEnd = D.table === "sessions" && !row.ended;
-        const d = document.createElement("dialog");
-        d.className = "sch-dialog db-sheet";
-        d.setAttribute("aria-labelledby", "db-row-title");
-        d.innerHTML = `
-            <div class="sch-head"><h3 id="db-row-title">${esc(t.label)}</h3><button type="button" class="btn btn-text btn-sm" id="db-row-x">Închide</button></div>
+        const lockedNow = table === "accounts" && row.locked_until && new Date(row.locked_until) > new Date();
+        const canEnd = table === "sessions" && !row.ended;
+        const act = canEnd || lockedNow;
+        const name = row.display_name || row.student || row.account || row.username || row.name || row.class || row.actor || "";
+        const body = `
             <dl class="db-fields">${t.columns.map(c => `<dt>${esc(c.label)}</dt><dd>${fmt(row[c.key], c.kind, c.key)}</dd>`).join("")}</dl>
-            ${R.extra && Object.keys(R.extra).length ? `<h4>Legat de el</h4><ul class="links-list">
-                ${R.extra.grades !== undefined ? `<li><span>Note în catalog: <b>${R.extra.grades}</b></span></li>` : ""}
-                ${R.extra.openSessions !== undefined ? `<li><span>Sesiuni deschise: <b>${R.extra.openSessions}</b></span></li>` : ""}
-                ${(R.extra.links || []).map(l => `<li><span>${esc(l)}</span></li>`).join("")}</ul>` : ""}
-            ${canEnd || lockedNow ? `<form id="db-act" class="db-act" novalidate>
+            ${R.extra && Object.keys(R.extra).length ? `<h4>Legat de el</h4><dl class="db-fields">
+                ${R.extra.grades !== undefined ? `<dt>Note în catalog</dt><dd>${R.extra.grades}</dd>` : ""}
+                ${R.extra.openSessions !== undefined ? `<dt>Sesiuni deschise</dt><dd>${R.extra.openSessions}</dd>` : ""}
+                ${(R.extra.links || []).length ? `<dt>Părinți și copii</dt><dd>${R.extra.links.map(l => esc(l)).join("<br>")}</dd>` : ""}</dl>` : ""}
+            ${act ? `<div id="db-act" class="db-act">
                 <h4>${canEnd ? "Închide sesiunea" : "Deblochează contul"}</h4>
                 <p class="muted-small">${canEnd ? "Dispozitivul iese din cont (de exemplu un telefon pierdut)." : "Contul poate intra din nou, fără să mai aștepte 15 minute."}</p>
-                <div class="form-group"><label for="db-reason">Motivul</label><input id="db-reason" class="glass-input" maxlength="200" required placeholder="${canEnd ? "telefon pierdut" : "a sunat la secretariat"}"></div>
+                <div class="form-group"><label for="db-reason">Motivul</label><input id="db-reason" class="glass-input" maxlength="200" placeholder="${canEnd ? "telefon pierdut" : "a sunat la secretariat"}"></div>
                 <div id="db-act-err"></div>
-                <button type="submit" class="btn btn-primary">${canEnd ? "Închide sesiunea" : "Deblochează"}</button>
-            </form>` : ""}
+            </div>` : ""}
             <h4>Istoric</h4>
             ${R.history.length ? `<ul class="db-history">${R.history.map(h => `<li><span class="muted-small">${esc(new Date(h.at).toLocaleString("ro-RO"))}</span> <b>${esc(h.actor)}</b> · ${esc(h.action)}${h.reason ? ` · <i>${esc(h.reason)}</i>` : ""}</li>`).join("")}</ul>` : `<p class="muted-small">Nimic în jurnal pentru acest rând.</p>`}
             <p class="muted-small">Deschiderea acestui rând s-a scris în jurnal.</p>`;
-        document.body.appendChild(d);
-        const close = () => { d.close?.(); d.remove(); };
-        d.querySelector("#db-row-x").addEventListener("click", close);
-        d.addEventListener("cancel", close);
-        d.querySelector("#db-act")?.addEventListener("submit", e => {
-            e.preventDefault();
-            X.run(e.submitter, d.querySelector("#db-act-err"), async () => {
-                const reason = d.querySelector("#db-reason").value.trim();
-                if (reason.length < 3) throw new Error("Scrie motivul (cel puțin 3 litere).");
+        const onConfirm = !act ? null : async () => {
+            const btn = document.getElementById("action-modal-confirm");
+            await new Promise(done => X.run(btn, document.getElementById("db-act-err"), async () => {
                 try {
-                    await withStepUp(() => X.api("POST", canEnd ? `/v2/db/sessions/${row.id}/end` : `/v2/db/accounts/${row.id}/clear-lockout`, { reason }));
-                } catch (err) { if (err.quiet) return; throw err; }
-                close();
-                X.toast(canEnd ? "✓ Sesiunea a fost închisă." : "✓ Contul a fost deblocat.");
-                D.tables = (await X.api("GET", "/v2/db/tables")).tables; // numărul de rânduri s-a putut schimba
-                reload();
-            });
+                    const reason = document.getElementById("db-reason").value.trim();
+                    if (reason.length < 3) throw new Error("Scrie motivul (cel puțin 3 litere).");
+                    try {
+                        await withStepUp(() => X.api("POST", canEnd ? `/v2/db/sessions/${row.id}/end` : `/v2/db/accounts/${row.id}/clear-lockout`, { reason }));
+                    } catch (err) { if (err.quiet) return; throw err; }
+                    closeActionModal();
+                    X.toast(canEnd ? "✓ Sesiunea a fost închisă." : "✓ Contul a fost deblocat.");
+                    D.tables = (await X.api("GET", "/v2/db/tables")).tables; // numărul de rânduri s-a putut schimba
+                    reload();
+                } finally { done(); }
+            }));
+        };
+        openModal({
+            layout: "panel", guestOk: true,
+            title: name ? `${t.label} · ${name}` : t.label,
+            body, cancelText: "Închide",
+            confirmText: act ? (canEnd ? "Închide sesiunea" : "Deblochează") : "",
+            onConfirm
         });
-        d.showModal?.() ?? d.setAttribute("open", "");
     }
 
     return { render, reset: () => Object.assign(D, { tables: null, table: "", q: {}, page: 1, data: null }) };
