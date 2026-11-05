@@ -44,17 +44,22 @@ function leaveViewer() {
    după schimbare, tot ce era scris de mână pe acest dispozitiv (note, calendar, orar, plan, arhivă) se șterge.
    Rămân setările de aspect. Rulează doar cu serverul configurat (pe site), nu în testele locale. */
 const NOTEBOOK_WIPE_KEY = "urn_notebook_wiped_v1";
+const NOTEBOOK_KEYS = () => ["subjects", "calendar", "alerts", "activity", "achievements", "history", "alertMeta", "simulator",
+    "backupUndo", "lastExport", "timetable", "purtare", "plan", "archive", "exams"].map(k => KEYS[k]).filter(Boolean);
+/** Șterge caietul de pe acest dispozitiv (note, calendar, plan, notițe, scenarii…); rămân setările și colegul. */
+function clearNotebookStorage() {
+    try {
+        [...NOTEBOOK_KEYS(), ...Object.values(SYNC_KEYS), "urn_viewer_pick_v1"].forEach(k => localStorage.removeItem(k));
+        return true;
+    } catch (_) { return false; }
+}
 function wipeOldNotebook() {
     if (!window.URNOTES_API) return false;
     try {
         if (localStorage.getItem(NOTEBOOK_WIPE_KEY)) return false;
-        // tot ce era caiet; rămân setările, colegul (aspectul lui) și ce ține de pornire
-        const notebook = ["subjects", "calendar", "alerts", "activity", "achievements", "history", "alertMeta", "simulator",
-            "backupUndo", "lastExport", "timetable", "purtare", "plan", "archive", "exams"].map(k => KEYS[k]).filter(Boolean);
-        const drop = [...notebook, ...Object.values(SYNC_KEYS), "urn_viewer_pick_v1"].filter(k => localStorage.getItem(k) !== null);
-        drop.forEach(k => localStorage.removeItem(k));
+        clearNotebookStorage();
         localStorage.setItem(NOTEBOOK_WIPE_KEY, new Date().toISOString());
-        return drop.length > 0;
+        return true;
     } catch (_) { return false; }
 }
 wipeOldNotebook(); // înainte ca aplicația să citească datele (storage.js le citește la pornire, în boot.js)

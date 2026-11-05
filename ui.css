@@ -1924,13 +1924,17 @@ body.cat-mode #account-chip { display: none !important; }
 /* profesorii și administratorii: doar Școala și Setări */
 body.cat-staff .side-nav > :not([data-tab="tab-scoala"]), body.cat-staff .side-tree, body.cat-staff .side-pal,
 body.cat-staff .mobile-bottom-nav .mobile-nav-btn:not(.more-tab), body.cat-staff .mobile-add { display: none !important; }
-/* elevii și părinții: se uită, nu adaugă */
-body.cat-reader .side-add, body.cat-reader .mobile-add, body.cat-reader [data-action="quick-add"],
+/* elevii și părinții: ce vine de la școală (note, materii, orar, purtare) nu se schimbă de aici; restul e al lor */
 body.cat-reader [data-action="add-grade"], body.cat-reader [data-action="add-subject"], body.cat-reader [data-action="quick-grade"],
-body.cat-reader [data-action="plan-create"], body.cat-reader [data-action="timetable"], body.cat-reader [data-action="qa"],
-body.cat-reader [data-action="toggle-priority"], body.cat-reader [data-action="edit-subject"], body.cat-reader [data-action="delete-subject"],
-body.cat-reader [data-action="edit-grade"], body.cat-reader [data-action="delete-grade"], body.cat-reader [data-action="add-event"],
-body.cat-reader [data-action^="purtare-"] { display: none !important; }
+body.cat-reader [data-action="edit-grade"], body.cat-reader [data-action="delete-grade"], body.cat-reader [data-action="edit-subject"],
+body.cat-reader [data-action="delete-subject"], body.cat-reader [data-action="side-add-subject"], body.cat-reader [data-action="cat-menu-grade"],
+body.cat-reader [data-action="cat-menu-edit"], body.cat-reader [data-action="timetable"], body.cat-reader [data-action^="purtare-"],
+body.cat-reader [data-action="setup-open"], body.cat-reader [data-action="backup-import"], body.cat-reader [data-action="backup-undo"],
+body.cat-reader [data-action="reset-menu"], body.cat-reader [data-action="year-close"], body.cat-reader [data-action="year-delete"],
+body.cat-reader [data-action="programme-change"], body.cat-reader [data-action="event-quick-grade"], body.cat-reader [data-action="event-grade"],
+body.cat-reader [data-action="cc-subject-new"], body.cat-reader [data-action="qa"][data-kind="grade"], body.cat-reader [data-action="qa"][data-kind="subject"],
+body.cat-reader [data-action="qa"][data-kind="setup"], body.cat-reader [data-action="more-run"][data-kind="setup"],
+body.cat-reader .cc-type.is-grade { display: none !important; }
 
 /* catalogul profesorului */
 .sch-subtabs { margin: 4px 0 14px; flex-wrap: wrap; }
@@ -2021,3 +2025,8 @@ button.sch-grade:hover, button.sch-grade:focus-visible { outline: 2px solid var(
     #action-modal.is-record.is-win.win-float .modal-card { height: auto; max-height: min(560px, calc(100vh - 24px)); }
     #action-modal.is-record.is-win.win-center .modal-card { width: min(420px, 94vw); }
 }
+
+/* Școala → Acasă (elev, părinte): profesorii pe materii */
+.sch-teachers { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 6px 0 14px; }
+.sch-teachers dt { font-weight: 600; }
+.sch-teachers dd { margin: 0; opacity: .8; }

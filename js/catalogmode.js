@@ -47,22 +47,53 @@ const catalogMode = (() => {
         (tt?.cells || []).slice().sort((a, b) => a.day - b.day || a.hour - b.hour).forEach(c => { (out[c.day] ||= []).push(c.subject); });
         return out;
     }
+    /* Elevul și părintele au un caiet obișnuit, salvat pe dispozitiv: calendarul, planul, notițele, scenariile din
+       „Ce-ar fi dacă”, examenele și setările sunt ale lor. Doar ce vine de la școală (materiile cu notele, orarul,
+       purtarea) se ia de la server la fiecare verificare și nu se poate schimba aici. Preferințele lor pe materie
+       (ținta, prioritatea, iconița, notițele, „nu intră în medie”) rămân. */
+    const OWNER_KEY = "urn_cat_owner";
+    const KEEP = ["target", "priority", "excludeFromGPA", "notes", "icon"];
+    function mergeSubjects(cat, tt) {
+        const prev = state.subjects || {};
+        const hours = {};
+        (tt?.cells || []).forEach(c => { hours[c.subject] = (hours[c.subject] || 0) + 1; });
+        const out = toSubjects(cat);
+        Object.entries(out).forEach(([mat, sub]) => {
+            const old = prev[mat];
+            if (old) KEEP.forEach(k => { if (old[k] !== undefined) sub[k] = old[k]; });
+            if (hours[mat]) sub.ore = hours[mat]; // orele pe săptămână, din orarul clasei
+        });
+        return out;
+    }
     function apply(cat, tt = null) {
-        const settings = clone(state.settings);
-        settings.profile = { ...settings.profile, name: (cat?.student.displayName || M.me.account.displayName).split(" ")[0] };
-        // purtarea nu e (încă) în catalogul școlii: nu intră în medie, ca media să fie doar din notele profesorilor
-        const data = { meta: { schema: DATA_SCHEMA }, settings, subjects: toSubjects(cat), timetable: toTimetable(tt), purtare: { grades: {}, excludeFromGPA: true } };
-        guest.restoring = true;
-        try {
-            applyLoadedData(readStoredData(name => clone(data[name] ?? null)));
-            ui.catalog = { ...ui.catalog, selected: "", showDetail: false };
-            guest.base = guestSnapshot();
-            guest.fp = guestFingerprint();
-        } finally { guest.restoring = false; }
-        refresh();
-        guest.fp = guestFingerprint();
-        guest.base = guestSnapshot();
+        const data = clone(buildBackup().data);
+        data.subjects = mergeSubjects(cat, tt);
+        data.timetable = toTimetable(tt);
+        data.purtare = { grades: {}, excludeFromGPA: true }; // purtarea nu e (încă) în catalogul școlii: nu intră în medie
+        data.settings.profile = { ...data.settings.profile, name: data.settings.profile?.name || (cat?.student.displayName || M.me.account.displayName).split(" ")[0] };
+        applyLoadedData(readStoredData(name => clone(data[name] ?? null)));
+        M.quiet = Boolean(M.fresh);
+        M.fresh = false;
+        try { refresh(); } finally { M.quiet = false; } // salvează (saveState) și redesenează
         if (ui.activeTab === "tab-setari") loadSettingsIntoUI();
+    }
+    /** Caietul de pe dispozitiv e al acestui cont? Dacă nu (alt elev pe același calculator), îl golim întâi. */
+    function claimDevice(owner) {
+        let was = "";
+        try { was = localStorage.getItem(OWNER_KEY) || ""; } catch (_) { /* fără stocare */ }
+        if (was === owner) return;
+        M.fresh = true; // caiet nou pe acest dispozitiv: fără sărbători pentru notele de dinainte
+        clearNotebookStorage();
+        try { localStorage.setItem(OWNER_KEY, owner); } catch (_) { /* fără stocare */ }
+        loadState();
+        // pragul de risc implicit (8) e prea sus pentru catalog: la prima intrare îl punem la 5 (corigență); se schimbă din Setări
+        if (state.settings.calc?.riskThreshold === 8) state.settings.calc.riskThreshold = 5;
+    }
+    function releaseDevice() {
+        clearNotebookStorage();
+        try { localStorage.removeItem(OWNER_KEY); } catch (_) { /* fără stocare */ }
+        loadState();
+        refresh();
     }
 
     async function load(force = false) {
@@ -170,9 +201,11 @@ const catalogMode = (() => {
         M.me = me || null;
         clearInterval(M.poll);
         if (!M.me) {
+            const wasReader = was && !document.body.classList.contains("cat-staff");
             Object.assign(M, { children: [], child: "", fp: "", notices: [] });
             renderNotificationBadge();
             if (guest.viewer) leaveViewer();
+            if (wasReader) releaseDevice(); // la ieșire, caietul elevului nu rămâne pe dispozitiv
             lock();
             return;
         }
@@ -181,12 +214,18 @@ const catalogMode = (() => {
         document.body.classList.remove("cat-locked");
         document.body.classList.toggle("cat-staff", isStaff());
         document.body.classList.toggle("cat-reader", !isStaff());
-        if (!guest.viewer) {
-            Object.assign(guest, { on: true, demo: false, viewer: true });
-            document.body.classList.add("is-guest", "is-viewer");
+        if (isStaff()) {
+            // profesorii și administratorii n-au caiet: lucrează la Școala (modul doar-citire, gol, nesalvat)
+            if (!guest.viewer) { Object.assign(guest, { on: true, demo: false, viewer: true }); document.body.classList.add("is-guest", "is-viewer"); }
+            guest.restoring = true;
+            try { applyLoadedData(readStoredData(name => (name === "settings" ? clone(state.settings) : null))); guest.base = guestSnapshot(); guest.fp = guestFingerprint(); }
+            finally { guest.restoring = false; }
+            refresh();
+        } else {
+            if (guest.viewer) leaveViewer();
+            claimDevice(role() === "parent" ? `p:${M.me.account.id}` : `s:${M.me.account.id}`);
+            load(true);
         }
-        if (isStaff()) apply(null); // profesorii și administratorii n-au caiet: lucrează la Școala
-        else load(true);
         loadNotices();
         M.poll = setInterval(() => { if (document.visibilityState === "visible") { load(); loadNotices(); } }, POLL);
         renderGuestBar();
@@ -207,17 +246,27 @@ const catalogMode = (() => {
             <button type="button" class="chip${c.id === M.child ? " is-on" : ""}" data-action="cat-child" data-id="${escapeHTML(c.id)}" aria-pressed="${c.id === M.child}">${escapeHTML(c.displayName.split(" ")[0])}</button>`).join("")}</span>` : "";
         const text = role() === "parent"
             ? (kid ? `<b>${escapeHTML(kid.displayName)}${kid.className ? ` · ${escapeHTML(kid.className)}` : ""}</b> · notele le pun doar profesorii.` : `<b>Încă nu ești legat de niciun elev.</b> Cere-i administratorului școlii să te lege de copilul tău.`)
-            : `<b>Catalogul tău.</b> Notele le pun profesorii; aici le vezi pe toate, cu mediile.`;
+            : `<b>Catalogul tău.</b> Notele și orarul vin de la școală; restul (calendarul, planul, notițele) e al tău.`;
         return `<span class="guest-bar-text">${icon("eye")}<span>${text}</span></span>${chips}`;
     }
 
-    // banda de sus și mesajul la o încercare de schimbare: ale catalogului, nu ale vechiului mod părinte/profesor
+    // banda de sus: a catalogului (elevul și părintele nu mai sunt în modul vizitator, așa că o desenăm noi)
     const oldBar = viewerBarHTML;
     viewerBarHTML = () => (active() ? barHTML() : oldBar());
+    const oldGuestBar = renderGuestBar;
+    renderGuestBar = function catalogGuestBar() {
+        oldGuestBar();
+        const bar = $("guest-bar");
+        if (!bar || !active() || isStaff()) return;
+        bar.hidden = false;
+        bar.classList.add("is-viewer");
+        bar.innerHTML = barHTML();
+    };
     const oldRequire = requireAccount;
     requireAccount = () => {
         if (!active()) return oldRequire();
-        showToast(isStaff() ? "Notele se pun din pagina Școala → Catalog." : "📘 Notele le pun profesorii. Aici le vezi, dar nu le poți schimba.", { duration: 4500 });
+        if (!isStaff()) return true; // elevul și părintele își schimbă caietul lor; ce e al școlii e oprit separat (mai jos)
+        showToast("Notele se pun din pagina Școala → Catalog.", { duration: 4500 });
         return false;
     };
     // fără configurarea de început (materiile vin de la școală)
@@ -237,9 +286,66 @@ const catalogMode = (() => {
         };
     }
 
+    /* Prima încărcare a catalogului pe un dispozitiv: realizările și nivelul colegului se socotesc în liniște
+       (altfel „3 realizări noi” și „nivelul 3” ar apărea la fiecare intrare pe un telefon nou). */
+    const oldAch = checkAchievements;
+    checkAchievements = function catalogAchievements() {
+        if (!M.quiet) return oldAch();
+        if (metrics.totalGrades) ACHIEVEMENTS.forEach(a => { if (!state.achievements[a.key] && a.test(metrics)) state.achievements[a.key] = true; });
+    };
+    const oldPal = checkPalLevel;
+    checkPalLevel = function catalogPal() {
+        if (!M.quiet) return oldPal();
+        state.pal.seenLevel = Math.max(state.pal.seenLevel || 0, palProgress().level);
+    };
+    // purtarea nu vine (încă) de la școală: nu o arătăm ca pe o notă
+    const oldPurtare = purtareVisibleInList;
+    purtareVisibleInList = () => (active() && !isStaff() ? false : oldPurtare());
+
+    /* Ce ține de școală nu se schimbă din aplicația elevului sau a părintelui. */
+    const SCHOOL_OWNED = ["add-grade", "edit-grade", "delete-grade", "quick-grade", "quick-grade-add", "quick-grade-more", "event-grade", "event-quick-grade",
+        "cat-menu-grade", "cat-menu-edit", "add-subject", "edit-subject", "delete-subject", "side-add-subject", "cc-subject-new", "programme-change",
+        "purtare-edit", "purtare-reset", "purtare-settings", "purtare-toggle-gpa", "timetable", "tt-cell", "tt-clear", "tt-copy", "tt-move", "tt-remove", "tt-slot", "tt-tap",
+        "setup-open", "backup-import", "backup-undo", "reset-menu", "reset-option", "year-close", "year-delete"];
+    const reader = () => active() && !isStaff();
+    const readerToast = () => showToast(role() === "parent" ? "📘 Notele, materiile și orarul le pune școala. Aici le vezi." : "📘 Notele, materiile și orarul vin de la școală. Le vezi aici, dar le schimbă doar profesorii și administratorul.", { duration: 4500 });
+    SCHOOL_OWNED.forEach(name => {
+        const fn = ACTIONS[name];
+        if (typeof fn !== "function") return;
+        ACTIONS[name] = function schoolOwned(...args) { if (reader()) { readerToast(); return; } return fn.apply(this, args); };
+    });
+    // bara din Calendar poate pune și o notă („9 la mate azi”): pentru elev și părinte, doar evenimente
+    if (typeof ccSubmitGrade === "function") {
+        const oldGrade = ccSubmitGrade;
+        ccSubmitGrade = function catalogCcGrade(...args) { if (reader()) { readerToast(); return; } return oldGrade.apply(this, args); };
+    }
+    if (typeof ccFromText === "function") {
+        const oldFrom = ccFromText;
+        ccFromText = function catalogCcFromText(...args) {
+            const out = oldFrom.apply(this, args);
+            if (reader() && cc.type === CC_GRADE) { cc.type = "Test"; renderCompose(); }
+            return out;
+        };
+    }
+    if (typeof ACTIONS.qa === "function") {
+        const qa = ACTIONS.qa;
+        ACTIONS.qa = function catalogQa(el, ...rest) {
+            if (reader() && ["grade", "subject", "setup"].includes(el?.dataset?.kind)) { readerToast(); return; }
+            return qa.call(this, el, ...rest);
+        };
+    }
+    if (typeof ACTIONS["more-run"] === "function") {
+        const mr = ACTIONS["more-run"];
+        ACTIONS["more-run"] = function catalogMore(el, ...rest) {
+            if (reader() && el?.dataset?.kind === "setup") { readerToast(); return; }
+            return mr.call(this, el, ...rest);
+        };
+    }
+
     ACTIONS["cat-child"] = btn => {
         M.child = btn.dataset.id;
         try { localStorage.setItem(PICK_KEY, M.child); } catch (_) { /* fără stocare */ }
+        M.fp = "";
         load(true);
     };
     GUEST_OK.add("cat-child");
@@ -252,5 +358,5 @@ const catalogMode = (() => {
         window.addEventListener("DOMContentLoaded", () => { document.body.classList.add("cat-mode", "cat-locked"); });
         window.addEventListener("load", () => { if (!M.me) { lock(); schoolAccount.start(); } });
     }
-    return { enabled, get active() { return active(); }, get role() { return role(); }, reload: () => load(true), notices: loadNotices, pushState, enablePush, disablePush };
+    return { enabled, get active() { return active(); }, get role() { return role(); }, get child() { return M.child; }, reload: () => load(true), notices: loadNotices, pushState, enablePush, disablePush };
 })();

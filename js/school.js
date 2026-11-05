@@ -297,18 +297,42 @@ const schoolAccount = (() => {
         ({ db: () => (typeof dbConsoleUI !== "undefined" ? dbConsoleUI.render(el("sch-page"), { api, apiText, esc, run, toast, ROLE_LABEL }) : null), accounts: pageAccounts, classes: pageClasses, teach: pageTeach, schools: pageSchools, audit: pageAudit, me: pageMe, home: pageHome })[S.tab]();
     }
 
-    function pageHome() {
+    /** Elevul și părintele: clasa, dirigintele, cine predă fiecare materie și orarul clasei. */
+    async function pageHome() {
         const a = S.me.account;
+        const page = el("sch-page");
         const kids = S.me.children || [];
-        el("sch-page").innerHTML = `
-            <div class="glass-card">
-                <h3>Bună, ${esc(a.displayName.split(" ")[0])}!</h3>
-                <p class="muted-small">${esc(ROLE_LABEL[a.role])}${S.me.school ? ` la ${esc(S.me.school.name)}` : ""}.</p>
-                ${a.role === "parent" ? `<h4>Copiii tăi</h4>${kids.length ? `<ul class="links-list">${kids.map(k => `<li><span><b>${esc(k.displayName)}</b></span></li>`).join("")}</ul>` : `<p class="muted-small">Administratorul școlii nu te-a legat încă de copilul tău.</p>`}` : ""}
-                <p class="sch-note">${a.role === "parent" ? "Notele copilului le vezi la <b>Note</b> și la <b>Progres</b>. Le pun doar profesorii." : "Notele tale le vezi la <b>Note</b> și la <b>Progres</b>. Le pun doar profesorii."}</p>
-                <button type="button" class="btn btn-primary" id="sch-go-notes">${icon("notebook")} Vezi notele</button>
-            </div>`;
-        el("sch-go-notes").addEventListener("click", () => typeof switchTab === "function" && switchTab("tab-catalog"));
+        const sid = a.role === "student" ? a.id : (typeof catalogMode !== "undefined" && catalogMode.child) || kids[0]?.id || "";
+        const kid = kids.find(k => k.id === sid);
+        page.innerHTML = `<p class="muted-small">Se încarcă…</p>`;
+        let cat = null, orar = { cells: [] };
+        if (sid) {
+            try {
+                [cat, orar] = await Promise.all([
+                    api("GET", a.role === "student" ? "/v2/me/catalog" : `/v2/students/${sid}/catalog`),
+                    api("GET", a.role === "student" ? "/v2/me/timetable" : `/v2/me/timetable?student=${sid}`).catch(() => ({ cells: [] }))
+                ]);
+            } catch (e) { page.innerHTML = `<p class="sch-error">${esc(e.message)}</p>`; return; }
+        }
+        if (!page.isConnected) return;
+        const who = a.role === "student" ? "Clasa ta" : kid ? `Clasa lui ${esc(kid.displayName.split(" ")[0])}` : "Clasa";
+        const subjects = (cat?.subjects || []).filter(x => x.teacher);
+        page.innerHTML = `
+            ${a.role === "parent" && !kids.length ? `<div class="glass-card"><h3>Bună, ${esc(a.displayName.split(" ")[0])}!</h3><p class="muted-small">Administratorul școlii nu te-a legat încă de copilul tău. Când o face, aici vezi clasa, profesorii și orarul lui.</p></div>` : `
+            <div class="sch-grid">
+                <div class="glass-card">
+                    <h3>${icon("graduation")} ${who}${cat?.class ? `: ${esc(cat.class.name)}` : ""}</h3>
+                    ${cat?.class ? `<p class="muted-small">${S.me.school ? esc(S.me.school.name) : ""}${cat.class.headTeacher ? ` · Diriginte: <b>${esc(cat.class.headTeacher)}</b>` : ""}</p>` : `<p class="muted-small">${a.role === "student" ? "Încă nu ești pus într-o clasă." : "Copilul nu e încă pus într-o clasă."} Vorbește cu administratorul școlii.</p>`}
+                    ${subjects.length ? `<h4>Profesorii</h4><dl class="sch-teachers">${subjects.map(x => `<dt>${esc(x.subject)}</dt><dd>${esc(x.teacher)}</dd>`).join("")}</dl>` : ""}
+                    <button type="button" class="btn btn-primary" id="sch-go-notes">${icon("notebook")} ${a.role === "student" ? "Vezi notele" : "Vezi notele copilului"}</button>
+                </div>
+                <div class="glass-card">
+                    <h3>${icon("calendar")} Orarul clasei</h3>
+                    ${orar.cells.length ? orarHTML(orar.cells) : `<p class="muted-small">Administratorul școlii n-a făcut încă orarul.</p>`}
+                    <p class="muted-small">Orarul apare și în Calendar și la Azi.</p>
+                </div>
+            </div>`}`;
+        el("sch-go-notes")?.addEventListener("click", () => typeof switchTab === "function" && switchTab("tab-catalog"));
     }
 
     /* ---------- note: tabelul unei materii (profesorul și administratorul școlii) ---------- */
