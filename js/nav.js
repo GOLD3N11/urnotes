@@ -223,7 +223,6 @@ function runQuickAdd(kind) {
 /* ==================== MAI MULT (telefon) ==================== */
 let moreReturn = null;
 const MORE_ACTIONS = {
-    school: () => switchTab("tab-scoala"),
     sim: () => switchTab("tab-simulator"),
     settings: () => switchTab("tab-setari"),
     theme: () => toggleTheme(),
@@ -315,7 +314,7 @@ function bindShellEvents() {
             return;
         }
         // La fel ecranul de autentificare (Escape îl închide doar dacă elevul a ales deja cum folosește aplicația)
-        if ($("auth") && !$("auth").hidden) {
+        if (!$("auth").hidden) {
             if (!$("action-modal").hidden) return;
             if (k === "Escape" && cloud.seenUser && lsGet(SYNC_KEYS.choice)) closeAuth();
             else trapFocusIn($("auth"), event);

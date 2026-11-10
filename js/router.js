@@ -1,5 +1,5 @@
 /* urNotes · Adresele paginilor: fiecare pagină principală are adresa ei
-   (…/urnotes/azi, /calendar, /note, /plan, /progres, /scoala, /setari), cu Înapoi și Înainte din browser.
+   (…/urnotes/azi, /calendar, /note, /plan, /progres, /setari), cu Înapoi și Înainte din browser.
    GitHub Pages servește doar fișiere: o adresă ca …/urnotes/calendar ajunge întâi la 404.html, care trimite
    înapoi la aplicație cu ?route=calendar; aici adresa se pune la loc. Cu lucrătorul offline instalat (sw.js),
    aplicația vine direct, fără ocolul prin 404.html.
@@ -10,7 +10,7 @@ const appRoutes = (() => {
     const ROUTES = {
         azi: "tab-dashboard", calendar: "tab-calendar", note: "tab-catalog", plan: "tab-plan",
         progres: "tab-statistici", "ce-ar-fi-daca": "tab-simulator", examene: "tab-examene",
-        scoala: "tab-scoala", setari: "tab-setari"
+        setari: "tab-setari"
     };
     const SLUG = Object.fromEntries(Object.entries(ROUTES).map(([slug, tab]) => [tab, slug]));
     // rădăcina aplicației (…/urnotes/), din locul acestui fișier: merge și pe GitHub Pages, și local

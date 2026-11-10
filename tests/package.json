@@ -1,7 +1,9 @@
 {
   "private": true,
   "description": "Testele aplicației urNotes (jsdom). node run.js",
-  "scripts": { "test": "node run.js" },
+  "scripts": {
+    "test": "node run.js"
+  },
   "dependencies": {
     "axe-core": "^4.10.2",
     "chart.js": "^4.5.1",

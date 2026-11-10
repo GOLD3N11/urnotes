@@ -41,6 +41,8 @@ function checkAchievements() {
     const fresh = ACHIEVEMENTS.filter(a => !state.achievements[a.key] && a.test(metrics));
     if (!fresh.length) return;
     fresh.forEach(a => { state.achievements[a.key] = true; });
+    // caietul tocmai a venit din cont (alt dispozitiv): realizările se notează, fără mesaje pentru note vechi
+    if (typeof cloud !== "undefined" && cloud.applying) return;
     // un singur mesaj, chiar dacă s-au deblocat mai multe deodată (ex. după un import), și puțin după acțiune
     const msg = fresh.length === 1 ? fresh[0].toast : `🏆 ${fresh.length} realizări noi: ${fresh.map(a => a.label).join(", ")}.`;
     clearTimeout(checkAchievements.timer);

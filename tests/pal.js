@@ -30,7 +30,7 @@ const DATA = {
   "pro_setup_done_v4": "1", "pro_tour_done_v4": "1",
   "pro_catalog_db_v4": { "Matematică": { ore: 4, target: 10, grades: [{ val: 4, type: "Test", date: "2026-10-01" }] }, "Fizică": { ore: 3, target: 9, grades: [{ val: 10, type: "Test", date: "2026-10-02" }] } },
   "pro_calendar_db_v4": { "2026-10-15": [{ id: "t", title: "Test Fizică", type: "Test", subject: "Fizică" }] },
-  "pro_settings_db_v4": { profile: { buddy: "Bubu" }, calc: { rev: 2 } }
+  "pro_settings_db_v4": { profile: { buddy: "Bubu" }, calc: { rev: 2, riskThreshold: 8 } }
 };
 (async () => {
   const { w, T, $, q, qa, click } = boot(DATA); await new Promise(r => setTimeout(r, 30));

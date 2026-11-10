@@ -10,6 +10,7 @@ w.CSS = { escape: s => s.replace(/"/g, '\\"') };
 w.HTMLElement.prototype.scrollIntoView = () => {}; w.scrollTo = () => {};
 const today = new Date(); const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const plus = n => { const d = new Date(); d.setDate(d.getDate()+n); return key(d); };
+w.localStorage.setItem("pro_settings_db_v4", JSON.stringify({ calc: { rev: 2, riskThreshold: 8 } })); // pragul vechi (8): testele de risc de mai jos pornesc de la el
 w.localStorage.setItem("pro_catalog_db_v4", JSON.stringify({
   "Matematică": { ore: 4, target: 10, grades: [{val:9,type:"Test",date:plus(-20)},{val:10,type:"Teză",date:plus(-10)},{val:8,type:"Ascultare",date:plus(-3)}], priority: true },
   "Fizică": { ore: 2, target: 9, grades: [{val:6,type:"Test",date:plus(-15)},{val:7,type:"Test",date:plus(-5)}] },

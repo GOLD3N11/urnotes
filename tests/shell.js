@@ -8,6 +8,7 @@ const w = dom.window;
 w.matchMedia = q => ({ matches: false, addEventListener(){}, media: q });
 w.CSS = { escape: s => s.replace(/"/g, '\\"') };
 w.HTMLElement.prototype.scrollIntoView = () => {}; w.scrollTo = () => {};
+w.localStorage.setItem("pro_settings_db_v4", JSON.stringify({ calc: { rev: 2, riskThreshold: 8 } })); // pragul vechi (8): testele de risc de mai jos pornesc de la el
 w.localStorage.setItem("pro_catalog_db_v4", JSON.stringify({
   "Fizică": { ore: 2, target: 9, grades: [{ val: 5, type: "Test", date: "2026-10-01" }] },
   "Română": { ore: 4, target: 10, grades: [] }
@@ -23,10 +24,7 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
 (async () => {
   if (w.document.readyState === "loading") await new Promise(r => w.document.addEventListener("DOMContentLoaded", r));
   // side menu
-  assert(qa(".side-nav .side-link").length === 6 && q(".side-nav [data-tab='tab-scoala']") && q(".side-foot [data-tab='tab-setari']") && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Calendar, Note, Plan, Progres, Școala + Adaugă + Caută; Setări at the bottom");
-  T.switchTab("tab-scoala");
-  assert(T.ui.activeTab === "tab-scoala" && q(".side-link.active").dataset.tab === "tab-scoala" && $("school-body"), "Școala is a page in the app, lit in the menu");
-  T.switchTab("tab-dashboard");
+  assert(qa(".side-nav .side-link").length === 5 && q(".side-foot [data-tab='tab-setari']") && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Calendar, Note, Plan, Progres + Adaugă + Caută; Setări at the bottom");
   click(q("[data-action='nav'][data-tab='tab-statistici']"));
   assert(T.ui.activeTab === "tab-statistici" && q(".side-link.active").dataset.tab === "tab-statistici" && !w.document.body.classList.contains("is-subpage"), "Progres is a main page with its own menu item");
   T.switchTab("tab-simulator");
@@ -102,7 +100,7 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
   assert(!$("more-btn").classList.contains("is-active"), "button not highlighted elsewhere");
   // Setări pe secțiuni
   click(q("[data-action='nav'][data-tab='tab-setari']"));
-  assert(qa("#set-sec-nav .set-sec").filter(b => !b.hidden).length === 6 && $("settings-grid").dataset.sec, "settings: 6 sections without a school account (Profil, Aspect, Școală, Calcul, Amintiri, Date)");
+  assert(qa("#set-sec-nav .set-sec").length === 6 && $("settings-grid").dataset.sec, "settings: section menu with 6 sections");
   click(q('#set-sec-nav [data-sec="date"]'));
   assert($("settings-grid").dataset.sec === "date" && q('#set-sec-nav [data-sec="date"]').getAttribute("aria-pressed") === "true" && w.localStorage.getItem("urn_settings_section_v1") === "date", "settings: picking 'Date' shows that section and remembers it");
   key("ArrowLeft", {}, q('#set-sec-nav [data-sec="date"]'));

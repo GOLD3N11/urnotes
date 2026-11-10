@@ -104,7 +104,7 @@ function sanitizeSettings(raw) {
             method: raw?.calc?.rev === 2 ? pick(s.calc.method, ["weighted", "arithmetic"], "arithmetic") : "arithmetic",
             rev: 2,
             rounding: pick(String(s.calc.rounding), ["2", "0"], "2"),
-            riskThreshold: clampNumber(s.calc.riskThreshold, 1, 10, 8),
+            riskThreshold: clampNumber(s.calc.riskThreshold, 1, 10, 5),
             riskDrop: clampNumber(s.calc.riskDrop, 0.1, 5, 0.5)
         },
         targets: {

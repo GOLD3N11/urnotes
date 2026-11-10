@@ -227,7 +227,7 @@ const REMIND_TIMES = ["16:00", "17:00", "18:00", "19:00", "19:30", "20:00", "20:
 
 const DEFAULT_SETTINGS = {
     goals: { primary: "gpa", targetGPA: 10, minGPA: 9 },
-    calc: { method: "arithmetic", rounding: "2", riskThreshold: 8, riskDrop: 0.5, rev: 2 },
+    calc: { method: "arithmetic", rounding: "2", riskThreshold: 5, riskDrop: 0.5, rev: 2 },
     // Amintirea de seară: ce ai mâine (teste, teme) și ce-a rămas din planul de azi
     remind: { on: false, time: "19:00", ahead: true },
     targets: { tens: 20, evals: 30 },

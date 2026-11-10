@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ui.css">
     <link rel="stylesheet" href="tokens.css">
+    <script src="firebase-config.js" defer></script>
     <script src="api-config.js" defer></script>
     <!-- Aplicația, în ordinea de încărcare (vezi js/; nu schimba ordinea) -->
     <script src="shared/rules.js" defer></script>
@@ -47,7 +48,7 @@
     <script src="js/setup.js" defer></script>
     <script src="js/plan.js" defer></script>
     <script src="js/tour.js" defer></script>
-    <script src="js/catalogcore.js" defer></script>
+    <script src="js/account.js" defer></script>
     <script src="js/guest.js" defer></script>
     <script src="js/grades-subjects.js" defer></script>
     <script src="js/calendar-actions.js" defer></script>
@@ -69,18 +70,18 @@
     <script src="js/sidetree.js" defer></script>
     <script src="js/pages.js" defer></script>
     <script src="js/windows.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/serversync.js" defer></script>
+    <script src="js/viewer.js" defer></script>
     <script src="js/years.js" defer></script>
     <script src="js/pal.js" defer></script>
     <script src="js/exams.js" defer></script>
     <script src="js/growth.js" defer></script>
-    <script src="vendor/qrcode.js" defer></script>
-    <script src="js/school.js" defer></script>
-    <script src="js/dbconsole.js" defer></script>
-    <script src="js/catalogmode.js" defer></script>
     <script src="js/router.js" defer></script>
     <script src="js/state.js" defer></script>
     <script src="js/boot.js" defer></script>
     <script src="js/main.js" defer></script>
+    <script type="module" src="cloud.js"></script>
 </head>
 <body>
     <!-- Iconițe (linie simplă, 24×24, culoarea textului). Folosire: <svg class="ico"><use href="#i-nume"/></svg> -->
@@ -200,12 +201,12 @@
             <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-plan" data-group="plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Plan</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici" data-group="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-scoala" data-group="school"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Școala</span><small class="side-badge" data-school-who hidden></small></button>
             <button type="button" class="side-add" data-action="quick-add" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span><kbd>N</kbd></button>
             <button type="button" class="side-search" data-action="palette-open"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>Caută</span><kbd>Ctrl K</kbd></button>
         </nav>
         <div class="side-pal" id="side-pal"></div>
         <div class="side-foot">
+            <button type="button" id="account-chip" class="account-chip" data-action="account-open"></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-setari"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span>Setări</span></button>
         </div>
     </aside>
@@ -581,19 +582,6 @@
             </section>
 
             <!-- ================= SETĂRI ================= -->
-            <!-- ================= ȘCOALA (catalogul: contul primit de la școală) ================= -->
-            <section id="tab-scoala" class="tab-content" aria-labelledby="h-scoala">
-                <div class="page-intro">
-                    <div>
-                        <button type="button" class="page-back" data-action="nav" data-tab="tab-dashboard"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Azi</span></button>
-                        <h2 id="h-scoala">Școala</h2>
-                        <p>Contul primit de la școală: intri cu numele de utilizator și parola de la administrator, fără email.</p>
-                    </div>
-                    <div class="page-pal" hidden></div>
-                </div>
-                <div id="school-body"></div>
-            </section>
-
             <section id="tab-setari" class="tab-content" aria-labelledby="h-setari">
                 <div class="page-intro settings-intro">
                     <div>
@@ -611,12 +599,10 @@
                 <!-- Secțiunile setărilor: o secțiune pe ecran (js/settings-sections.js) -->
                 <nav class="set-sec-nav" id="set-sec-nav" aria-label="Secțiunile setărilor">
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="profil" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Profil</button>
-                    <button type="button" class="set-sec" data-action="set-sec" data-sec="aspect" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="scoala" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Școală</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="calcul" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg> Calcul</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="amintiri" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg> Amintiri</button>
-                    <button type="button" class="set-sec" data-action="set-sec" data-sec="catalog" aria-pressed="false" hidden><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg> Catalog</button>
-                    <button type="button" class="set-sec" data-action="set-sec" data-sec="cont" aria-pressed="false" hidden><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Cont</button>
+                    <button type="button" class="set-sec cloud-only" data-action="set-sec" data-sec="cont" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-check-circle"/></svg> Cont</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="date" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg> Date</button>
                 </nav>
                 <div class="settings-grid" id="settings-grid" data-sec="profil">
@@ -638,6 +624,10 @@
                     <div class="glass-card programme-card" data-sec="scoala">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Programa ta <button type="button" class="help-dot" data-action="help" data-key="programme" aria-label="Ce înseamnă: Programa?" title="Ce înseamnă?">?</button></h3>
                         <div id="programme-settings" class="mt-3"></div>
+                    </div>
+                    <div class="glass-card cloud-only account-card" data-sec="cont">
+                        <h3><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Cont și sincronizare</h3>
+                        <div id="account-settings" class="mt-3"></div>
                     </div>
                     <div class="glass-card" data-sec="calcul">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg> Obiective</h3>
@@ -698,7 +688,7 @@
                         <div id="remind-setting" class="remind-setting mt-3"></div>
                     </div>
 
-                    <div class="glass-card" data-sec="aspect">
+                    <div class="glass-card" data-sec="profil">
                         <h3><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Aspect</h3>
                         <div id="badge-setting" class="mt-3" hidden></div>
                         <div class="form-group">
@@ -742,14 +732,6 @@
                         <p class="subtitle mt-2">Datele vin din structura oficială a anului școlar (Ministerul Educației). Județul alege singur săptămâna vacanței de schi; dacă inspectoratul tău a anunțat altceva, o poți schimba.</p>
                     </div>
 
-                    <div class="glass-card" id="teacher-settings-card" data-sec="catalog">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg> Catalogul meu</h3>
-                        <div id="teacher-settings" class="mt-3"></div>
-                    </div>
-                    <div class="glass-card" id="account-settings-card" data-sec="cont">
-                        <h3><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Contul de la școală</h3>
-                        <div id="cat-account-settings" class="mt-3"></div>
-                    </div>
                     <div class="glass-card settings-wide backup-card" id="backup-card" data-sec="date">
                         <div class="section-title-row">
                             <div>
@@ -863,7 +845,7 @@
         <div class="quick-add-backdrop" data-action="more-close"></div>
         <div class="quick-add-card" role="menu" aria-label="Mai mult">
             <p class="quick-add-title">Eu</p>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="school"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span><b>Școala</b><small>contul primit de la școală</small></span></button>
+            <button type="button" role="menuitem" class="qa-item cloud-only" data-action="more-run" data-kind="account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span><b>Cont</b><small class="sync-line" data-sync-status="local"><i class="sync-dot" aria-hidden="true"></i><span class="sync-text">Doar pe acest dispozitiv</span></small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="settings"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span><b>Setări</b><small>ținte, calcul, aspect, module, backup</small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="theme"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg><span><b id="more-theme-label">Temă întunecată</b><small>foaie sau caiet noaptea</small></span></button>
             <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="setup"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg><span><b>Configurare rapidă</b><small>profil, materii, ținte</small></span></button>
@@ -896,6 +878,14 @@
                     </span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Autentificare (doar cu Firebase configurat; conținutul e generat în js/account.js) -->
+    <div id="auth" class="setup auth" hidden>
+        <div class="setup-card auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+            <button type="button" class="btn btn-text auth-x" data-action="auth-close" aria-label="Închide">✕</button>
+            <div class="auth-body" id="auth-body"></div>
         </div>
     </div>
 

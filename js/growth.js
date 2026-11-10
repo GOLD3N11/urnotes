@@ -87,6 +87,7 @@ function checkPalLevel() {
     if (guest.on) return;
     const { level } = palProgress();
     if (!state.pal.seenLevel) { state.pal.seenLevel = level; return; } // prima dată (date vechi): fără sărbători în lanț
+    if (typeof cloud !== "undefined" && cloud.applying) { state.pal.seenLevel = Math.max(state.pal.seenLevel, level); return; } // venit din cont: fără sărbătoare
     if (level <= state.pal.seenLevel) return;
     const from = state.pal.seenLevel;
     state.pal.seenLevel = level;

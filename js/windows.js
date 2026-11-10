@@ -9,7 +9,6 @@ const WIN_MODES = ["left", "right", "float"]; // lipită în stânga, în dreapt
 const WIN_DEFS = {
     form: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "right", w: 560, h: 680 } },
     dialog: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "float", w: 580, h: 400 } },
-    record: { root: "action-modal", card: ".modal-card", handle: "#action-modal-title", def: { mode: "float", w: 420, h: 0 } }, // h 0 = cât conținutul
     notif: { root: "notif-panel", card: ".drawer-card", handle: ".drawer-head", def: { mode: "right", w: 480, h: 520 } }
 };
 const WIN_LABEL = { left: "Lipește în stânga", bottom: "Lipește jos", right: "Lipește în dreapta", float: "Fereastră liberă", center: "La mijloc" };
@@ -28,7 +27,6 @@ const winEnabled = () => typeof matchMedia === "function" && matchMedia("(min-wi
 
 function winKindOf(root) {
     if (root.id === "notif-panel") return "notif";
-    if (root.classList.contains("is-record")) return "record";
     return root.classList.contains("is-panel") ? "form" : "dialog";
 }
 
@@ -116,13 +114,13 @@ function applyWindow(root, { mode: forced } = {}) {
     if (mode === "left" || mode === "right") card.style.setProperty("--win-w", `${Math.min(p.w, Math.max(300, window.innerWidth - x0 - 320))}px`);
     if (mode === "bottom") card.style.setProperty("--win-h", `${Math.min(p.bw, Math.round(window.innerHeight * 0.8))}px`);
     if (mode === "float") {
-        const w = Math.min(p.w, window.innerWidth - 24), h = Math.min(p.h || 360, window.innerHeight - 24);
+        const w = Math.min(p.w, window.innerWidth - 24), h = Math.min(p.h, window.innerHeight - 24);
         const x = Number.isFinite(p.x) ? p.x : Math.round((window.innerWidth - w) / 2 + (kind === "dialog" ? x0 / 2 : 80));
         const y = Number.isFinite(p.y) ? p.y : Math.round((window.innerHeight - h) / 3);
         card.style.left = `${Math.round(Math.min(Math.max(8, x), window.innerWidth - 120))}px`;
         card.style.top = `${Math.round(Math.min(Math.max(8, y), window.innerHeight - 60))}px`;
         card.style.width = `${w}px`;
-        if (kind !== "dialog" && p.h) card.style.height = `${h}px`; // o confirmare (și o fișă) are înălțimea conținutului ei
+        if (kind !== "dialog") card.style.height = `${h}px`; // o confirmare are înălțimea textului ei
     }
 
     // o confirmare așteaptă un răspuns (pagina de dedesubt nu se folosește); formularele și notificările lasă pagina folosibilă
