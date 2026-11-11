@@ -134,13 +134,7 @@ const ACTIONS = {
         if (!$("action-modal").hidden && $("action-modal").classList.contains("is-modeless")) closeActionModal();
         openNotifPanel();
     },
-    "more-open": () => openMoreMenu(),
-    "more-close": () => closeMoreMenu(),
-    "more-run": el => {
-        closeMoreMenu({ restoreFocus: false });
-        if (!canEdit() && !GUEST_OK_MORE.has(el.dataset.kind)) { requireAccount(); return; }
-        MORE_ACTIONS[el.dataset.kind]?.();
-    },
+    "theme-toggle": () => toggleTheme(),
     "notif-close": () => closeNotifPanel(),
     "modal-cancel": () => closeActionModal(),
     "guest-signin": () => { authUI.reason = ""; openAuth("signin"); },

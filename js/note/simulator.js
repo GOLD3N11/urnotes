@@ -379,7 +379,7 @@ function safetyPanelHTML(scenario, projected) {
                         <span class="sim-result ${r.tone}">${escapeHTML(r.text)}</span>
                     </div>`).join("")}
             </div>
-            <p class="subtitle mt-3">Pragul de risc și media minimă se schimbă din Setări.</p>
+            <p class="subtitle mt-3">Pragul de risc și media minimă se schimbă din „Eu”.</p>
         </section>`;
 }
 
@@ -666,4 +666,4 @@ function bindSimulatorEvents() {
     });
 }
 
-registerTab("tab-simulator", { render: renderSimulator, title: "Ce-ar fi dacă", icon: "target", group: "stats", parent: "tab-statistici" });
+registerTab("tab-simulator", { render: renderSimulator, title: "Ce-ar fi dacă", icon: "target", group: "grades", hub: "tab-catalog" });

@@ -55,6 +55,12 @@ const SETTINGS_FIELDS = {
 };
 
 function loadSettingsIntoUI() {
+    const themeBtn = $("eu-theme"); // „Eu”: tema dintr-o atingere
+    if (themeBtn) {
+        const dark = document.body.classList.contains("dark-mode");
+        themeBtn.querySelector("span").textContent = dark ? "Temă luminoasă" : "Temă întunecată";
+        themeBtn.querySelector("use")?.setAttribute("href", dark ? "#i-sun" : "#i-moon");
+    }
     if ($("set-county") && !$("set-county").options.length) $("set-county").innerHTML = countyOptions("");
     for (const [id, [group, key]] of Object.entries(SETTINGS_FIELDS)) {
         const el = $(id);
@@ -115,4 +121,4 @@ function renderBuddyPreview() {
     box.innerHTML = `${buddySVG("happy")}<b class="buddy-name pal-name-tag">${escapeHTML(name)}</b>`;
 }
 
-registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Setări", icon: "settings", group: "app", parent: "tab-dashboard" });
+registerTab("tab-setari", { render: loadSettingsIntoUI, title: "Eu", icon: "user", group: "me" });

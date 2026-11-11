@@ -14,7 +14,7 @@ function paletteSources() {
     add("cmd", "Adaugă o temă", "H", "book", () => ccOpenGlobal({ type: "Temă" }), "tema");
     add("cmd", "Materie nouă", "", "plus", () => promptAddMaterie(), "materie");
     const pages = [["tab-dashboard", "Azi", "home"], ["tab-calendar", "Calendar", "calendar"], ["tab-catalog", "Note", "notebook"], ["tab-plan", "Planul meu", "timer"],
-        ["tab-statistici", "Progresul tău", "chart"], ["tab-simulator", "Ce-ar fi dacă", "target"], ["tab-examene", "Examene", "graduation"], ["tab-setari", "Setări", "settings"]];
+        ["tab-statistici", "Progresul tău", "chart"], ["tab-simulator", "Ce-ar fi dacă", "target"], ["tab-examene", "Examene", "graduation"], ["tab-setari", "Eu · setări", "user"]];
     pages.forEach(([tab, label, ic]) => add("page", label, "pagină", ic, () => switchTab(tab), tab));
     Object.keys(state.subjects).sort((a, b) => a.localeCompare(b, "ro")).forEach(mat => {
         const d = metrics.subjects[mat];

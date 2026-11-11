@@ -21,14 +21,15 @@ function tourSteps() {
         { text: `Salut${hey}! Eu sunt ${buddyName()}, colegul tău de bancă. În mai puțin de un minut îți arăt cum merge urNotes.` },
         { target: ".azi-head-text", text: "Asta e pagina Azi: ce ai de făcut azi și ce urmează. Totul pornește de aici." },
         { target: "#azi-tiles", text: "Plăcile colorate îți arată dintr-o privire media, testele din săptămână și planul de azi. Atinge una ca să mergi acolo." },
-        { target: navSel("tab-catalog"), text: "La „Note” ai toate materiile, fiecare cu culoarea ei. De acolo ajungi și la progres, la „Ce-ar fi dacă” și la examene." },
+        { target: navSel("tab-catalog"), text: "La „Note” ai toate materiile, fiecare cu culoarea ei. Tot acolo, în file, găsești Progresul și „Ce-ar fi dacă”." },
         { target: navSel("tab-calendar"), text: "Calendarul ține testele, tezele, temele și orarul. Când primești nota, o treci direct din test." },
+        { target: navSel("tab-plan"), text: "La „Plan” îți fac programul de învățat pentru fiecare zi. Tot acolo sunt și examenele: Bac și Evaluarea Națională." },
         { target: phone ? ".mobile-add" : ".side-add", text: `Cu „+” pui o notă, un test, o temă sau o materie nouă.${phone ? "" : " Merge și tasta N."}` },
-        ...(phone ? [{ target: "#more-btn", text: "La „Eu” găsești contul, setările și tema întunecată." }] : []),
+        ...(phone ? [{ target: "#me-btn", text: "Atinge-mă aici sus ca să ajungi la „Eu”: profilul, contul, setările și tema întunecată." }] : []),
         { target: "#notif-btn", text: "Clopoțelul te anunță când o materie intră în risc sau când un test își așteaptă nota." },
         { target: phone ? "#tour-none" : "#account-chip", text: cloud.user ? "Ești în cont: notele se salvează singure și apar pe orice telefon sau calculator." : "Intră în cont ca notele să te urmeze pe orice telefon sau calculator." },
-        { target: "#azi-buddy", text: "Și eu stau aici, pe pagina Azi: îți spun ce contează și mă bucur de fiecare 10. Mă găsești și pe celelalte pagini, lângă titlu, cu câte un sfat: atinge-mă și îți spun altul. Numele noastre le schimbi din Setări." },
-        { text: `Gata${hey}! Poți relua turul oricând din Setări. Spor la note mari!`, last: true }
+        { target: "#azi-buddy", text: "Și eu stau aici, pe pagina Azi: îți spun ce contează și mă bucur de fiecare 10. Mă găsești și pe celelalte pagini, lângă titlu, cu câte un sfat: atinge-mă și îți spun altul. Numele noastre le schimbi din „Eu”." },
+        { text: `Gata${hey}! Poți relua turul oricând din „Eu”. Spor la note mari!`, last: true }
     ];
 }
 
@@ -42,7 +43,6 @@ function startTour() {
     if (!$("setup").hidden || ($("auth") && !$("auth").hidden)) return;
     closeActionModal();
     closeQuickAdd({ restoreFocus: false });
-    closeMoreMenu({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     if (!$("action-modal").hidden) return; // o întrebare care cere răspuns (ex. sincronizarea) are prioritate
     switchTab("tab-dashboard");
@@ -165,7 +165,7 @@ const SETUP_ACTIONS = {
         markSetupDone();
         closeSetup();
         setTimeout(maybeStartTour, 300);
-        showToast("Poți porni configurarea oricând din Setări sau din căutare (Ctrl+K).");
+        showToast("Poți porni configurarea oricând din „Eu” sau din căutare (Ctrl+K).");
     },
     "setup-next": () => setupNext(),
     "setup-back": () => {

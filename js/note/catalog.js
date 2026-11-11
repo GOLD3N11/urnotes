@@ -444,7 +444,7 @@ function targetHelperHTML(mat, sub) {
                 ${row(targetPlan.now ? `Păstrezi ținta ${fmtTarget(sub.target)}` : `Ajungi la ținta ${fmtTarget(sub.target)}`,
                     targetPlan.now ? "✓ deja atinsă" : "media finală dorită", targetPlan)}
                 ${row(riskPlan.now ? `Rămâi peste ${risk.toFixed(2)}` : `Ieși din risc (${risk.toFixed(2)})`,
-                    riskPlan.now ? "pragul de risc din Setări" : "acum ești sub prag", riskPlan)}
+                    riskPlan.now ? "pragul de risc din „Eu”" : "acum ești sub prag", riskPlan)}
             </div>
             <button type="button" class="btn btn-text cat-sim-link" data-action="open-in-sim" data-mat="${escapeHTML(mat)}">${icon("target")} Încearcă scenarii în Simulator →</button>
         </section>`;

@@ -15,11 +15,10 @@ const GUEST_OK = new Set([
     "cat-select", "cat-step", "cat-group", "cat-back", "cat-filter", "cat-clear-filters", "open-subject", "cat-menu-glance",
     "home-day", "home-risk", "plan-day", "help", "install-hide", "stats-print", "stats-insights-more", "stats-period", "stats-jump", "alert-open",
     "sim-scenario", "sim-toggle-all", "sim-pick-subject", "sim-chip-subject",
-    "quick-add-close", "notif-open", "notif-close", "more-open", "more-close", "more-run",
+    "quick-add-close", "notif-open", "notif-close", "theme-toggle",
     "modal-cancel", "none", "tour-start", "tour-next", "tour-back", "tour-skip", "buddy-poke",
     "account-open", "auth-open", "auth-close", "auth-mode", "auth-google", "auth-eye", "auth-local", "guest-signin"
 ]);
-const GUEST_OK_MORE = new Set(["sim", "settings", "account", "tour", "plan", "stats", "exams"]);
 
 /** Poate modifica? Fără conturi configurate (ex. teste locale) aplicația merge ca înainte. */
 const canEdit = () => (!cloud.configured || Boolean(cloud.user)) && !guest.viewer;

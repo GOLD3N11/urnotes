@@ -1,7 +1,7 @@
 /* urNotes · Fluid: aplicația se mișcă moale și Tiți e viu.
    - Tiți reacționează la ce faci (notă, temă bifată, realizare) și, când stă degeaba, clipește, se uită în jur, sare, se întinde.
    - Nota nouă „zboară” spre Note; pastila din meniul lateral alunecă; cardurile apar pe rând; atingerile fac un val.
-   - Ziua din orar, săptămâna din calendar, secțiunea din Setări și materia vecină alunecă din partea în care mergi.
+   - Ziua din orar, săptămâna din calendar, secțiunea din „Eu” și materia vecină alunecă din partea în care mergi.
    Totul e scurt și dispare complet cu „reducere mișcare” din sistem.
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
@@ -130,7 +130,7 @@ let sidePillFrame = 0;
 const queueSidePill = () => { if (!sidePillFrame) sidePillFrame = requestAnimationFrame(() => { sidePillFrame = 0; moveSidePill(); }); };
 
 /* ---------- cardurile paginii apar pe rând (doar ce se vede pe ecran) ---------- */
-const STAGGER_SEL = ".page-intro, .azi-head, .home-tile, .azi-next-wrap, .glass-card, .note-link, .cat-row, .set-sec, .stats-nav, .tt-col";
+const STAGGER_SEL = ".page-intro, .azi-head, .home-tile, .azi-next-wrap, .glass-card, .subnav, .cat-row, .set-sec, .stats-nav, .tt-col";
 function staggerIn(root) {
     if (!root || reduceMotion()) return;
     const marked = [];
@@ -147,7 +147,7 @@ function staggerIn(root) {
 }
 
 /* ---------- valul de la atingere ---------- */
-const RIPPLE_SEL = ".btn, .setup-choice, .cat-row, .tt-tap, .tt-cell, .tt-slot, .cc-chip, .tab-btn.side-link, .mobile-nav-btn, .home-tile, .note-link, .set-sec, .setup-qchip, .setup-qval, .palette-item, .side-sub";
+const RIPPLE_SEL = ".btn, .setup-choice, .cat-row, .tt-tap, .tt-cell, .tt-slot, .cc-chip, .tab-btn.side-link, .mobile-nav-btn, .home-tile, .subnav-btn, .set-sec, .setup-qchip, .setup-qval, .palette-item, .side-sub";
 document.addEventListener("pointerdown", event => {
     if (event.button !== 0 || reduceMotion()) return;
     const el = event.target.closest?.(RIPPLE_SEL);

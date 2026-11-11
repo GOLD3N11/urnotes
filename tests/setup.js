@@ -180,7 +180,7 @@ const rowByName = (qa, name) => qa(".setup-row").find(li => li.dataset.name === 
   A = boot({ "pro_catalog_db_v4": { "Matematică": { ore: 4, target: 10, grades: [{ val: 9, type: "Test", date: "2026-10-01" }] } }, "pro_settings_db_v4": { calc: { method: "weighted" } } });
   await new Promise(r => setTimeout(r, 30)); ({ w, T, $, q, qa, click, key, toasts } = A);
   assert($("setup").hidden, "existing data: no automatic setup");
-  click(q('#more-menu [data-kind="setup"]'));
+  click(q('#tab-setari [data-action="setup-open"]'));
   assert(!$("setup").hidden && /Configurare rapidă/.test($("setup-body").textContent), "Eu → 'Configurare rapidă' opens it");
   click(q('#setup-body [data-action="setup-next"]'));
   click(q('[data-action="setup-profile"][data-id="stiinte"]'));

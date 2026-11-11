@@ -31,56 +31,56 @@
     <script src="api-config.js" defer></script>
     <!-- Aplicația, în ordinea de încărcare (vezi js/; nu schimba ordinea) -->
     <script src="shared/rules.js" defer></script>
-    <script src="js/config.js" defer></script>
-    <script src="js/utils.js" defer></script>
-    <script src="js/model.js" defer></script>
-    <script src="js/storage.js" defer></script>
-    <script src="js/metrics.js" defer></script>
-    <script src="js/render.js" defer></script>
-    <script src="js/azi.js" defer></script>
-    <script src="js/catalog.js" defer></script>
-    <script src="js/phone.js" defer></script>
-    <script src="js/calendar-view.js" defer></script>
-    <script src="js/alerts-settings-view.js" defer></script>
-    <script src="js/selects-charts.js" defer></script>
-    <script src="js/stats.js" defer></script>
-    <script src="js/report.js" defer></script>
-    <script src="js/setup.js" defer></script>
-    <script src="js/plan.js" defer></script>
-    <script src="js/tour.js" defer></script>
-    <script src="js/account.js" defer></script>
-    <script src="js/guest.js" defer></script>
-    <script src="js/grades-subjects.js" defer></script>
-    <script src="js/calendar-actions.js" defer></script>
-    <script src="js/settings-backup.js" defer></script>
-    <script src="js/nav.js" defer></script>
-    <script src="js/motion.js" defer></script>
-    <script src="js/fluid.js" defer></script>
-    <script src="js/pagefx.js" defer></script>
-    <script src="js/simulator.js" defer></script>
-    <script src="js/events.js" defer></script>
-    <script src="js/reminders.js" defer></script>
-    <script src="js/notes.js" defer></script>
-    <script src="js/quickgrade.js" defer></script>
-    <script src="js/cal-compose.js" defer></script>
-    <script src="js/palette.js" defer></script>
-    <script src="js/settings-sections.js" defer></script>
-    <script src="js/timetable.js" defer></script>
-    <script src="js/realism.js" defer></script>
-    <script src="js/sidetree.js" defer></script>
-    <script src="js/pages.js" defer></script>
-    <script src="js/windows.js" defer></script>
-    <script src="js/api.js" defer></script>
-    <script src="js/serversync.js" defer></script>
-    <script src="js/viewer.js" defer></script>
-    <script src="js/years.js" defer></script>
-    <script src="js/pal.js" defer></script>
-    <script src="js/exams.js" defer></script>
-    <script src="js/growth.js" defer></script>
-    <script src="js/router.js" defer></script>
-    <script src="js/state.js" defer></script>
-    <script src="js/boot.js" defer></script>
-    <script src="js/main.js" defer></script>
+    <script src="js/core/config.js" defer></script>
+    <script src="js/core/utils.js" defer></script>
+    <script src="js/core/model.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/core/metrics.js" defer></script>
+    <script src="js/core/render.js" defer></script>
+    <script src="js/azi/azi.js" defer></script>
+    <script src="js/note/catalog.js" defer></script>
+    <script src="js/ui/phone.js" defer></script>
+    <script src="js/calendar/calendar-view.js" defer></script>
+    <script src="js/eu/alerts-settings-view.js" defer></script>
+    <script src="js/note/selects-charts.js" defer></script>
+    <script src="js/note/stats.js" defer></script>
+    <script src="js/note/report.js" defer></script>
+    <script src="js/eu/setup.js" defer></script>
+    <script src="js/plan/plan.js" defer></script>
+    <script src="js/eu/tour.js" defer></script>
+    <script src="js/cont/account.js" defer></script>
+    <script src="js/cont/guest.js" defer></script>
+    <script src="js/note/grades-subjects.js" defer></script>
+    <script src="js/calendar/calendar-actions.js" defer></script>
+    <script src="js/eu/settings-backup.js" defer></script>
+    <script src="js/ui/nav.js" defer></script>
+    <script src="js/ui/motion.js" defer></script>
+    <script src="js/ui/fluid.js" defer></script>
+    <script src="js/ui/pagefx.js" defer></script>
+    <script src="js/note/simulator.js" defer></script>
+    <script src="js/core/events.js" defer></script>
+    <script src="js/calendar/reminders.js" defer></script>
+    <script src="js/note/notes.js" defer></script>
+    <script src="js/note/quickgrade.js" defer></script>
+    <script src="js/calendar/cal-compose.js" defer></script>
+    <script src="js/ui/palette.js" defer></script>
+    <script src="js/eu/settings-sections.js" defer></script>
+    <script src="js/calendar/timetable.js" defer></script>
+    <script src="js/azi/realism.js" defer></script>
+    <script src="js/ui/sidetree.js" defer></script>
+    <script src="js/ui/pages.js" defer></script>
+    <script src="js/ui/windows.js" defer></script>
+    <script src="js/cont/api.js" defer></script>
+    <script src="js/cont/serversync.js" defer></script>
+    <script src="js/cont/viewer.js" defer></script>
+    <script src="js/eu/years.js" defer></script>
+    <script src="js/eu/pal.js" defer></script>
+    <script src="js/plan/exams.js" defer></script>
+    <script src="js/eu/growth.js" defer></script>
+    <script src="js/core/router.js" defer></script>
+    <script src="js/core/state.js" defer></script>
+    <script src="js/core/boot.js" defer></script>
+    <script src="js/core/main.js" defer></script>
     <script type="module" src="cloud.js"></script>
 </head>
 <body>
@@ -178,7 +178,7 @@
             }
             document.body.classList.add("style-urnotes"); // un singur stil: urNotes
             var dark = document.body.classList.contains("dark-mode");
-            // culoarea mărcii, aceeași ca accentVars() din js/config.js: [cerneală, umplutură, text pe umplutură, fundal moale]
+            // culoarea mărcii, aceeași ca accentVars() din js/core/config.js: [cerneală, umplutură, text pe umplutură, fundal moale]
             var v = dark ? ["#FFD25E", "#FFC93C", "#171C2E", "rgba(255, 201, 60, 0.16)"] : ["#1E2B58", "#FFC93C", "#1E2B58", "#FFF1C7"];
             ["--accent-color", "--accent-fill", "--on-accent-fill", "--accent-soft"].forEach(function (k, n) { document.documentElement.style.setProperty(k, v[n]); });
         } catch (e) {}
@@ -194,20 +194,19 @@
         </button>
         <nav class="side-nav" aria-label="Navigație principală">
             <button type="button" class="tab-btn side-link active" data-action="nav" data-tab="tab-dashboard" data-group="home" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Azi</span></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar" data-group="calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
             <div class="side-row side-row-grades">
                 <button type="button" class="tab-btn side-link" data-action="side-note" data-tab="tab-catalog" data-group="grades"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Note</span></button>
             </div>
             <div class="side-children side-tree" id="side-subjects" role="group" aria-label="Materiile"></div>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-calendar" data-group="calendar"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span>Calendar</span></button>
             <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-plan" data-group="plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Plan</span></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-statistici" data-group="stats"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button>
             <button type="button" class="side-add" data-action="quick-add" aria-haspopup="dialog"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span><kbd>N</kbd></button>
             <button type="button" class="side-search" data-action="palette-open"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span>Caută</span><kbd>Ctrl K</kbd></button>
         </nav>
         <div class="side-pal" id="side-pal"></div>
         <div class="side-foot">
             <button type="button" id="account-chip" class="account-chip" data-action="account-open"></button>
-            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-setari"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span>Setări</span></button>
+            <button type="button" class="tab-btn side-link" data-action="nav" data-tab="tab-setari" data-group="me"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span>Eu</span></button>
         </div>
     </aside>
 
@@ -227,13 +226,14 @@
                 <button type="button" class="btn btn-primary quick-add-btn" id="quick-add-btn" data-action="quick-add" aria-haspopup="menu" aria-expanded="false" aria-controls="quick-add">
                     <svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span>Adaugă</span>
                 </button>
+                <button type="button" id="me-btn" class="me-btn" data-action="nav" data-tab="tab-setari" data-group="me" aria-label="Eu: profil, cont, setări"><span class="me-btn-face" aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></span></button>
                 <button type="button" id="notif-btn" class="btn btn-glass icon-btn notification-btn" data-action="notif-open" aria-haspopup="dialog" aria-label="Notificări">
                     <svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span id="notif-badge" class="badge-count" hidden>0</span>
                 </button>
             </div>
         </div>
     </div>
-    <!-- Fără cont: se poate doar răsfoi (vezi js/guest.js) -->
+    <!-- Fără cont: se poate doar răsfoi (vezi js/cont/guest.js) -->
     <div id="guest-bar" class="guest-bar" role="status" hidden></div>
 
     <div class="app-wrapper" id="app-wrapper">
@@ -252,7 +252,7 @@
                     <div class="azi-buddy" id="azi-buddy"></div>
                 </header>
 
-                <!-- Conținutul e generat în js/azi.js (renderDashboard): cifrele zilei, apoi ce ai de făcut -->
+                <!-- Conținutul e generat în js/azi/azi.js (renderDashboard): cifrele zilei, apoi ce ai de făcut -->
                 <div id="azi-tiles" class="home-tiles" aria-label="Pe scurt"></div>
                 <div class="azi-grid">
                     <div class="azi-col azi-col-main">
@@ -260,14 +260,16 @@
                         <section class="azi-next-wrap" id="azi-next" aria-labelledby="azi-next-title" hidden></section>
                         <section class="glass-card azi-card azi-real" id="azi-real" aria-labelledby="azi-real-title" hidden></section>
                         <section class="glass-card azi-card azi-year" id="azi-year" aria-labelledby="azi-year-title" hidden></section>
-                        <section class="glass-card azi-card azi-todo" id="azi-todo" aria-labelledby="azi-todo-title"></section>
                         <section class="glass-card azi-card azi-day" id="azi-day" aria-labelledby="azi-day-title"></section>
+                        <section class="glass-card azi-card azi-todo" id="azi-todo" aria-labelledby="azi-todo-title"></section>
                     </div>
                     <div class="azi-col azi-col-side">
                         <!-- „Primii pași”: mic, doar pentru conturile noi; dispare când e gata -->
                         <section class="glass-card azi-card azi-start" id="azi-start" aria-labelledby="azi-start-title" hidden></section>
                         <section class="glass-card azi-card azi-install" id="azi-install" aria-labelledby="azi-install-title" hidden></section>
                         <section class="glass-card azi-card azi-plan" id="azi-plan" aria-labelledby="azi-plan-title"></section>
+                        <!-- „La note”: primele concluzii din Progres (risc, scăderi, ce nota te aduce la țintă) -->
+                        <section class="glass-card azi-card azi-focus" id="azi-focus" aria-labelledby="azi-focus-title" hidden></section>
                         <section class="glass-card azi-card azi-week" id="azi-week" aria-labelledby="azi-week-title" hidden></section>
                     </div>
                 </div>
@@ -275,6 +277,7 @@
 
             <!-- ================= MATERII ================= -->
             <section id="tab-catalog" class="tab-content" aria-labelledby="h-catalog">
+                <nav class="subnav" aria-label="Note"><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Materii</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Ce-ar fi dacă</span></button></nav>
                 <div class="page-intro">
                     <div>
                         <h2 id="h-catalog">Note</h2>
@@ -324,7 +327,7 @@
                     </div>
                 </div>
 
-                <!-- Adăugarea rapidă: o bară, fără ferestre (js/cal-compose.js) -->
+                <!-- Adăugarea rapidă: o bară, fără ferestre (js/calendar/cal-compose.js) -->
                 <div id="cal-compose" class="cal-compose"></div>
 
                 <div id="cal-overview" class="cal-overview"></div>
@@ -358,9 +361,9 @@
             <!-- ================= SIMULATOR ================= -->
             <!-- ================= PLANUL MEU ================= -->
             <section id="tab-plan" class="tab-content" aria-labelledby="h-plan">
+                <nav class="subnav" aria-label="Plan"><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Săptămâna</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button></nav>
                 <div class="page-intro">
                     <div>
-                        <button type="button" class="page-back" data-action="nav" data-tab="tab-dashboard"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Azi</span></button>
                         <h2 id="h-plan">Planul meu <button type="button" class="help-dot" data-action="help" data-key="plan" aria-label="Ce înseamnă: Planul?" title="Ce înseamnă?">?</button></h2>
                         <p>Ce înveți în fiecare zi, cât și de ce: înainte de teste, pentru teme și pentru materiile care au nevoie. Se reface singur când apare ceva nou.</p>
                     </div>
@@ -375,9 +378,9 @@
             </section>
 
             <section id="tab-simulator" class="tab-content" aria-labelledby="h-simulator">
+                <nav class="subnav" aria-label="Note"><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Materii</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Ce-ar fi dacă</span></button></nav>
                 <div class="page-intro">
                     <div>
-                        <button type="button" class="page-back" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Progres</span></button>
                         <h2 id="h-simulator">Ce-ar fi dacă <button type="button" class="help-dot" data-action="help" data-key="sim" aria-label="Ce înseamnă: Simulatorul?" title="Ce înseamnă?">?</button></h2>
                         <p>Adaugă note ipotetice și vezi cum s-ar schimba mediile. Notele tale reale nu sunt modificate.</p>
                     </div>
@@ -389,9 +392,9 @@
 
             <!-- ================= EXAMENE ================= -->
             <section id="tab-examene" class="tab-content" aria-labelledby="h-examene">
+                <nav class="subnav" aria-label="Plan"><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-plan"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span>Săptămâna</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-examene"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span>Examene</span></button></nav>
                 <div class="page-intro">
                     <div>
-                        <button type="button" class="page-back" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Progres</span></button>
                         <h2 id="h-examene">Examene</h2>
                         <p>Câte zile mai sunt, probele tale, rezultatele de la variante și ce medie ai lua. Calculele urmează regulile oficiale.</p>
                     </div>
@@ -406,6 +409,7 @@
 
             <!-- ================= STATISTICI ================= -->
             <section id="tab-statistici" class="tab-content" aria-labelledby="h-statistici">
+                <nav class="subnav" aria-label="Note"><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-catalog"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg><span>Materii</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-statistici"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span>Progres</span></button><button type="button" class="subnav-btn" data-action="nav" data-tab="tab-simulator"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span>Ce-ar fi dacă</span></button></nav>
                 <div class="page-intro">
                     <div>
                         <h2 id="h-statistici">Progresul tău</h2>
@@ -416,10 +420,6 @@
                         <button type="button" class="btn btn-glass" data-action="stats-print"><svg class="ico" aria-hidden="true"><use href="#i-printer"/></svg> Raport pentru printare</button>
                     </div>
                 </div>
-                <nav class="note-links" aria-label="Unelte">
-                    <button type="button" class="note-link" data-action="nav" data-tab="tab-simulator" style="--tile: var(--c-grape)"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg><span><b>Ce-ar fi dacă</b><small>încearcă note și vezi media</small></span></button>
-                    <button type="button" class="note-link" data-action="nav" data-tab="tab-examene" style="--tile: var(--c-tangerine)"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg><span><b>Examene</b><small id="note-exam-sub">Bac și Evaluarea Națională</small></span></button>
-                </nav>
 
                 <div id="stats-empty" class="glass-card empty-state" hidden>
                     <div class="empty-state-icon empty-state-pal" aria-hidden="true" data-pal-mood="worried"></div>
@@ -471,7 +471,7 @@
                     <!-- OBIECTIVE -->
                     <section id="sec-goals" class="stats-section" aria-labelledby="sec-goals-title">
                         <div class="stats-section-head">
-                            <div><h2 class="stats-section-title" id="sec-goals-title"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg> Obiective</h2><p class="subtitle">Cât de aproape ești de țintele din Setări și ce s-ar întâmpla cu notele care urmează.</p></div>
+                            <div><h2 class="stats-section-title" id="sec-goals-title"><svg class="ico" aria-hidden="true"><use href="#i-flag"/></svg> Obiective</h2><p class="subtitle">Cât de aproape ești de țintele din „Eu” și ce s-ar întâmpla cu notele care urmează.</p></div>
                             <span class="section-chip">Azi</span>
                         </div>
                         <div class="stats-goals-grid">
@@ -585,18 +585,18 @@
             <section id="tab-setari" class="tab-content" aria-labelledby="h-setari">
                 <div class="page-intro settings-intro">
                     <div>
-                        <button type="button" class="page-back" data-action="nav" data-tab="tab-dashboard"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg><span>Azi</span></button>
-                        <h2 id="h-setari">Setări</h2>
-                        <p>Totul despre tine, școala ta și cum arată aplicația. <span class="settings-status" id="settings-status" role="status" aria-live="polite">Se salvează singure</span></p>
+                        <h2 id="h-setari">Eu</h2>
+                        <p>Profilul tău, contul, școala și cum arată aplicația. <span class="settings-status" id="settings-status" role="status" aria-live="polite">Se salvează singure</span></p>
                     </div>
                     <div class="page-pal" hidden></div>
                     <div class="intro-actions">
+                        <button type="button" class="btn btn-glass" data-action="theme-toggle" id="eu-theme"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg> <span>Temă întunecată</span></button>
                         <button type="button" class="btn btn-glass" data-action="tour-start"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg> Tur ghidat</button>
                         <button type="button" class="btn btn-glass" data-action="setup-open"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg> Configurare rapidă</button>
                     </div>
                 </div>
 
-                <!-- Secțiunile setărilor: o secțiune pe ecran (js/settings-sections.js) -->
+                <!-- Secțiunile setărilor: o secțiune pe ecran (js/eu/settings-sections.js) -->
                 <nav class="set-sec-nav" id="set-sec-nav" aria-label="Secțiunile setărilor">
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="profil" aria-pressed="true"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg> Profil</button>
                     <button type="button" class="set-sec" data-action="set-sec" data-sec="scoala" aria-pressed="false"><svg class="ico" aria-hidden="true"><use href="#i-graduation"/></svg> Școală</button>
@@ -782,7 +782,7 @@
         <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-catalog" data-group="grades"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-notebook"/></svg></span><span>Note</span></button>
         <button type="button" class="mobile-add" data-action="quick-add" aria-haspopup="menu" aria-label="Adaugă"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
         <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-calendar" data-group="calendar"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg></span><span>Calendar</span></button>
-        <button type="button" class="mobile-nav-btn more-tab" id="more-btn" data-action="more-open" aria-haspopup="menu" aria-expanded="false" aria-label="Eu: cont, setări, temă"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg></span><span>Eu</span></button>
+        <button type="button" class="mobile-nav-btn" data-action="nav" data-tab="tab-plan" data-group="plan"><span aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg></span><span>Plan</span></button>
     </nav>
 
     <!-- Raportul pentru printare (vizibil doar la print) -->
@@ -819,14 +819,14 @@
         </div>
     </div>
 
-    <!-- Bara de adăugat, deschisă peste pagină (js/cal-compose.js); în Calendar stă deasupra calendarului -->
+    <!-- Bara de adăugat, deschisă peste pagină (js/calendar/cal-compose.js); în Calendar stă deasupra calendarului -->
     <div id="cc-overlay" class="cc-overlay" role="dialog" aria-modal="true" aria-label="Adaugă" hidden>
         <div class="cc-overlay-backdrop" data-action="cc-overlay-close"></div>
         <div class="cc-overlay-host cal-compose is-open" id="cc-overlay-host"></div>
     </div>
 
-    <!-- Căutare (Ctrl+K): materii, pagini, evenimente, comenzi (js/palette.js) -->
-    <!-- Orarul (js/timetable.js): săptămâna colorată; se salvează la închidere -->
+    <!-- Căutare (Ctrl+K): materii, pagini, evenimente, comenzi (js/ui/palette.js) -->
+    <!-- Orarul (js/calendar/timetable.js): săptămâna colorată; se salvează la închidere -->
     <div id="tt-overlay" class="tt-overlay" role="dialog" aria-modal="true" aria-labelledby="tt-title" hidden>
         <div class="tt-backdrop" data-action="tt-close"></div>
         <div class="tt-card" id="tt-card"></div>
@@ -840,20 +840,6 @@
         </div>
     </div>
 
-    <!-- Telefon: „Mai mult” (secțiunile care nu încap în bara de jos) -->
-    <div id="more-menu" class="quick-add more-menu" role="dialog" aria-modal="true" aria-label="Mai mult" hidden>
-        <div class="quick-add-backdrop" data-action="more-close"></div>
-        <div class="quick-add-card" role="menu" aria-label="Mai mult">
-            <p class="quick-add-title">Eu</p>
-            <button type="button" role="menuitem" class="qa-item cloud-only" data-action="more-run" data-kind="account"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><span><b>Cont</b><small class="sync-line" data-sync-status="local"><i class="sync-dot" aria-hidden="true"></i><span class="sync-text">Doar pe acest dispozitiv</span></small></span></button>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="settings"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span><b>Setări</b><small>ținte, calcul, aspect, module, backup</small></span></button>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="theme"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg><span><b id="more-theme-label">Temă întunecată</b><small>foaie sau caiet noaptea</small></span></button>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="setup"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"/></svg><span><b>Configurare rapidă</b><small>profil, materii, ținte</small></span></button>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="tour"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span><b>Tur ghidat</b><small>cum merge urNotes, în un minut</small></span></button>
-            <button type="button" role="menuitem" class="qa-item" data-action="more-run" data-kind="backup"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span><b>Exportă backup</b><small>un fișier cu toate datele tale</small></span></button>
-        </div>
-    </div>
-
     <!-- Catalog: meniul unei materii (dublu-clic / clic dreapta / apăsare lungă) -->
     <div id="cat-menu" class="cat-menu" role="menu" aria-labelledby="cat-menu-title" hidden>
         <p class="cat-menu-title" id="cat-menu-title"></p>
@@ -862,7 +848,7 @@
         <button type="button" role="menuitem" data-action="cat-menu-glance"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg><span>Vedere simplificată</span></button>
     </div>
 
-    <!-- Turul ghidat: reflector peste o zonă + bilețelul mascotei (conținutul e pus din js/tour.js) -->
+    <!-- Turul ghidat: reflector peste o zonă + bilețelul mascotei (conținutul e pus din js/eu/tour.js) -->
     <div id="tour" class="tour" hidden>
         <div class="tour-hole" id="tour-hole" aria-hidden="true"></div>
         <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-step" aria-describedby="tour-text">
@@ -881,7 +867,7 @@
         </div>
     </div>
 
-    <!-- Autentificare (doar cu Firebase configurat; conținutul e generat în js/account.js) -->
+    <!-- Autentificare (doar cu Firebase configurat; conținutul e generat în js/cont/account.js) -->
     <div id="auth" class="setup auth" hidden>
         <div class="setup-card auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
             <button type="button" class="btn btn-text auth-x" data-action="auth-close" aria-label="Închide">✕</button>
@@ -889,7 +875,7 @@
         </div>
     </div>
 
-    <!-- Configurare la prima pornire (conținutul e generat în js/setup.js) -->
+    <!-- Configurare la prima pornire (conținutul e generat în js/eu/setup.js) -->
     <div id="setup" class="setup" hidden>
         <div class="setup-card" role="dialog" aria-modal="true" aria-labelledby="setup-title">
             <div class="setup-head">

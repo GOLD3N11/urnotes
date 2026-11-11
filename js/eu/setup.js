@@ -396,7 +396,6 @@ function openSetup(step = 0) {
         ui.setup.rows = setupRowsFor(mine.profile, ui.setup.cls, mine.variant, ui.setup.lm2);
     }
     closeQuickAdd({ restoreFocus: false });
-    closeMoreMenu({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     closeActionModal();
     if (typeof ccCloseOverlay === "function") ccCloseOverlay();
@@ -692,7 +691,7 @@ function setupTargetsHTML() {
         <div class="setup-field">
             <label class="setup-label" for="setup-preset">Vacanța mobilă (de ea depind modulele 3 și 4)</label>
             <select id="setup-preset" class="glass-select">
-                ${matchingModulePreset(state.settings.modules) === "custom" ? `<option value="keep" ${preset === "keep" ? "selected" : ""}>Păstrez datele mele (din Setări)</option>` : ""}
+                ${matchingModulePreset(state.settings.modules) === "custom" ? `<option value="keep" ${preset === "keep" ? "selected" : ""}>Păstrez datele mele (din „Eu”)</option>` : ""}
                 ${Object.entries(modulePresetsFor(currentSchoolYear())).map(([id, p]) => `<option value="${id}" ${id === preset ? "selected" : ""}>${escapeHTML(p.label)}</option>`).join("")}
             </select>
         </div>`;
@@ -755,7 +754,7 @@ function setupQuickDoneHTML() {
                 ${icon("calendar-days")}<span><b>Completez și orarul</b><small>atingi materiile în ordinea orelor, cam un minut</small></span>${icon("chevron", "setup-arrow")}
             </button>
         </div>
-        <p class="setup-note">${icon("info")} Ținta (${state.settings.goals.targetGPA.toFixed(2)}), pragul de risc și anul școlar au valori obișnuite; le schimbi oricând din Setări.</p>`;
+        <p class="setup-note">${icon("info")} Ținta (${state.settings.goals.targetGPA.toFixed(2)}), pragul de risc și anul școlar au valori obișnuite; le schimbi oricând din „Eu”.</p>`;
 }
 
 /** Pasul 1 → 2: pune materiile clasei alese, cu valorile obișnuite. */

@@ -369,7 +369,6 @@ function openAuth(mode = "signin") {
     if (!$("setup").hidden) closeSetup();
     closeActionModal();
     closeQuickAdd({ restoreFocus: false });
-    closeMoreMenu({ restoreFocus: false });
     closeNotifPanel({ restoreFocus: false });
     Object.assign(authUI, { mode, busy: false, error: "", info: "", returnFocus: authUI.returnFocus || document.activeElement });
     $("auth").hidden = false;
@@ -540,7 +539,7 @@ function askSync(kind, remote) {
                     <span>${syncSummaryHTML(`${icon("monitor")} De pe acest dispozitiv`, state, sim, null)}</span>
                     <span class="reset-option-arrow" aria-hidden="true">→</span>
                 </button>
-                <p class="subtitle mt-2">Nu ești sigur? Exportă întâi un backup din Setări; apoi poți alege liniștit.</p>`
+                <p class="subtitle mt-2">Nu ești sigur? Exportă întâi un backup din „Eu”; apoi poți alege liniștit.</p>`
         });
     });
 }
@@ -589,7 +588,7 @@ function confirmDeleteAccount() {
         confirmText: "Șterge definitiv",
         body: `
             <p>Se șterg contul <b>${escapeHTML(cloud.user?.email || "")}</b> și copia notelor din cloud. Nu se poate anula.</p>
-            <p class="subtitle mt-2">Notele de pe acest dispozitiv rămân (poți exporta un backup din Setări).</p>`,
+            <p class="subtitle mt-2">Notele de pe acest dispozitiv rămân (poți exporta un backup din „Eu”).</p>`,
         onConfirm: async () => {
             closeActionModal();
             try {

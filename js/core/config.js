@@ -21,10 +21,10 @@ const KEYS = {
     purtare: "pro_purtare_db_v4",     // purtarea pe module: { grades: { "2026-2": { val, reason } }, ... }
     brand: "pro_brand_v4",            // a trecut o dată prin schimbarea mărcii (Zece → urNotes)
     plan: "pro_plan_db_v4",           // planul de studiu: preferințe de timp + sesiuni (vezi PLANUL MEU)
-    archive: "pro_archive_db_v4",     // anii școlari încheiați: notele și mediile fiecărui an (vezi js/years.js)
+    archive: "pro_archive_db_v4",     // anii școlari încheiați: notele și mediile fiecărui an (vezi js/eu/years.js)
     exams: "pro_exams_db_v4",
-    pal: "pro_pal_db_v4",             // colegul: experiență, nivel, culoarea și accesoriul ales (js/growth.js)         // examenele: probele alese și rezultatele de la variante/simulări (js/exams.js)
-    meta: "pro_meta_v4"               // versiunea formatului datelor (vezi MIGRAȚII în js/storage.js)
+    pal: "pro_pal_db_v4",             // colegul: experiență, nivel, culoarea și accesoriul ales (js/eu/growth.js)         // examenele: probele alese și rezultatele de la variante/simulări (js/plan/exams.js)
+    meta: "pro_meta_v4"               // versiunea formatului datelor (vezi MIGRAȚII în js/core/storage.js)
 };
 
 
@@ -60,7 +60,7 @@ const SCHOOL_YEAR_DATA = {
         notes: { "2026-10-05": "Ziua Educației", "2027-03-28": "Paștele catolic", "2027-05-02": "Paștele ortodox" }
     }
 };
-/* Datele școlare de pe serverul urNotes (când există; vezi js/api.js), păstrate în browser de la ultima vizită:
+/* Datele școlare de pe serverul urNotes (când există; vezi js/cont/api.js), păstrate în browser de la ultima vizită:
    un ordin nou al ministrului ajunge fără o versiune nouă a aplicației. Se aplică înainte de orice calcul de mai jos. */
 const SCHOOL_CACHE_KEY = "urn_school_data_v1";
 const schoolRemote = (() => {

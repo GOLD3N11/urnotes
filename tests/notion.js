@@ -51,7 +51,7 @@ const DATA = {
   click(q('.side-row-grades .side-twist'));
   assert($("side-subjects").hidden && JSON.parse(w.localStorage.getItem("urn_side_open_v1")).grades === false, "collapse subject list (remembered)");
   click(q('.side-row-grades .side-twist'));
-  assert(q('.side-nav [data-tab="tab-plan"]') && q('.side-nav [data-tab="tab-statistici"]') && !q("#side-more"), "Plan and Progres are always in the sidebar");
+  assert(q('.side-nav [data-tab="tab-plan"]') && !q('.side-nav .side-link[data-tab="tab-statistici"]') && !q("#side-more"), "Plan is always in the sidebar; Progres lives inside Note");
 
   // notițe
   let ed = q('.nb-editor[data-mat="Fizică"]');

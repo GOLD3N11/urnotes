@@ -79,8 +79,8 @@ const at = (...a) => { w.__setNow(...a); T.ui.home.day = null; T.refresh(); };
   assert(T.ui.activeTab === "tab-calendar", "tests tile opens Calendar");
   click(q('[data-action="nav"][data-tab="tab-dashboard"]'));
   click(q('#azi-tiles .home-tile[data-tab="tab-plan"]'));
-  assert(T.ui.activeTab === "tab-plan" && q("#tab-plan .page-back"), "plan tile opens Plan, a sub-page with a back button");
-  click(q("#tab-plan .page-back"));
+  assert(T.ui.activeTab === "tab-plan" && q(".mobile-nav-btn.active")?.dataset.tab === "tab-plan", "plan tile opens Plan, a main section");
+  click(q('[data-action="nav"][data-tab="tab-dashboard"]'));
   assert(T.ui.activeTab === "tab-dashboard", "back to Azi");
 
   // alegerea zilei

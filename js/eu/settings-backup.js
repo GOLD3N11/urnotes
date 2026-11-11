@@ -400,7 +400,7 @@ async function importBackupFile(file) {
                     <span class="kpi-title">Se înlocuiesc datele actuale</span>
                     <span class="backup-counts">${escapeHTML(summaryText(current))}</span>
                 </div>
-                <p class="modal-hint mt-3">Toate datele actuale, inclusiv setările, sunt înlocuite cu cele din fișier. Datele actuale se păstrează: poți reveni la ele din Setări → „Anulează importul”.</p>`
+                <p class="modal-hint mt-3">Toate datele actuale, inclusiv setările, sunt înlocuite cu cele din fișier. Datele actuale se păstrează: poți reveni la ele din „Eu” → „Anulează importul”.</p>`
             : `<p class="modal-hint mt-3">Nu ai încă date în aplicație, așa că nimic nu se pierde.</p>`}`,
         onConfirm: () => {
             let note = "";
@@ -411,7 +411,7 @@ async function importBackupFile(file) {
                     exportBackup({ silent: true });
                     note = " O copie a datelor anterioare a fost descărcată.";
                 } else {
-                    note = " Îl poți anula din Setări.";
+                    note = " Îl poți anula din „Eu”.";
                 }
             } else {
                 clearUndoSnapshot();

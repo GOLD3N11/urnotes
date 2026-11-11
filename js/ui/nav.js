@@ -16,7 +16,6 @@ function initAppBar() {
 }
 
 function switchTab(tabId) {
-    closeMoreMenu({ restoreFocus: false });
     if (!$(tabId)) return;
     hideChartTip();
     closeCustomSelect({ restoreFocus: false });
@@ -30,15 +29,13 @@ function switchTab(tabId) {
 
     document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("active", el.id === tabId));
 
-    $("more-btn")?.classList.toggle("is-active", tabId === "tab-setari");
-    $("more-btn")?.classList.toggle("active", tabId === "tab-setari"); // pastila din bara de jos stă pe „Eu”
-    // Trei pagini principale (Azi, Note, Calendar); celelalte sunt sub-pagini ale lor și le aprind butonul
+    // Patru secțiuni (Azi, Note, Calendar, Plan) + Eu; paginile cu file (Progres, Ce-ar fi dacă, Examene) aprind secțiunea lor
     const group = TABS[tabId]?.group;
     document.body.dataset.page = tabId;
     document.body.classList.toggle("is-subpage", Boolean(TABS[tabId]?.parent));
     document.querySelectorAll("[data-action='nav'], [data-action='side-note']").forEach(btn => {
         const active = btn.dataset.group ? btn.dataset.group === group : btn.dataset.tab === tabId;
-        const isNav = btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn") || btn.classList.contains("subnav-btn");
+        const isNav = btn.classList.contains("tab-btn") || btn.classList.contains("mobile-nav-btn") || btn.classList.contains("subnav-btn") || btn.id === "me-btn";
         btn.classList.toggle("active", active && isNav);
         if (isNav) {
             if (active) btn.setAttribute("aria-current", "page");
@@ -61,7 +58,7 @@ function switchTab(tabId) {
 }
 
 /* ---------- mișcare: pagina intră din partea în care mergi, cardurile apar pe rând ---------- */
-const TAB_ORDER = ["tab-dashboard", "tab-plan", "tab-calendar", "tab-catalog", "tab-statistici", "tab-simulator", "tab-examene", "tab-setari"];
+const TAB_ORDER = ["tab-dashboard", "tab-catalog", "tab-statistici", "tab-simulator", "tab-calendar", "tab-plan", "tab-examene", "tab-setari"];
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animateTabEnter(tabId, from) {
     const el = $(tabId);
@@ -96,11 +93,13 @@ let titleObserver = null;
 /** Bara de sus știe unde ești: butonul „înapoi” pe sub-pagini și, pe ecrane mari, calea („Note › Progresul tău”). */
 function renderTopbarPlace() {
     const def = TABS[ui.activeTab] || {};
-    const parent = def.parent && TABS[def.parent];
+    // parent: sub-pagină cu „înapoi”; hub: o filă a unei secțiuni (Note › Progres) — calea o arată, dar fără „înapoi”
+    const up = def.parent || def.hub;
+    const parent = up && TABS[up];
     const back = $("topbar-back");
     if (back) {
-        back.hidden = !parent;
-        if (parent) { back.dataset.tab = def.parent; setText("topbar-back-label", parent.title); back.setAttribute("aria-label", `Înapoi la ${parent.title}`); }
+        back.hidden = !def.parent;
+        if (def.parent) { back.dataset.tab = def.parent; setText("topbar-back-label", parent.title); back.setAttribute("aria-label", `Înapoi la ${parent.title}`); }
     }
     const crumb = $("topbar-crumb");
     if (crumb) {
@@ -111,7 +110,7 @@ function renderTopbarPlace() {
         crumb.innerHTML = mat
             ? `<button type="button" class="crumb-link" data-action="cat-back">${here}</button>${sep}<b aria-current="page">${em(subjectEmoji(mat))}${escapeHTML(mat)}</b>`
             : parent
-            ? `<button type="button" class="crumb-link" data-action="nav" data-tab="${def.parent}">${em(PAGE_EMOJI[def.parent])}${escapeHTML(parent.title)}</button>${sep}<b aria-current="page">${here}</b>`
+            ? `<button type="button" class="crumb-link" data-action="nav" data-tab="${up}">${em(PAGE_EMOJI[up])}${escapeHTML(parent.title)}</button>${sep}<b aria-current="page">${here}</b>`
             : `<b aria-current="page">${here}</b>`;
     }
 }
@@ -149,7 +148,7 @@ function countUp(el, key, to, decimals = 2) {
     requestAnimationFrame(step);
 }
 
-/** Tema întunecată / luminoasă, dintr-o atingere (meniul „Eu”). */
+/** Tema întunecată / luminoasă, dintr-o atingere (pagina „Eu”). */
 function toggleTheme() {
     const dark = document.body.classList.contains("dark-mode");
     state.settings.appearance.theme = dark ? "light" : "dark";
@@ -220,44 +219,6 @@ function runQuickAdd(kind) {
     QUICK_ADD[kind]();
 }
 
-/* ==================== MAI MULT (telefon) ==================== */
-let moreReturn = null;
-const MORE_ACTIONS = {
-    sim: () => switchTab("tab-simulator"),
-    settings: () => switchTab("tab-setari"),
-    theme: () => toggleTheme(),
-    setup: () => openSetup(0),
-    backup: () => exportBackup(),
-    account: () => openAccountPanel(),
-    tour: () => startTour(),
-    plan: () => switchTab("tab-plan"),
-    stats: () => switchTab("tab-statistici"),
-    exams: () => switchTab("tab-examene")
-};
-
-function openMoreMenu() {
-    const box = $("more-menu");
-    if (!box) return;
-    if (!box.hidden) { closeMoreMenu(); return; }
-    closeQuickAdd({ restoreFocus: false });
-    // Safari nu pune focus pe butonul apăsat; revenim oricum la „…”.
-    moreReturn = document.activeElement && document.activeElement !== document.body ? document.activeElement : $("more-btn");
-    const dark = document.body.classList.contains("dark-mode");
-    setText("more-theme-label", dark ? "Temă luminoasă" : "Temă întunecată");
-    box.querySelector('[data-kind="theme"] use')?.setAttribute("href", dark ? "#i-sun" : "#i-moon");
-    box.hidden = false;
-    $("more-btn")?.setAttribute("aria-expanded", "true");
-    box.querySelector(".qa-item")?.focus();
-}
-
-function closeMoreMenu({ restoreFocus = true } = {}) {
-    const box = $("more-menu");
-    if (!box || box.hidden) return;
-    box.hidden = true;
-    $("more-btn")?.setAttribute("aria-expanded", "false");
-    if (restoreFocus && moreReturn && document.contains(moreReturn)) moreReturn.focus();
-}
-
 /* ==================== NOTIFICĂRI ==================== */
 let notifReturn = null;
 
@@ -325,17 +286,6 @@ function bindShellEvents() {
         if ((event.ctrlKey || event.metaKey) && !event.shiftKey && k.toLowerCase() === "z" && pendingUndo && !isTyping(event.target)) {
             event.preventDefault();
             pendingUndo.run();
-            return;
-        }
-        if (!$("more-menu").hidden) {
-            if (k === "Escape") { event.preventDefault(); event.stopPropagation(); closeMoreMenu(); return; }
-            if (k === "ArrowDown" || k === "ArrowUp") {
-                event.preventDefault();
-                const items = [...$("more-menu").querySelectorAll(".qa-item")];
-                const i = items.indexOf(document.activeElement);
-                items[(i + (k === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
-            }
-            trapFocusIn($("more-menu"), event);
             return;
         }
         if (!$("quick-add").hidden) {

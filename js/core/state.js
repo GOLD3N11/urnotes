@@ -15,9 +15,9 @@ const state = {
     achievements: Object.fromEntries(ACHIEVEMENTS.map(a => [a.key, false])),
     settings: clone(DEFAULT_SETTINGS),
     plan: defaultPlan(),
-    archive: [],     // anii școlari încheiați (js/years.js)
-    exams: defaultExams(), // Evaluarea Națională / Bacalaureat (js/exams.js)
-    pal: defaultPal()      // colegul care crește (js/growth.js)
+    archive: [],     // anii școlari încheiați (js/eu/years.js)
+    exams: defaultExams(), // Evaluarea Națională / Bacalaureat (js/plan/exams.js)
+    pal: defaultPal()      // colegul care crește (js/eu/growth.js)
 };
 
 let metrics = emptyMetrics();

@@ -243,6 +243,3 @@ function buildPrintReport() {
             </section>` : ""}`;
 }
 
-function printStatsReport() {
-    openReportPanel();
-}

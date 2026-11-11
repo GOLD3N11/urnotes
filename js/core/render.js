@@ -12,14 +12,14 @@ function registerTab(id, def) {
     TAB_RENDERERS[id] = def.render;
 }
 
-/** Colegul din meniu: fața lui pe butonul „Eu” (telefon) și cartonașul cu nivelul (meniul lateral). */
+/** Colegul din meniu: fața lui pe butonul „Eu” (bara de sus, telefon) și cartonașul cu nivelul (meniul lateral). */
 function renderPalChrome() {
     const look = palLook();
     const p = palProgress();
     const key = `${look.color}|${look.acc}|${p.level}|${Math.round(p.pct * 20)}|${buddyName()}`;
     if (renderPalChrome.key === key) return;
     renderPalChrome.key = key;
-    const navIcon = document.querySelector("#more-btn > span:first-child");
+    const navIcon = document.querySelector("#me-btn > .me-btn-face");
     if (navIcon) navIcon.innerHTML = icon("user", "nav-user") + buddySVG("happy", "nav-pal"); // stilul simplu arată iconița, cel colorat colegul
     const card = $("side-pal");
     if (card) card.innerHTML = `

@@ -334,7 +334,7 @@ GUEST_OK.add("win-mode");
    dar lasă întâi meniurile mici dinăuntru (liste, căutarea, bara de adăugat) să se închidă singure. */
 window.addEventListener("keydown", event => {
     if (event.key !== "Escape" || event.defaultPrevented) return;
-    const inner = [$("np-pop"), $("palette"), $("cc-overlay"), $("tt-overlay"), $("setup"), $("auth"), $("quick-add"), $("more-menu")]
+    const inner = [$("np-pop"), $("palette"), $("cc-overlay"), $("tt-overlay"), $("setup"), $("auth"), $("quick-add")]
         .some(el => el && !el.hidden) || document.querySelector(".cs-open, .emoji-pop, .qg-pop:not([hidden])");
     if (inner) return;
     const notif = $("notif-panel"), modal = $("action-modal");

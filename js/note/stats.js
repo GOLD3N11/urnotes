@@ -392,8 +392,6 @@ function runStatsAnimations(root) {
 function renderStatistics() {
     const body = $("stats-body");
     if (!body) return;
-    const examSub = $("note-exam-sub");
-    if (examSub) examSub.textContent = examKind() === "en" ? "Evaluarea Națională" : "Bacalaureatul";
     const year = statsEntries();
     const hasSubjects = year.length > 0;
     $("stats-empty").hidden = hasSubjects;
@@ -595,7 +593,7 @@ function ringHTML(pct, { label, value, sub, primary = false, tone = "" }) {
                 <text x="42" y="47" text-anchor="middle" class="goal-pct">${Math.round(p * 100)}%</text>
             </svg>
             <div class="goal-text">
-                <span class="kpi-title">${label}${primary ? ' <span class="goal-star" title="Obiectivul principal din Setări">★</span>' : ""}</span>
+                <span class="kpi-title">${label}${primary ? ' <span class="goal-star" title="Obiectivul principal din „Eu”">★</span>' : ""}</span>
                 <b>${value}</b>
                 <small>${sub}</small>
             </div>
@@ -1074,4 +1072,4 @@ function setStatsPeriod(id) {
 
 /* ---------- raport pentru printare ---------- */
 
-registerTab("tab-statistici", { render: renderStatistics, title: "Progresul tău", icon: "chart", group: "stats" });
+registerTab("tab-statistici", { render: renderStatistics, title: "Progresul tău", icon: "chart", group: "grades", hub: "tab-catalog" });

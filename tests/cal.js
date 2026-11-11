@@ -166,7 +166,7 @@ const set = (id, v) => { $(id).value = v; };
   click(q(`.cal-mcell[data-date="${plus(3)}"]`));
   assert(T.ui.cal.view === "agenda" && q(`.ag-day[data-date="${plus(3)}"]`), "month cell → agenda around that day");
 
-  // orarul: săptămâna colorată (js/timetable.js)
+  // orarul: săptămâna colorată (js/calendar/timetable.js)
   const ttOpen = () => !$("tt-overlay").hidden;
   const ttNames = day => qa(`.tt-col[data-day="${day}"] .tt-cell .tt-name`).map(n => n.textContent);
   const tkey = (k) => w.document.body.dispatchEvent(new w.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));

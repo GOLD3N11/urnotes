@@ -9,7 +9,7 @@
         /* GitHub Pages servește doar fișiere. O adresă ca …/urnotes/calendar ajunge aici și e trimisă înapoi la
            aplicație cu ?route=calendar; aplicația (js/router.js) pune adresa la loc. */
         (function () {
-            var known = ["azi", "calendar", "note", "plan", "progres", "ce-ar-fi-daca", "examene", "setari"];
+            var known = ["azi", "calendar", "note", "plan", "progres", "ce-ar-fi-daca", "examene", "eu", "setari"];
             var parts = location.pathname.replace(/\/+$/, "").split("/");
             var seg = (parts[parts.length - 1] || "").toLowerCase();
             if (known.indexOf(seg) >= 0) {

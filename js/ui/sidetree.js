@@ -1,4 +1,4 @@
-/* urNotes · Meniul lateral ca un arbore de pagini (ca în Notion): Azi, Calendar, Note → fiecare materie, Mai mult → Plan, Progres…
+/* urNotes · Meniul lateral ca un arbore de pagini (ca în Notion): Azi, Note → fiecare materie, Calendar, Plan; Eu jos
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 

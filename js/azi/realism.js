@@ -33,7 +33,7 @@ function realGradeProblem(mat, grade, skip = null) {
     return R.gradeProblem(grade, list, grade.date ? gradesOnDay(grade.date, skip) : 0, { today: getLocalDateKey(), modules: state.settings.modules });
 }
 
-/* „Zi de școală?” = isSchoolDay din js/azi.js (weekend, vacanțe și sărbători legale). */
+/* „Zi de școală?” = isSchoolDay din js/azi/azi.js (weekend, vacanțe și sărbători legale). */
 /** Ultima zi de școală până la `date` inclusiv (pentru notele adăugate în weekend sau în vacanță). */
 function lastSchoolDay(date = getLocalDateKey()) {
     let d = date;

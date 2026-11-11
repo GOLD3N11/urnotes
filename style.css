@@ -2505,11 +2505,15 @@ kbd {
 @media (max-width: 1120px) {
     .azi-col { display: contents; }
     
+    /* ziua elevului: acum → ce-ai luat → orele → de făcut → planul → la note → săptămâna */
+    .azi-start, .azi-install { order: 0; }
     .azi-next-wrap { order: 1; }
-    .azi-todo { order: 2; }
+    .azi-real, .azi-year { order: 2; }
     .azi-day { order: 3; }
-    .azi-plan { order: 4; }
-    .azi-week { order: 5; }
+    .azi-todo { order: 4; }
+    .azi-plan { order: 5; }
+    .azi-focus { order: 6; }
+    .azi-week { order: 7; }
     
     
     

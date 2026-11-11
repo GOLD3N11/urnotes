@@ -8,8 +8,6 @@ function bindSheetDrag() {
         { root: "action-modal", card: ".modal-card", scroller: "#action-modal-body", close: () => closeActionModal(), allowed: () => !cloud.asking,
           fade: (el, p) => { el.style.backgroundColor = p === null ? "" : `rgba(15, 23, 42, ${(0.3 * (1 - p)).toFixed(3)})`; } },
         { root: "quick-add", card: ".quick-add-card", close: () => closeQuickAdd(),
-          fade: (el, p) => { const b = el.querySelector(".quick-add-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } },
-        { root: "more-menu", card: ".quick-add-card", close: () => closeMoreMenu(),
           fade: (el, p) => { const b = el.querySelector(".quick-add-backdrop"); if (b) b.style.opacity = p === null ? "" : String(1 - p); } }
     ];
     let drag = null;
@@ -91,7 +89,7 @@ function bindSheetDrag() {
 /* ---------- cu o foaie sau un meniu deschis, pagina de dedesubt stă pe loc ---------- */
 /* Pe iPhone, „overflow: hidden” nu ajunge: pagina tot se derulează și se întinde sub foaie. O fixăm acolo unde era
    și o punem la loc când se închide totul. */
-const OVERLAY_IDS = ["action-modal", "quick-add", "more-menu", "notif-panel", "setup", "auth"];
+const OVERLAY_IDS = ["action-modal", "quick-add", "notif-panel", "setup", "auth"];
 const scrollLock = { on: false, y: 0 };
 function syncScrollLock() {
     // o fereastră lipită în dreapta/stânga sau plutitoare (pe calculator) lasă pagina folosibilă: se poate derula

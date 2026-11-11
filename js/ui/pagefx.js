@@ -2,7 +2,7 @@
    Un post-it „se lipește” în mijloc cu desenul animat al paginii (soarele pentru Azi, foaia de calendar care se rupe,
    caietul care își întoarce pagina, cronometrul, graficul care crește, ținta, toca aruncată în aer, rotițele),
    apoi pleacă și cardurile paginii noi intră pe rând. Nu oprește nimic: poți apăsa oricând în timpul ei.
-   Se oprește din Setări (Profil › Aspect) și dispare cu „reducere mișcare”.
+   Se oprește din „Eu” (Profil › Aspect) și dispare cu „reducere mișcare”.
    Fișierele din js/ se încarcă în ordinea din index.html și împart același spațiu global (scripturi clasice). */
 "use strict";
 

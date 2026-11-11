@@ -1,5 +1,5 @@
-/* Datele școlare ale aplicației (anii, săptămâna de schi pe județe, examenele), citite direct din js/config.js și
-   js/exams.js, în forma pe care o trimite serverul. Așa testul nu ține o copie a lor care să rămână în urmă. */
+/* Datele școlare ale aplicației (anii, săptămâna de schi pe județe, examenele), citite direct din js/core/config.js și
+   js/plan/exams.js, în forma pe care o trimite serverul. Așa testul nu ține o copie a lor care să rămână în urmă. */
 const fs = require("fs"), path = require("path"), vm = require("vm");
 
 function literal(src, name) {
@@ -17,8 +17,8 @@ function literal(src, name) {
 }
 
 module.exports = dir => {
-    const config = fs.readFileSync(path.join(dir, "js", "config.js"), "utf8");
-    const exams = fs.readFileSync(path.join(dir, "js", "exams.js"), "utf8");
+    const config = fs.readFileSync(path.join(dir, "js", "core", "config.js"), "utf8");
+    const exams = fs.readFileSync(path.join(dir, "js", "plan", "exams.js"), "utf8");
     const counties = {};
     for (const [county, id] of Object.entries(literal(config, "COUNTY_WEEK"))) {
         const [year, week] = id.split("-");

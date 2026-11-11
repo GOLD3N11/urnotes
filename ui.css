@@ -151,7 +151,6 @@ body.dark-mode .app-bar.is-scrolled { box-shadow: 0 6px 18px -12px rgba(0, 0, 0,
     /* titlul paginii apare în bară abia când pagina l-a acoperit (la început e deja mare, dedesubt) */
     .topbar-crumb b { opacity: 0; transform: translateY(6px); transition: opacity 0.2s ease, transform 0.2s ease; }
     body.is-subpage .topbar-crumb b, body.title-docked .topbar-crumb b { opacity: 1; transform: none; }
-    .page-intro .page-back { display: none; }            /* „înapoi” e în bară */
 }
 @media (max-width: 900px) {
     .app-bar { margin-bottom: 10px; }
@@ -160,7 +159,6 @@ body.dark-mode .app-bar.is-scrolled { box-shadow: 0 6px 18px -12px rgba(0, 0, 0,
     body.is-subpage .topbar-brand .brand-logo, body.is-subpage .topbar-brand .brand-name { display: none; }
     body.is-subpage .topbar-title { left: 6px; }
     body.is-subpage:not(.title-docked) .topbar-title { opacity: 0; }
-    .page-intro .page-back { display: none; }
 }
 @media (min-width: 901px) {
     .quick-add-btn { display: none; }
@@ -214,14 +212,6 @@ body.dark-mode .app-bar.is-scrolled { box-shadow: 0 6px 18px -12px rgba(0, 0, 0,
 .page-intro h2 .help-dot { margin-left: 0.1em; }
 .page-intro p { margin-top: 6px; max-width: 62ch; }
 .page-intro p { color: var(--ink-2); font-size: 15px; }
-.page-back {
-    display: inline-flex; align-items: center; gap: 4px; margin: 0 0 10px -6px; padding: 6px 12px 6px 6px;
-    background: var(--sheet); border: 1px solid var(--rule); border-radius: 99px;
-    font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink-2); cursor: pointer;
-}
-.page-back .ico { width: 18px; height: 18px; transform: rotate(180deg); }
-.page-back:hover { color: var(--accent-color); border-color: var(--accent-color); }
-.page-back:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent-color) 40%, transparent); outline-offset: 2px; }
 
 /* colegul din antet: mai mic, ca un sticker */
 .pal-face, .pal-face .buddy { width: 52px; height: 52px; }
@@ -272,19 +262,6 @@ body.dark-mode .home-tile:not(.is-hero) .home-tile-label { color: var(--ink-2); 
 .cat-sum-value { font-family: var(--font-hand); font-size: 38px; font-weight: 800; line-height: 1.05; }
 .cat-sum.is-accent .cat-sum-value { color: inherit; font-size: 46px; }
 
-.note-links { display: flex; gap: 10px; margin-bottom: 18px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
-.note-links::-webkit-scrollbar { display: none; }
-.note-link {
-    flex: 1 0 200px; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-    background: var(--sheet); border: 1px solid var(--rule); border-radius: 18px;
-    font: inherit; color: var(--ink); text-align: left; cursor: pointer;
-}
-.note-link .ico { flex: none; width: 40px; height: 40px; padding: 9px; border-radius: 13px; background: color-mix(in srgb, var(--tile) 18%, transparent); color: var(--tile); }
-.note-link span { display: grid; }
-.note-link b { font-size: 15px; }
-.note-link small { color: var(--ink-2); font-size: 12.5px; }
-.note-link:hover { border-color: var(--tile); }
-.note-link:focus-visible { outline: 3px solid color-mix(in srgb, var(--tile) 45%, transparent); outline-offset: 2px; }
 
 /* Lista: plăci pe fundal, fără „cutie” în jur; filtrele și sortarea au plecat (cele la risc vin primele) */
 .cat-list-pane { background: transparent; border: 0; box-shadow: none; padding: 0; }
@@ -334,7 +311,6 @@ body.dark-mode .cat-row.subj-tile.selected { border-color: var(--subj); }
     .home-tile-value { font-size: 34px; }
     .cat-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .cat-sum.is-accent { grid-column: 1 / -1; }
-    .note-link { flex-basis: 180px; }
 }
 @media (max-width: 600px) {
     :root { --page-pad: 14px; --gap-grid: 12px; }
@@ -566,7 +542,7 @@ body.dark-mode .splash { background: #111319; }
 body.dark-mode .home-tile:not(.is-hero) small, body.dark-mode .cat-sum:not(.is-accent) small { color: color-mix(in srgb, var(--ink) 88%, transparent); }
 body.dark-mode .side-pal-btn { background: color-mix(in srgb, var(--note) 14%, var(--sheet)); }
 body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, transparent); }
-.more-tab .nav-user { display: none; }
+.me-btn .nav-user { display: none; }
 
 /* ==========================================================================
    STRUCTURA CA ÎN NOTION (ambele stiluri)
@@ -607,7 +583,6 @@ body.dark-mode .side-pal-text small { color: color-mix(in srgb, var(--ink) 85%, 
 .catalog-layout:not(.show-detail) .cat-detail-pane,
 #tab-catalog.cat-detail-open .page-intro,
 #tab-catalog.cat-detail-open .cat-summary,
-#tab-catalog.cat-detail-open .note-links { display: none; }
 .cat-back { display: inline-flex; }
 .catalog-layout:not(.show-detail) .cat-list-pane { max-width: 860px; }
 .catalog-layout .cat-row.selected:not(:focus-visible) { border-color: transparent; }
@@ -743,13 +718,6 @@ body.dark-mode .week-stat .is-up { color: #7BC59A; }
 
 /* --- Lustruire --- */
 /* Note: legăturile spre Progres / Ce-ar fi dacă / Examene încap toate, fără derulare laterală */
-@media (max-width: 600px) {
-    .note-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 8px; }
-    .note-link { min-width: 0; padding: 10px 12px; gap: 10px; }
-    .note-link:last-child:nth-child(odd) { grid-column: 1 / -1; }
-    .note-link .ico { width: 34px; height: 34px; padding: 7px; }
-    .note-link b { font-size: 14px; }
-}
 /* lista de materii: o pagină, nu o cutie cu derulare proprie */
 .catalog-layout .cat-list-pane { position: static; max-height: none; }
 
@@ -1694,12 +1662,12 @@ body.dark-mode .side-pill { background: color-mix(in srgb, var(--accent-color) 2
 @keyframes ripple { to { transform: scale(1); opacity: 0; } }
 
 /* apăsat: butoanele și cardurile se lasă puțin, revin cu arc */
-.btn, .setup-choice, .cc-chip, .tt-tap, .set-sec, .setup-qchip, .setup-qval, .note-link, .mobile-add, .side-add { transition: transform .18s var(--spring), background-color .15s, box-shadow .2s, border-color .15s, color .15s; }
+.btn, .setup-choice, .cc-chip, .tt-tap, .set-sec, .setup-qchip, .setup-qval, .mobile-add, .side-add { transition: transform .18s var(--spring), background-color .15s, box-shadow .2s, border-color .15s, color .15s; }
 .btn:active:not([disabled]), .cc-chip:active, .set-sec:active, .setup-qchip:active, .setup-qval:active { transform: scale(.96); }
-.setup-choice:active, .note-link:active { transform: scale(.985); }
+.setup-choice:active { transform: scale(.985); }
 @media (hover: hover) and (pointer: fine) {
-    .cat-row, .home-tile, .note-link, .setup-choice, .azi-lesson { transition: transform .22s var(--spring), box-shadow .22s; }
-    .cat-row:hover, .note-link:hover, .setup-choice:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -16px rgba(0, 0, 0, .35); }
+    .cat-row, .home-tile, .setup-choice, .azi-lesson { transition: transform .22s var(--spring), box-shadow .22s; }
+    .cat-row:hover, .setup-choice:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -16px rgba(0, 0, 0, .35); }
     .azi-lesson:hover { transform: translateX(3px); }
 }
 
@@ -1849,3 +1817,57 @@ body.modal-open:has(#action-modal.is-modeless:not([hidden])), body:has(#notif-pa
 .account-mode { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; font-size: 13.5px; color: var(--ink-2); }
 .account-mode .ico { width: 16px; height: 16px; color: var(--accent-ink); }
 .account-mode a { color: var(--accent-ink); font-weight: 700; }
+
+/* ==========================================================================
+   FILELE UNEI SECȚIUNI (Note: Materii · Progres · Ce-ar fi dacă; Plan: Săptămâna · Examene)
+   ========================================================================== */
+.subnav {
+    display: flex; gap: 4px; width: fit-content; max-width: 100%; margin: 0 0 18px; padding: 4px;
+    border: 1px solid var(--rule); border-radius: 14px; background: var(--paper);
+    overflow-x: auto; scrollbar-width: none;
+}
+.subnav::-webkit-scrollbar { display: none; }
+.subnav-btn {
+    display: inline-flex; align-items: center; gap: 7px; flex: none; min-height: 40px; padding: 0 16px;
+    border: 0; border-radius: 10px; background: none; color: var(--ink-2);
+    font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.subnav-btn .ico { width: 17px; height: 17px; }
+.subnav-btn:hover { color: var(--ink); }
+.subnav-btn.active { background: var(--sheet); color: var(--accent-color); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14); }
+.subnav-btn:focus-visible { outline: 2px solid var(--focus, var(--accent-ink)); outline-offset: 1px; }
+body.dark-mode .subnav-btn.active { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+.tab-content > .subnav { order: -1; }
+@media (max-width: 600px) {
+    .subnav { width: 100%; }
+    .subnav-btn { flex: 1 0 auto; justify-content: center; padding: 0 12px; font-size: 14px; }
+}
+
+/* „Eu” în bara de sus (doar pe telefon; pe ecrane mari e în meniul lateral) */
+.me-btn {
+    display: none; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+    border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); cursor: pointer; overflow: hidden;
+}
+.me-btn .me-btn-face { display: grid; place-items: center; }
+.me-btn .nav-pal { width: 30px; height: 30px; margin: 0; }
+.me-btn .ico { width: 20px; height: 20px; }
+.me-btn.active { border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent); }
+@media (max-width: 900px) { .me-btn { display: grid; } }
+
+/* Azi › „La note” */
+.azi-focus-list { margin: 10px 0 6px; padding: 0; }
+.azi-focus-list .insight { grid-template-columns: 26px minmax(0, 1fr) auto; padding: 9px 10px; }
+.azi-focus-list .insight-go { min-width: 36px; min-height: 36px; padding: 0; justify-content: center; }
+
+/* Plan › „Ținte pe modul”: rânduri ca listele de pe Azi (stilurile se pierduseră la o reproiectare) */
+.azi-watch-row {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 8px 0;
+    border: 0; border-bottom: 1px solid var(--rule); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.plan-goal-list li:last-child .azi-watch-row { border-bottom: 0; }
+.azi-watch-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.azi-watch-main b { font-size: 14px; font-weight: 650; }
+.azi-watch-main small { font-size: 12.5px; line-height: 1.4; color: var(--ink-2); }
+.azi-watch-row:hover b { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.azi-watch-row:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; border-radius: 6px; }
+.azi-watch-row .azi-lesson-avg { flex: none; }

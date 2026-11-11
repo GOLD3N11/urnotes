@@ -256,30 +256,6 @@ function deleteGrade(mat, idx) {
 }
 
 /* ==================== MATERII ==================== */
-/** Verifică numele unei materii; întoarce numele curățat sau null (cu mesaj). */
-function validateSubjectName(raw, currentName = null) {
-    const name = String(raw).trim().replace(/\s+/g, " ");
-    if (!name) {
-        showToast("⚠️ Introdu numele materiei.");
-        return null;
-    }
-    if (name === "__proto__" || name === PURTARE_KEY) {
-        showToast("⚠️ Numele materiei nu este valid.");
-        return null;
-    }
-    if (isLegacyPurtareName(name) && !(currentName && isLegacyPurtareName(currentName))) {
-        showToast("⚠️ Purtarea este deja în catalog (preinstalată).");
-        return null;
-    }
-    const duplicate = Object.keys(state.subjects).find(m =>
-        m !== currentName && m.toLocaleLowerCase("ro") === name.toLocaleLowerCase("ro"));
-    if (duplicate) {
-        showToast(`⚠️ Materia ${duplicate} există deja.`);
-        return null;
-    }
-    return name;
-}
-
 function subjectFormHTML({ name = "", ore = 2, target = 10, priority = false, excludeFromGPA = false } = {}, { withFlags = false, withName = true } = {}) {
     return `
         ${withName ? subjectNameFieldHTML(name) : ""}

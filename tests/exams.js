@@ -40,7 +40,7 @@ const DATA = {
   assert(T.examEstimate(subs[0]).from === "catalog" && T.examEstimate(subs[0]).val === 9, "estimate falls back to the catalog");
   click(q('[data-action="nav"][data-tab="tab-examene"]'));
   assert(/^241$/.test(q(".exam-days").textContent.trim()) && /E\.a\) Limba/.test($("exam-root").textContent), "countdown: 241 days to E.a (14 June 2027)");
-  assert(q('.side-link.active').dataset.tab === "tab-statistici" && q("#tab-examene .page-back")?.dataset.tab === "tab-statistici" && /Bacalaureatul/.test($("h-examene").textContent), "exams is a sub-page of Progres");
+  assert(q('.side-link.active').dataset.tab === "tab-plan" && q("#tab-examene .subnav-btn.active")?.dataset.tab === "tab-examene" && /Bacalaureatul/.test($("h-examene").textContent), "exams is a tab of Plan");
   assert(q("#tab-examene .page-pal").hidden && q("#h-examene .page-ico"), "page header: line icon, no mascot");
   // reguli
   const A = v => T.examAverage("bac", v);

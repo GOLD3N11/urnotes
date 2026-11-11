@@ -1,5 +1,5 @@
 /* urNotes · Adresele paginilor: fiecare pagină principală are adresa ei
-   (…/urnotes/azi, /calendar, /note, /plan, /progres, /setari), cu Înapoi și Înainte din browser.
+   (…/urnotes/azi, /note, /progres, /calendar, /plan, /eu …), cu Înapoi și Înainte din browser.
    GitHub Pages servește doar fișiere: o adresă ca …/urnotes/calendar ajunge întâi la 404.html, care trimite
    înapoi la aplicație cu ?route=calendar; aici adresa se pune la loc. Cu lucrătorul offline instalat (sw.js),
    aplicația vine direct, fără ocolul prin 404.html.
@@ -10,12 +10,12 @@ const appRoutes = (() => {
     const ROUTES = {
         azi: "tab-dashboard", calendar: "tab-calendar", note: "tab-catalog", plan: "tab-plan",
         progres: "tab-statistici", "ce-ar-fi-daca": "tab-simulator", examene: "tab-examene",
-        setari: "tab-setari"
+        eu: "tab-setari", setari: "tab-setari" // „setari” = adresa veche, duce tot la Eu
     };
-    const SLUG = Object.fromEntries(Object.entries(ROUTES).map(([slug, tab]) => [tab, slug]));
+    const SLUG = Object.fromEntries(Object.entries(ROUTES).reverse().map(([slug, tab]) => [tab, slug])); // prima adresă a unei pagini e cea de bază
     // rădăcina aplicației (…/urnotes/), din locul acestui fișier: merge și pe GitHub Pages, și local
     const BASE = (() => {
-        try { return new URL("..", document.currentScript.src).pathname; } catch (_) { return "/"; }
+        try { return new URL("../..", document.currentScript.src).pathname; } catch (_) { return "/"; }
     })();
     const slugFromPath = () => {
         const p = location.pathname;
@@ -58,6 +58,7 @@ const appRoutes = (() => {
         if (!tab) { try { history.replaceState(history.state, "", BASE + query()); } catch (_) {} return; } // adresă necunoscută → începutul
         applying = true;
         try { if (ui.activeTab !== tab) switchTab(tab); } finally { applying = false; }
+        if (slug && SLUG[tab] !== slug) { try { history.replaceState(history.state, "", BASE + SLUG[tab] + query() + location.hash); } catch (_) {} } // /setari → /eu
         setTitle(tab);
     }
 

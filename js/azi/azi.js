@@ -338,6 +338,7 @@ function renderDashboard() {
     part("orele", () => { $("azi-day").innerHTML = homeDayHTML(days, links); }, "azi-day");
     part("de făcut", () => { $("azi-todo").innerHTML = homeTodoHTML(todo, links, days.today, step.key || ""); }, "azi-todo");
     part("săptămâna", () => { if ($("azi-week")) { const wh = homeWeekHTML(days.today, links); $("azi-week").innerHTML = wh; $("azi-week").hidden = !wh; } }, "azi-week");
+    part("la note", () => { if ($("azi-focus")) { const fh = homeFocusHTML(); $("azi-focus").innerHTML = fh; $("azi-focus").hidden = !fh; } }, "azi-focus");
     part("planul", () => { if ($("azi-plan")) $("azi-plan").innerHTML = homePlanHTML(days.today); }, "azi-plan");
     part("anul", () => { if ($("azi-year")) { const yh = homeYearHTML(); $("azi-year").innerHTML = yh; $("azi-year").hidden = !yh; } });
     part("realism", () => { if ($("azi-real") && typeof realismCardHTML === "function") { const rh = guest?.on ? "" : realismCardHTML(); $("azi-real").innerHTML = rh; $("azi-real").hidden = !rh; } });
@@ -486,6 +487,24 @@ function homeStartHTML() {
 
 function homeCardHead(id, iconName, title, extra = "") {
     return `<div class="azi-card-head"><h3 id="${id}">${icon(iconName)} ${title}</h3>${extra}</div>`;
+}
+
+/** „La note”: cele mai importante 3 concluzii din Progres, cu drum direct la materie. */
+function homeFocusHTML() {
+    if (typeof buildInsights !== "function" || !Object.keys(state.subjects).length) return "";
+    const entries = statsEntries().filter(e => e.d); // o materie abia adăugată poate să nu aibă încă cifrele calculate
+    const items = buildInsights(entries).filter(it => it.tone !== "good").slice(0, 3);
+    const body = items.length
+        ? `<ul class="insights azi-focus-list">${items.map(it => `
+            <li class="insight is-${it.tone}">
+                <span class="insight-icon" aria-hidden="true">${icon(it.icon)}</span>
+                <span class="insight-main"><b>${escapeHTML(it.title)}</b><small>${escapeHTML(it.text)}</small></span>
+                ${it.mat ? `<button type="button" class="btn btn-text btn-sm insight-go" data-action="open-subject" data-mat="${escapeHTML(it.mat)}"
+                    aria-label="${escapeHTML(`Deschide ${it.mat === PURTARE_KEY ? "Purtare" : it.mat}`)}">${icon("chevron")}</button>` : ""}
+            </li>`).join("")}</ul>`
+        : `<p class="azi-more-line">${icon("check-circle")} Nicio materie în risc și nimic care să scadă. Ține-o tot așa!</p>`;
+    return `${homeCardHead("azi-focus-title", "target", "La note")}${body}
+        <button type="button" class="btn btn-text btn-sm" data-action="nav" data-tab="tab-statistici">${icon("chart")} Tot progresul</button>`;
 }
 
 /** Eticheta unui eveniment lângă materie: tipul (sau titlul, dacă e unul propriu) + ora. */
@@ -782,15 +801,6 @@ function homeWeekHTML(today, links = gradeLinks()) {
         <p class="week-next">${icon("calendar")} ${nextTests.length
             ? `${recap ? "Săptămâna asta" : "Săptămâna viitoare"}: ${escapeHTML(nextTests.slice(0, 3).map(o => o.ev.subject ? shortSubjectName(o.ev.subject) : o.ev.title).join(", "))}${nextTests.length > 3 ? ` și încă ${nextTests.length - 3}` : ""} (${plural(nextTests.length, "evaluare", "evaluări")}).`
             : `${recap ? "Săptămâna asta" : "Săptămâna viitoare"} n-ai nicio evaluare în calendar.`}</p>`;
-}
-
-function formatActivityTime(act) {
-    if (!act.ts) return act.time || "";
-    const date = new Date(act.ts);
-    if (Number.isNaN(date.getTime())) return act.time || "";
-    return getLocalDateKey(date) === getLocalDateKey()
-        ? act.time
-        : `${date.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" })} ${act.time}`;
 }
 
 registerTab("tab-dashboard", { render: renderDashboard, title: "Azi", icon: "home", group: "home" });

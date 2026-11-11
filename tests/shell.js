@@ -23,21 +23,23 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
 
 (async () => {
   if (w.document.readyState === "loading") await new Promise(r => w.document.addEventListener("DOMContentLoaded", r));
-  // side menu
-  assert(qa(".side-nav .side-link").length === 5 && q(".side-foot [data-tab='tab-setari']") && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Calendar, Note, Plan, Progres + Adaugă + Caută; Setări at the bottom");
+  // side menu: patru secțiuni + Eu
+  assert(qa(".side-nav .side-link").map(b => b.dataset.tab).join() === "tab-dashboard,tab-catalog,tab-calendar,tab-plan" && q(".side-foot [data-tab='tab-setari']") && /Eu/.test(q(".side-foot [data-tab='tab-setari']").textContent) && q(".side-nav .side-add") && q(".side-nav .side-search"), "side menu: Azi, Note, Calendar, Plan + Adaugă + Caută; Eu at the bottom");
   click(q("[data-action='nav'][data-tab='tab-statistici']"));
-  assert(T.ui.activeTab === "tab-statistici" && q(".side-link.active").dataset.tab === "tab-statistici" && !w.document.body.classList.contains("is-subpage"), "Progres is a main page with its own menu item");
-  T.switchTab("tab-simulator");
-  assert(T.ui.activeTab === "tab-simulator" && q(".side-link.active").dataset.tab === "tab-statistici" && q(".side-link.active").getAttribute("aria-current") === "page" && w.document.body.classList.contains("is-subpage"), "sub-page lights its parent (Progres) in the menu");
-  assert(!$("topbar-back").hidden && $("topbar-back").dataset.tab === "tab-statistici" && /Progres/.test($("topbar-back").textContent) && /Progresul tău\s*[›\/]\s*\S*\s*Ce-ar fi dacă/.test($("topbar-crumb").textContent), "top bar: back to Progres + 'Progresul tău › Ce-ar fi dacă'");
+  assert(T.ui.activeTab === "tab-statistici" && q(".side-link.active").dataset.tab === "tab-catalog" && !w.document.body.classList.contains("is-subpage"), "Progres is a tab of Note and lights Note");
+  assert(q("#tab-statistici .subnav-btn.active")?.dataset.tab === "tab-statistici" && qa("#tab-statistici .subnav-btn").length === 3, "Note tabs: Materii · Progres · Ce-ar fi dacă, Progres on");
+  click(q('#tab-statistici .subnav-btn[data-tab="tab-simulator"]'));
+  assert(T.ui.activeTab === "tab-simulator" && q(".side-link.active").dataset.tab === "tab-catalog" && q(".side-link.active").getAttribute("aria-current") === "page", "the 'Ce-ar fi dacă' tab keeps Note lit");
+  assert($("topbar-back").hidden && /Note\s*[›\/]\s*\S*\s*Ce-ar fi dacă/.test($("topbar-crumb").textContent), "top bar: 'Note › Ce-ar fi dacă', no back button between tabs");
   click(q('#topbar-crumb .crumb-link'));
-  assert(T.ui.activeTab === "tab-statistici" && $("topbar-back").hidden && /Progresul tău$/u.test($("topbar-crumb").textContent.trim()), "crumb link returns to Progres; no back button on a main page");
-  T.switchTab("tab-simulator");
-  click(q('#tab-simulator .page-back'));
-  assert(T.ui.activeTab === "tab-statistici", "back button returns to Progres");
+  assert(T.ui.activeTab === "tab-catalog", "crumb link returns to Note");
+  T.switchTab("tab-examene");
+  assert(q(".side-link.active").dataset.tab === "tab-plan" && q("#tab-examene .subnav-btn.active")?.dataset.tab === "tab-examene", "Examene is a tab of Plan");
+  click(q('#tab-examene .subnav-btn[data-tab="tab-plan"]'));
+  assert(T.ui.activeTab === "tab-plan", "Plan tabs switch back");
   assert(!$("tab-alerte") && !q('[data-tab="tab-alerte"]'), "Alerte tab removed");
   // phone bar
-  assert(qa(".mobile-bottom-nav .mobile-nav-btn").length === 4 && q(".mobile-bottom-nav .mobile-add") && q(".mobile-bottom-nav #more-btn"), "phone bar: Azi, Note, Calendar, Eu + raised +");
+  assert(qa(".mobile-bottom-nav .mobile-nav-btn").map(b => b.dataset.tab).join() === "tab-dashboard,tab-catalog,tab-calendar,tab-plan" && q(".mobile-bottom-nav .mobile-add") && !$("more-btn") && $("me-btn"), "phone bar: Azi, Note, Calendar, Plan + raised +; Eu is the avatar up top");
 
   // notifications panel
   const unread = T.alerts.filter(a => a.unread).length;
@@ -85,19 +87,17 @@ const assert = (c, m) => { console.log(c ? "ok  " : "FAIL", m); if (!c) process.
   assert(/Fizică/.test(q("#palette-list .palette-item.is-on")?.textContent) || console.log(qa("#palette-list li").map(l => l.textContent.trim().replace(/\s+/g, " "))), "typing finds the subject without diacritics");
   key("Escape");
   assert($("palette").hidden, "Escape closes search");
-  // telefon: „Mai mult” (un clic real pune focusul pe buton)
-  $("more-btn").focus(); click($("more-btn"));
-  assert(!$("more-menu").hidden && $("more-btn").getAttribute("aria-expanded") === "true" && w.document.activeElement === q('#more-menu .qa-item'), "phone 'Eu' opens its menu with focus on the first item");
-  key("Escape");
-  assert($("more-menu").hidden && w.document.activeElement === $("more-btn"), "Escape closes it and returns focus");
-  assert(!q('#more-menu [data-kind="sim"]') && !q('#more-menu [data-kind="stats"]'), "Eu menu holds only account/settings things (pages live inside Note)");
-  click($("more-btn")); click(q('#more-menu [data-kind="settings"]'));
-  assert(T.ui.activeTab === "tab-setari", "More → Setări");
+  // Azi › „La note”: primele concluzii din Progres, cu drum la materie
+  T.switchTab("tab-dashboard");
+  assert(!$("azi-focus").hidden && qa("#azi-focus .insight").length >= 1 && qa("#azi-focus .insight").length <= 3 && q('#azi-focus [data-tab="tab-statistici"]'), "Azi shows up to 3 grade insights + link to Progres");
+  // „Eu”: o pagină (avatarul din bara de sus pe telefon)
+  click($("me-btn"));
+  assert(T.ui.activeTab === "tab-setari" && $("me-btn").classList.contains("active") && /Eu/.test($("h-setari").textContent), "avatar opens the Eu page and stays lit");
   const dark = w.document.body.classList.contains("dark-mode");
-  click($("more-btn")); click(q('#more-menu [data-kind="theme"]'));
-  assert(w.document.body.classList.contains("dark-mode") !== dark, "More → theme toggles");
+  click($("eu-theme"));
+  assert(w.document.body.classList.contains("dark-mode") !== dark, "Eu → theme toggles");
   click(q('[data-action="nav"][data-tab="tab-dashboard"]'));
-  assert(!$("more-btn").classList.contains("is-active"), "button not highlighted elsewhere");
+  assert(!$("me-btn").classList.contains("active"), "avatar not lit elsewhere");
   // Setări pe secțiuni
   click(q("[data-action='nav'][data-tab='tab-setari']"));
   assert(qa("#set-sec-nav .set-sec").length === 6 && $("settings-grid").dataset.sec, "settings: section menu with 6 sections");

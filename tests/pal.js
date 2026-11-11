@@ -46,8 +46,8 @@ const DATA = {
   assert(T.palLines("tab-catalog").some(l => /Mate.*sub 8/.test(l.text)), "catalog pal mood knows the risk subject");
   // uneltele (Ce-ar fi dacă, Examene) stau în Progres; Progres rămâne aprins în meniu
   nav("tab-statistici");
-  click(q('#tab-statistici .note-link[data-tab="tab-simulator"]'));
-  assert(T.ui.activeTab === "tab-simulator" && q('.side-link[data-tab="tab-statistici"]').classList.contains("active"), "Ce-ar fi dacă opens from Progres; Progres stays lit");
+  click(q('#tab-statistici .subnav-btn[data-tab="tab-simulator"]'));
+  assert(T.ui.activeTab === "tab-simulator" && q('.side-link[data-tab="tab-catalog"]').classList.contains("active"), "Ce-ar fi dacă is a tab of Note; Note stays lit");
   assert(!q('#tab-catalog .note-links'), "Note no longer repeats the tool links");
   console.log(process.exitCode ? "\nSOME FAILED" : "\nALL PASSED");
   process.exit(process.exitCode || 0);
